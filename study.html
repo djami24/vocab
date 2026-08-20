@@ -29,6 +29,7 @@
 const user = requireAuth();
 const params = new URLSearchParams(location.search);
 const levelId = params.get('level');
+const laterMode = params.get('mode') === 'later';
 const level = LEVELS.find(l => l.id === levelId);
 const root = document.getElementById('studyRoot');
 
@@ -36,6 +37,7 @@ let queue = [];
 let idx = 0;
 let flipped = false;
 let learnedThisSession = 0;
+let laterThisSession = 0;
 
 if (user) {
   document.getElementById('userLabel').textContent = user;
@@ -57,17 +59,40 @@ async function init() {
   }
   const progress = getProgress(user);
   const learnedSet = new Set(progress[levelId]);
-  const remaining = words.filter(w => !learnedSet.has(w.en.toLowerCase()));
+  let remaining;
 
-  if (remaining.length === 0) {
-    renderLevelComplete(words.length);
-    return;
+  if (laterMode) {
+    const laterSet = new Set(progress.later[levelId]);
+    remaining = words.filter(w => laterSet.has(w.en.toLowerCase()) && !learnedSet.has(w.en.toLowerCase()));
+    if (remaining.length === 0) {
+      renderNoLaterWords();
+      return;
+    }
+  } else {
+    remaining = words.filter(w => !learnedSet.has(w.en.toLowerCase()));
+    if (remaining.length === 0) {
+      renderLevelComplete(words.length);
+      return;
+    }
   }
 
   queue = shuffle(remaining).slice(0, SESSION_SIZE);
   idx = 0;
   learnedThisSession = 0;
+  laterThisSession = 0;
   renderCard();
+}
+
+function renderNoLaterWords() {
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🗂️</div>
+      <h2>Keyinroq ro'yxati bo'sh</h2>
+      <p>Ushbu darajada "Keyinroq" tugmasi bilan o'tkazib yuborilgan so'zlar yo'q.</p>
+      <div class="btns">
+        <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
+      </div>
+    </div>`;
 }
 
 function renderLevelComplete(total) {
@@ -83,11 +108,15 @@ function renderLevelComplete(total) {
 }
 
 function renderSessionComplete() {
+  const laterLine = laterThisSession > 0
+    ? `<b>${laterThisSession}</b> ta so'z "Keyinroq" ro'yxatiga qo'shildi — ularni Darajalar sahifasidan alohida o'rganishingiz mumkin.`
+    : '';
   root.innerHTML = `
     <div class="complete-box">
       <div class="emoji">✨</div>
       <h2>Sessiya tugadi</h2>
       <p>Siz bu sessiyada <b>${learnedThisSession}</b> ta yangi so'zni o'rgandingiz. Davom etasizmi?</p>
+      ${laterLine ? `<p class="later-note">${laterLine}</p>` : ''}
       <div class="btns">
         <button class="btn-primary" style="margin-top:0" onclick="init()">Yana o'rganish</button>
         <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
@@ -103,7 +132,7 @@ function renderCard() {
   root.innerHTML = `
     <div class="study-head">
       <a href="dashboard.html">← Darajalar</a>
-      <span class="counter">${level.name} · ${idx + 1} / ${queue.length}</span>
+      <span class="counter">${laterMode ? '↻ Keyinroq · ' : ''}${level.name} · ${idx + 1} / ${queue.length}</span>
     </div>
     <div class="session-track"><div class="session-fill" style="width:${(idx / queue.length) * 100}%"></div></div>
 
@@ -149,6 +178,10 @@ function handleLearned() {
 }
 
 function handleSkip() {
+  const item = queue[idx];
+  const before = getLaterWords(user, levelId).length;
+  markLater(user, levelId, item.en);
+  if (getLaterWords(user, levelId).length > before) laterThisSession++;
   idx++;
   renderCard();
 }

@@ -23,6 +23,10 @@
       <p>Har bir daraja o'zining alohida so'zlar to'plamiga ega — bir daraja ichida bir xil so'z ikki marta chiqmaydi.</p>
     </div>
 
+    <div class="stats-bar" id="statsBar">
+      <!-- JS orqali to'ldiriladi -->
+    </div>
+
     <div class="levels" id="levelsGrid">
       <!-- JS orqali to'ldiriladi -->
     </div>
@@ -42,6 +46,7 @@
 
   async function renderLevels() {
     const grid = document.getElementById('levelsGrid');
+    const statsBar = document.getElementById('statsBar');
     const progress = getProgress(user);
     grid.innerHTML = LEVELS.map((l, i) =>
       `<div class="level-card" style="opacity:.5" data-idx="0${i+1}">
@@ -50,6 +55,8 @@
       </div>`
     ).join('');
 
+    let totalLearned = 0, totalWords = 0, totalLater = 0;
+
     const cards = await Promise.all(LEVELS.map(async (level, i) => {
       let words = [];
       try { words = await loadLevelWords(level.id); } catch (e) { console.error(e); }
@@ -57,20 +64,48 @@
       const total = words.length;
       const pct = total ? Math.round((learned / total) * 100) : 0;
       const isDone = total > 0 && learned >= total;
+      const laterCount = progress.later[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
+
+      totalLearned += learned;
+      totalWords += total;
+      totalLater += laterCount;
 
       return `
-      <button class="level-card" data-idx="0${i+1}" onclick="location.href='study.html?level=${level.id}'">
-        <div class="lname">${level.name}</div>
-        <div class="ltarget">Yakuniy maqsad: ${level.target.toLocaleString('en-US')} ta so'z</div>
-        <div class="lbar-track">
-          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-          <div class="lcount"><span>Joriy to'plam</span><b>${learned} / ${total}</b></div>
-        </div>
-        ${isDone ? `<div class="done-pill">✓ Ushbu to'plam tugallandi</div>` : ''}
-      </button>`;
+      <div class="level-card" data-idx="0${i+1}">
+        <button class="level-hit" onclick="location.href='study.html?level=${level.id}'">
+          <div class="lname">${level.name}</div>
+          <div class="ltarget">Yakuniy maqsad: ${level.target.toLocaleString('en-US')} ta so'z</div>
+          <div class="lbar-track">
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div class="lcount"><span>Joriy to'plam</span><b>${learned} / ${total}</b></div>
+          </div>
+          ${isDone ? `<div class="done-pill">✓ Ushbu to'plam tugallandi</div>` : ''}
+        </button>
+        ${laterCount > 0 ? `
+        <div class="later-row">
+          <span class="later-tag">↻ Keyinroq: <b>${laterCount}</b> ta so'z</span>
+          <button class="btn-later" onclick="location.href='study.html?level=${level.id}&mode=later'">O'rganish</button>
+        </div>` : ''}
+      </div>`;
     }));
 
     grid.innerHTML = cards.join('');
+
+    const overallPct = totalWords ? Math.round((totalLearned / totalWords) * 100) : 0;
+    statsBar.innerHTML = `
+      <div class="stat-pill">
+        <span class="sp-num">${totalLearned}</span>
+        <span class="sp-lbl">Jami o'rganilgan so'z</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num">${overallPct}%</span>
+        <span class="sp-lbl">Umumiy progress</span>
+      </div>
+      <div class="stat-pill ${totalLater > 0 ? 'stat-pill--later' : ''}">
+        <span class="sp-num">${totalLater}</span>
+        <span class="sp-lbl">Keyinroqqa qoldirilgan</span>
+      </div>
+    `;
   }
 </script>
 </body>

@@ -52,10 +52,14 @@ function getProgress(user) {
   try {
     const p = JSON.parse(localStorage.getItem(progressKey(user)) || '{}');
     LEVELS.forEach(l => { if (!Array.isArray(p[l.id])) p[l.id] = []; });
+    if (!p.later || typeof p.later !== 'object') p.later = {};
+    LEVELS.forEach(l => { if (!Array.isArray(p.later[l.id])) p.later[l.id] = []; });
     return p;
   } catch {
     const empty = {};
     LEVELS.forEach(l => { empty[l.id] = []; });
+    empty.later = {};
+    LEVELS.forEach(l => { empty.later[l.id] = []; });
     return empty;
   }
 }
@@ -67,9 +71,26 @@ function markLearned(user, levelId, enWord) {
   const key = enWord.toLowerCase();
   if (!progress[levelId].includes(key)) {
     progress[levelId].push(key);
+  }
+  // So'z o'rganilgach, "keyinroq" ro'yxatidan olib tashlanadi
+  const li = progress.later[levelId].indexOf(key);
+  if (li !== -1) progress.later[levelId].splice(li, 1);
+  saveProgress(user, progress);
+  return progress;
+}
+
+// "Keyinroq" — foydalanuvchi hozircha o'tkazib yuborgan so'zlar shu yerga tushadi
+function markLater(user, levelId, enWord) {
+  const progress = getProgress(user);
+  const key = enWord.toLowerCase();
+  if (!progress.later[levelId].includes(key) && !progress[levelId].includes(key)) {
+    progress.later[levelId].push(key);
     saveProgress(user, progress);
   }
   return progress;
+}
+function getLaterWords(user, levelId) {
+  return getProgress(user).later[levelId];
 }
 
 // ── Word data ─────────────────────────────────────────────────────

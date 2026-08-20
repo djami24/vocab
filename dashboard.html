@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Darajalar | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button id="logoutBtn">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="dash-head">
+      <h1>Qaysi darajadan davom etamiz?</h1>
+      <p>Har bir daraja o'zining alohida so'zlar to'plamiga ega — bir daraja ichida bir xil so'z ikki marta chiqmaydi.</p>
+    </div>
+
+    <div class="levels" id="levelsGrid">
+      <!-- JS orqali to'ldiriladi -->
+    </div>
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const user = requireAuth();
+  if (user) {
+    document.getElementById('userLabel').textContent = user;
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    renderLevels();
+  }
+
+  async function renderLevels() {
+    const grid = document.getElementById('levelsGrid');
+    const progress = getProgress(user);
+    grid.innerHTML = LEVELS.map((l, i) =>
+      `<div class="level-card" style="opacity:.5" data-idx="0${i+1}">
+        <div class="lname">${l.name}</div>
+        <div class="ltarget">Yuklanmoqda...</div>
+      </div>`
+    ).join('');
+
+    const cards = await Promise.all(LEVELS.map(async (level, i) => {
+      let words = [];
+      try { words = await loadLevelWords(level.id); } catch (e) { console.error(e); }
+      const learned = progress[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
+      const total = words.length;
+      const pct = total ? Math.round((learned / total) * 100) : 0;
+      const isDone = total > 0 && learned >= total;
+
+      return `
+      <button class="level-card" data-idx="0${i+1}" onclick="location.href='study.html?level=${level.id}'">
+        <div class="lname">${level.name}</div>
+        <div class="ltarget">Yakuniy maqsad: ${level.target.toLocaleString('en-US')} ta so'z</div>
+        <div class="lbar-track">
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="lcount"><span>Joriy to'plam</span><b>${learned} / ${total}</b></div>
+        </div>
+        ${isDone ? `<div class="done-pill">✓ Ushbu to'plam tugallandi</div>` : ''}
+      </button>`;
+    }));
+
+    grid.innerHTML = cards.join('');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>O'rganish | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="studyRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const user = requireAuth();
+const params = new URLSearchParams(location.search);
+const levelId = params.get('level');
+const level = LEVELS.find(l => l.id === levelId);
+const root = document.getElementById('studyRoot');
+
+let queue = [];
+let idx = 0;
+let flipped = false;
+let learnedThisSession = 0;
+
+if (user) {
+  document.getElementById('userLabel').textContent = user;
+  if (!level) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="dashboard.html" style="color:var(--mustard)">Darajalarga qaytish</a></p></div>`;
+  } else {
+    init();
+  }
+}
+
+async function init() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">📖</div><p>So'zlar yuklanmoqda...</p></div>`;
+  let words = [];
+  try {
+    words = await loadLevelWords(levelId);
+  } catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
+    return;
+  }
+  const progress = getProgress(user);
+  const learnedSet = new Set(progress[levelId]);
+  const remaining = words.filter(w => !learnedSet.has(w.en.toLowerCase()));
+
+  if (remaining.length === 0) {
+    renderLevelComplete(words.length);
+    return;
+  }
+
+  queue = shuffle(remaining).slice(0, SESSION_SIZE);
+  idx = 0;
+  learnedThisSession = 0;
+  renderCard();
+}
+
+function renderLevelComplete(total) {
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🏆</div>
+      <h2>${level.name} to'plami tugallandi!</h2>
+      <p>Siz ushbu darajadagi barcha ${total} ta so'zni o'rgandingiz. Boshqa darajani tanlang yoki keyinroq qo'shiladigan yangi so'zlarni kuting.</p>
+      <div class="btns">
+        <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function renderSessionComplete() {
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">✨</div>
+      <h2>Sessiya tugadi</h2>
+      <p>Siz bu sessiyada <b>${learnedThisSession}</b> ta yangi so'zni o'rgandingiz. Davom etasizmi?</p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="init()">Yana o'rganish</button>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function renderCard() {
+  if (idx >= queue.length) { renderSessionComplete(); return; }
+  flipped = false;
+  const item = queue[idx];
+
+  root.innerHTML = `
+    <div class="study-head">
+      <a href="dashboard.html">← Darajalar</a>
+      <span class="counter">${level.name} · ${idx + 1} / ${queue.length}</span>
+    </div>
+    <div class="session-track"><div class="session-fill" style="width:${(idx / queue.length) * 100}%"></div></div>
+
+    <div class="flash-stage">
+      <div class="flashcard" id="flashcard">
+        <div class="face front">
+          <span class="stamp-badge" id="stampBadge">O'RGANILDI</span>
+          <div class="eyebrow">Inglizcha</div>
+          <div class="word">${escapeHtml(item.en)}</div>
+          <div class="hint">Tarjimani ko'rish uchun bosing</div>
+        </div>
+        <div class="face back">
+          <div class="eyebrow">O'zbekcha</div>
+          <div class="word">${escapeHtml(item.uz)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-skip" onclick="handleSkip()">Keyinroq ↻</button>
+      <button class="btn-learned" onclick="handleLearned()">O'rgandim ✓</button>
+    </div>
+
+    <div class="kbd-hint"><kbd>Space</kbd> flip · <kbd>→</kbd> o'rgandim · <kbd>←</kbd> keyinroq</div>
+  `;
+
+  const card = document.getElementById('flashcard');
+  card.addEventListener('click', toggleFlip);
+}
+
+function toggleFlip() {
+  flipped = !flipped;
+  document.getElementById('flashcard').classList.toggle('flipped', flipped);
+}
+
+function handleLearned() {
+  const item = queue[idx];
+  markLearned(user, levelId, item.en);
+  learnedThisSession++;
+  const badge = document.getElementById('stampBadge');
+  badge.classList.add('play');
+  setTimeout(() => { idx++; renderCard(); }, 420);
+}
+
+function handleSkip() {
+  idx++;
+  renderCard();
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (idx >= queue.length) return;
+  if (e.code === 'Space') { e.preventDefault(); toggleFlip(); }
+  else if (e.code === 'ArrowRight') { handleLearned(); }
+  else if (e.code === 'ArrowLeft') { handleSkip(); }
+});
+</script>
+</body>
+</html>

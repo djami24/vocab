@@ -1,0 +1,642 @@
+[
+  {
+    "en": "achievement",
+    "uz": "yutuq"
+  },
+  {
+    "en": "ambition",
+    "uz": "intilish"
+  },
+  {
+    "en": "ancestor",
+    "uz": "ajdod"
+  },
+  {
+    "en": "anxiety",
+    "uz": "xavotir"
+  },
+  {
+    "en": "appreciation",
+    "uz": "qadrlash"
+  },
+  {
+    "en": "argument",
+    "uz": "dalil/bahs"
+  },
+  {
+    "en": "assumption",
+    "uz": "taxmin"
+  },
+  {
+    "en": "attitude",
+    "uz": "munosabat"
+  },
+  {
+    "en": "awareness",
+    "uz": "xabardorlik"
+  },
+  {
+    "en": "behavior",
+    "uz": "xulq-atvor"
+  },
+  {
+    "en": "belief",
+    "uz": "ishonch (e'tiqod)"
+  },
+  {
+    "en": "benefit",
+    "uz": "foyda"
+  },
+  {
+    "en": "challenge",
+    "uz": "qiyinchilik/sinov"
+  },
+  {
+    "en": "circumstance",
+    "uz": "holat/sharoit"
+  },
+  {
+    "en": "commitment",
+    "uz": "sadoqat/majburiyat"
+  },
+  {
+    "en": "community",
+    "uz": "jamoa"
+  },
+  {
+    "en": "competition",
+    "uz": "raqobat"
+  },
+  {
+    "en": "complexity",
+    "uz": "murakkablik"
+  },
+  {
+    "en": "confidence",
+    "uz": "ishonch"
+  },
+  {
+    "en": "conflict",
+    "uz": "ziddiyat"
+  },
+  {
+    "en": "consequence",
+    "uz": "oqibat"
+  },
+  {
+    "en": "consideration",
+    "uz": "e'tibor"
+  },
+  {
+    "en": "contribution",
+    "uz": "hissa"
+  },
+  {
+    "en": "controversy",
+    "uz": "bahsli masala"
+  },
+  {
+    "en": "cooperation",
+    "uz": "hamkorlik"
+  },
+  {
+    "en": "creativity",
+    "uz": "ijodkorlik"
+  },
+  {
+    "en": "curiosity",
+    "uz": "qiziquvchanlik"
+  },
+  {
+    "en": "decision",
+    "uz": "qaror"
+  },
+  {
+    "en": "dedication",
+    "uz": "fidoyilik"
+  },
+  {
+    "en": "demand",
+    "uz": "talab"
+  },
+  {
+    "en": "dependence",
+    "uz": "qaramlik"
+  },
+  {
+    "en": "determination",
+    "uz": "qat'iyat"
+  },
+  {
+    "en": "disadvantage",
+    "uz": "kamchilik"
+  },
+  {
+    "en": "discipline",
+    "uz": "intizom"
+  },
+  {
+    "en": "discrimination",
+    "uz": "kamsitish"
+  },
+  {
+    "en": "diversity",
+    "uz": "xilma-xillik"
+  },
+  {
+    "en": "efficiency",
+    "uz": "samaradorlik"
+  },
+  {
+    "en": "emotion",
+    "uz": "hissiyot"
+  },
+  {
+    "en": "employment",
+    "uz": "bandlik"
+  },
+  {
+    "en": "encouragement",
+    "uz": "rag'batlantirish"
+  },
+  {
+    "en": "endurance",
+    "uz": "chidamlilik"
+  },
+  {
+    "en": "enthusiasm",
+    "uz": "ishtiyoq"
+  },
+  {
+    "en": "equality",
+    "uz": "tenglik"
+  },
+  {
+    "en": "ethic",
+    "uz": "axloq"
+  },
+  {
+    "en": "evidence",
+    "uz": "dalil (isbot)"
+  },
+  {
+    "en": "evolution",
+    "uz": "evolyutsiya"
+  },
+  {
+    "en": "expectation",
+    "uz": "kutish/umid"
+  },
+  {
+    "en": "experiment",
+    "uz": "tajriba (ilmiy)"
+  },
+  {
+    "en": "expression",
+    "uz": "ifoda"
+  },
+  {
+    "en": "fairness",
+    "uz": "adolatlilik"
+  },
+  {
+    "en": "flexibility",
+    "uz": "moslashuvchanlik"
+  },
+  {
+    "en": "frustration",
+    "uz": "asabiylashish"
+  },
+  {
+    "en": "generation",
+    "uz": "avlod"
+  },
+  {
+    "en": "generosity",
+    "uz": "saxiylik"
+  },
+  {
+    "en": "globalization",
+    "uz": "globallashuv"
+  },
+  {
+    "en": "gratitude",
+    "uz": "minnatdorchilik"
+  },
+  {
+    "en": "growth",
+    "uz": "o'sish"
+  },
+  {
+    "en": "habit",
+    "uz": "odat"
+  },
+  {
+    "en": "harmony",
+    "uz": "uyg'unlik"
+  },
+  {
+    "en": "hesitation",
+    "uz": "ikkilanish"
+  },
+  {
+    "en": "honesty",
+    "uz": "halollik"
+  },
+  {
+    "en": "hospitality",
+    "uz": "mehmondo'stlik"
+  },
+  {
+    "en": "humanity",
+    "uz": "insoniyat"
+  },
+  {
+    "en": "identity",
+    "uz": "o'ziga xoslik"
+  },
+  {
+    "en": "ignorance",
+    "uz": "bilimsizlik"
+  },
+  {
+    "en": "imagination",
+    "uz": "tasavvur"
+  },
+  {
+    "en": "independence",
+    "uz": "mustaqillik"
+  },
+  {
+    "en": "individual",
+    "uz": "shaxs"
+  },
+  {
+    "en": "inequality",
+    "uz": "tengsizlik"
+  },
+  {
+    "en": "influence",
+    "uz": "ta'sir"
+  },
+  {
+    "en": "initiative",
+    "uz": "tashabbus"
+  },
+  {
+    "en": "innovation",
+    "uz": "innovatsiya"
+  },
+  {
+    "en": "inspiration",
+    "uz": "ilhom"
+  },
+  {
+    "en": "instinct",
+    "uz": "instinkt"
+  },
+  {
+    "en": "institution",
+    "uz": "muassasa"
+  },
+  {
+    "en": "integrity",
+    "uz": "poklik"
+  },
+  {
+    "en": "intelligence",
+    "uz": "aql"
+  },
+  {
+    "en": "intention",
+    "uz": "niyat"
+  },
+  {
+    "en": "interaction",
+    "uz": "o'zaro munosabat"
+  },
+  {
+    "en": "interpretation",
+    "uz": "talqin"
+  },
+  {
+    "en": "investment",
+    "uz": "investitsiya"
+  },
+  {
+    "en": "involvement",
+    "uz": "ishtirok"
+  },
+  {
+    "en": "justice",
+    "uz": "adolat"
+  },
+  {
+    "en": "leadership",
+    "uz": "yetakchilik"
+  },
+  {
+    "en": "legislation",
+    "uz": "qonunchilik"
+  },
+  {
+    "en": "liberty",
+    "uz": "erkinlik"
+  },
+  {
+    "en": "loyalty",
+    "uz": "sadoqat"
+  },
+  {
+    "en": "maturity",
+    "uz": "yetuklik"
+  },
+  {
+    "en": "measurement",
+    "uz": "o'lchov"
+  },
+  {
+    "en": "memory",
+    "uz": "xotira"
+  },
+  {
+    "en": "mentality",
+    "uz": "dunyoqarash"
+  },
+  {
+    "en": "migration",
+    "uz": "migratsiya"
+  },
+  {
+    "en": "motivation",
+    "uz": "motivatsiya"
+  },
+  {
+    "en": "negotiation",
+    "uz": "muzokara"
+  },
+  {
+    "en": "obligation",
+    "uz": "majburiyat"
+  },
+  {
+    "en": "observation",
+    "uz": "kuzatish"
+  },
+  {
+    "en": "opportunity",
+    "uz": "imkoniyat"
+  },
+  {
+    "en": "optimism",
+    "uz": "optimizm"
+  },
+  {
+    "en": "organization",
+    "uz": "tashkilot"
+  },
+  {
+    "en": "originality",
+    "uz": "o'ziga xoslik (asl)"
+  },
+  {
+    "en": "participation",
+    "uz": "ishtirok etish"
+  },
+  {
+    "en": "patience",
+    "uz": "sabr"
+  },
+  {
+    "en": "perception",
+    "uz": "idrok"
+  },
+  {
+    "en": "perspective",
+    "uz": "nuqtai nazar"
+  },
+  {
+    "en": "persuasion",
+    "uz": "ishontirish"
+  },
+  {
+    "en": "phenomenon",
+    "uz": "hodisa"
+  },
+  {
+    "en": "philosophy",
+    "uz": "falsafa"
+  },
+  {
+    "en": "possibility",
+    "uz": "imkoniyat (ehtimol)"
+  },
+  {
+    "en": "potential",
+    "uz": "salohiyat"
+  },
+  {
+    "en": "poverty",
+    "uz": "qashshoqlik"
+  },
+  {
+    "en": "prejudice",
+    "uz": "xurofot/kamsitish"
+  },
+  {
+    "en": "preparation",
+    "uz": "tayyorgarlik"
+  },
+  {
+    "en": "preservation",
+    "uz": "saqlash"
+  },
+  {
+    "en": "pressure",
+    "uz": "bosim"
+  },
+  {
+    "en": "privilege",
+    "uz": "imtiyoz"
+  },
+  {
+    "en": "procedure",
+    "uz": "tartib-qoida"
+  },
+  {
+    "en": "productivity",
+    "uz": "unumdorlik"
+  },
+  {
+    "en": "profession",
+    "uz": "kasb"
+  },
+  {
+    "en": "progress",
+    "uz": "taraqqiyot"
+  },
+  {
+    "en": "prosperity",
+    "uz": "farovonlik"
+  },
+  {
+    "en": "psychology",
+    "uz": "psixologiya"
+  },
+  {
+    "en": "punctuality",
+    "uz": "aniqlik (vaqtga)"
+  },
+  {
+    "en": "purpose",
+    "uz": "maqsad"
+  },
+  {
+    "en": "qualification",
+    "uz": "malaka"
+  },
+  {
+    "en": "recognition",
+    "uz": "tan olish"
+  },
+  {
+    "en": "reflection",
+    "uz": "mulohaza"
+  },
+  {
+    "en": "regulation",
+    "uz": "qoida (rasmiy)"
+  },
+  {
+    "en": "relationship",
+    "uz": "munosabat"
+  },
+  {
+    "en": "reliability",
+    "uz": "ishonchlilik"
+  },
+  {
+    "en": "resistance",
+    "uz": "qarshilik"
+  },
+  {
+    "en": "resource",
+    "uz": "resurs"
+  },
+  {
+    "en": "responsibility",
+    "uz": "mas'uliyat"
+  },
+  {
+    "en": "restriction",
+    "uz": "cheklov"
+  },
+  {
+    "en": "revolution",
+    "uz": "inqilob"
+  },
+  {
+    "en": "satisfaction",
+    "uz": "qoniqish"
+  },
+  {
+    "en": "scholarship",
+    "uz": "stipendiya"
+  },
+  {
+    "en": "sensitivity",
+    "uz": "sezgirlik"
+  },
+  {
+    "en": "significance",
+    "uz": "ahamiyat"
+  },
+  {
+    "en": "sincerity",
+    "uz": "samimiyat"
+  },
+  {
+    "en": "stability",
+    "uz": "barqarorlik"
+  },
+  {
+    "en": "standard",
+    "uz": "standart"
+  },
+  {
+    "en": "statistic",
+    "uz": "statistika"
+  },
+  {
+    "en": "strategy",
+    "uz": "strategiya"
+  },
+  {
+    "en": "structure",
+    "uz": "tuzilma"
+  },
+  {
+    "en": "submission",
+    "uz": "topshirish"
+  },
+  {
+    "en": "substance",
+    "uz": "modda/mohiyat"
+  },
+  {
+    "en": "suspicion",
+    "uz": "shubha"
+  },
+  {
+    "en": "sympathy",
+    "uz": "hamdardlik"
+  },
+  {
+    "en": "tendency",
+    "uz": "moyillik"
+  },
+  {
+    "en": "theory",
+    "uz": "nazariya"
+  },
+  {
+    "en": "tolerance",
+    "uz": "bardoshlilik"
+  },
+  {
+    "en": "transformation",
+    "uz": "o'zgarish (tub)"
+  },
+  {
+    "en": "transition",
+    "uz": "o'tish davri"
+  },
+  {
+    "en": "unemployment",
+    "uz": "ishsizlik"
+  },
+  {
+    "en": "unity",
+    "uz": "birlik"
+  },
+  {
+    "en": "variation",
+    "uz": "o'zgaruvchanlik"
+  },
+  {
+    "en": "violence",
+    "uz": "zo'ravonlik"
+  },
+  {
+    "en": "vision",
+    "uz": "qarash/tasavvur"
+  },
+  {
+    "en": "volunteer",
+    "uz": "ko'ngilli"
+  },
+  {
+    "en": "wisdom",
+    "uz": "donolik"
+  }
+]

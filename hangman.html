@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Osilgan odam | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="hgRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const MIN_LEARNED = 4;
+const ROUNDS = 8;
+const MAX_WRONG = 6;
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+const user = requireAuth();
+const params = new URLSearchParams(location.search);
+const levelId = params.get('level');
+const level = LEVELS.find(l => l.id === levelId);
+const root = document.getElementById('hgRoot');
+
+let queue = [];
+let rIdx = 0;
+let correctRounds = 0;
+let guessed = new Set();
+let wrongCount = 0;
+let roundOver = false;
+
+if (user) {
+  document.getElementById('userLabel').textContent = user;
+  if (!level) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;
+  } else {
+    init();
+  }
+}
+
+async function init() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">🎯</div><p>O'yin tayyorlanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) { renderLocked(); return; }
+
+  let words = [];
+  try { words = await loadLevelWords(levelId); }
+  catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
+    return;
+  }
+
+  const progress = getProgress(user);
+  const learnedSet = new Set(progress[levelId]);
+  const learnedWords = words.filter(w => learnedSet.has(w.en.toLowerCase()));
+
+  if (learnedWords.length < MIN_LEARNED) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Hali erta</h2>
+        <p>Bu o'yin uchun avval shu darajada kamida ${MIN_LEARNED} ta so'zni o'rganing.</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="study.html?level=${levelId}">O'rganishni boshlash</a>
+          <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  queue = shuffle(learnedWords).slice(0, Math.min(ROUNDS, learnedWords.length));
+  rIdx = 0;
+  correctRounds = 0;
+  renderRound();
+}
+
+function renderLocked() {
+  const idx = LEVELS.findIndex(l => l.id === levelId);
+  const prevLevel = LEVELS[idx - 1];
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🔒</div>
+      <h2>Bu daraja hali qulflangan</h2>
+      <p>O'ynash uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+      <div class="btns">
+        <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+        <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function renderRound() {
+  if (rIdx >= queue.length) { renderComplete(); return; }
+  guessed = new Set();
+  wrongCount = 0;
+  roundOver = false;
+  const item = queue[rIdx];
+
+  root.innerHTML = `
+    <div class="hg-head-row">
+      <a href="games.html?level=${levelId}">← O'yinlar</a>
+      <span class="counter">🎯 ${level.name} · ${rIdx + 1} / ${queue.length}</span>
+    </div>
+    <div class="hangman-card">
+      <div class="eyebrow" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:700">Bu inglizcha so'zni toping</div>
+      <div class="hg-clue">${escapeHtml(item.uz)}</div>
+      <svg class="hg-figure" id="hgFigure" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+        <line x1="8" y1="130" x2="70" y2="130" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="130" x2="28" y2="12" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="12" x2="92" y2="12" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="92" y1="12" x2="92" y2="26" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"/>
+        <circle id="hgPart1" cx="92" cy="40" r="14" fill="none" stroke="var(--stamp-dark)" stroke-width="4" style="display:none"/>
+        <line id="hgPart2" x1="92" y1="54" x2="92" y2="92" stroke="var(--stamp-dark)" stroke-width="4" stroke-linecap="round" style="display:none"/>
+        <line id="hgPart3" x1="92" y1="62" x2="72" y2="80" stroke="var(--stamp-dark)" stroke-width="4" stroke-linecap="round" style="display:none"/>
+        <line id="hgPart4" x1="92" y1="62" x2="112" y2="80" stroke="var(--stamp-dark)" stroke-width="4" stroke-linecap="round" style="display:none"/>
+        <line id="hgPart5" x1="92" y1="92" x2="74" y2="118" stroke="var(--stamp-dark)" stroke-width="4" stroke-linecap="round" style="display:none"/>
+        <line id="hgPart6" x1="92" y1="92" x2="110" y2="118" stroke="var(--stamp-dark)" stroke-width="4" stroke-linecap="round" style="display:none"/>
+      </svg>
+      <div class="hg-status-row">
+        <span>Xato: <b id="hgWrongCount">0</b> / ${MAX_WRONG}</span>
+        <span>✓ To'g'ri topilgan: ${correctRounds} / ${rIdx}</span>
+      </div>
+      <div class="hg-word" id="hgWord"></div>
+      <div class="hg-keyboard" id="hgKeyboard">
+        ${ALPHABET.map(l => `<button class="hg-key" data-letter="${l}" onclick="guessLetter('${l}')">${l}</button>`).join('')}
+      </div>
+      <div class="hg-round-feedback" id="hgFeedback"></div>
+    </div>
+  `;
+
+  renderWord();
+}
+
+function renderWord() {
+  const item = queue[rIdx];
+  const letters = item.en.toLowerCase().split('');
+  document.getElementById('hgWord').innerHTML = letters.map(l =>
+    `<span class="hg-letter ${guessed.has(l) ? 'revealed' : ''}">${guessed.has(l) ? l : '_'}</span>`
+  ).join('');
+}
+
+function guessLetter(letter) {
+  if (roundOver || guessed.has(letter)) return;
+  const item = queue[rIdx];
+  const wordLetters = new Set(item.en.toLowerCase().split(''));
+  guessed.add(letter);
+
+  const keyBtn = document.querySelector(`.hg-key[data-letter="${letter}"]`);
+  keyBtn.disabled = true;
+
+  if (wordLetters.has(letter)) {
+    keyBtn.classList.add('correct');
+  } else {
+    keyBtn.classList.add('wrong');
+    wrongCount++;
+    document.getElementById('hgWrongCount').textContent = wrongCount;
+    const part = document.getElementById('hgPart' + wrongCount);
+    if (part) part.style.display = '';
+  }
+
+  renderWord();
+
+  const isWon = [...wordLetters].every(l => guessed.has(l));
+  if (isWon) {
+    roundOver = true;
+    correctRounds++;
+    disableKeyboard();
+    document.getElementById('hgFeedback').innerHTML =
+      `<span class="ok">✓ Topdingiz! "${escapeHtml(item.en)}" — ${escapeHtml(item.uz)}</span>
+       <div><button class="btn-primary" style="margin-top:14px" onclick="nextRound()">Keyingisi →</button></div>`;
+  } else if (wrongCount >= MAX_WRONG) {
+    roundOver = true;
+    disableKeyboard();
+    document.getElementById('hgFeedback').innerHTML =
+      `<span class="bad">✕ Afsus. So'z edi: <b>${escapeHtml(item.en)}</b> — ${escapeHtml(item.uz)}</span>
+       <div><button class="btn-primary" style="margin-top:14px" onclick="nextRound()">Keyingisi →</button></div>`;
+  }
+}
+
+function disableKeyboard() {
+  document.querySelectorAll('.hg-key').forEach(b => b.disabled = true);
+}
+
+function nextRound() {
+  rIdx++;
+  renderRound();
+}
+
+function renderComplete() {
+  const pct = Math.round((correctRounds / queue.length) * 100);
+  const isPerfect = correctRounds === queue.length;
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">${isPerfect ? '🏆' : pct >= 60 ? '🎯' : '💪'}</div>
+      <h2>Natija: ${correctRounds} / ${queue.length}</h2>
+      <p>${pct}% so'zni to'g'ri topdingiz.${isPerfect ? ' Mukammal natija — tabriklaymiz! 🎉' : ' Yana mashq qilib ko\'ring.'}</p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="init()">Qayta o'ynash</button>
+        <a class="btn-secondary" href="games.html?level=${levelId}">Boshqa o'yin</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (roundOver || !queue.length || rIdx >= queue.length) return;
+  const key = e.key.toLowerCase();
+  if (key.length === 1 && key >= 'a' && key <= 'z') guessLetter(key);
+});
+</script>
+</body>
+</html>

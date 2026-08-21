@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Juftlab topish | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="matchRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const MIN_LEARNED = 4;
+const MAX_PAIRS = 8;
+
+const user = requireAuth();
+const params = new URLSearchParams(location.search);
+const levelId = params.get('level');
+const level = LEVELS.find(l => l.id === levelId);
+const root = document.getElementById('matchRoot');
+
+let deck = [];
+let flippedCards = [];
+let matchedCount = 0;
+let totalPairs = 0;
+let moves = 0;
+let locked = false;
+let startTime = 0;
+let timerHandle = null;
+
+if (user) {
+  document.getElementById('userLabel').textContent = user;
+  if (!level) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;
+  } else {
+    init();
+  }
+}
+
+async function init() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">🃏</div><p>O'yin tayyorlanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) { renderLocked(); return; }
+
+  let words = [];
+  try { words = await loadLevelWords(levelId); }
+  catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
+    return;
+  }
+
+  const progress = getProgress(user);
+  const learnedSet = new Set(progress[levelId]);
+  const learnedWords = words.filter(w => learnedSet.has(w.en.toLowerCase()));
+
+  if (learnedWords.length < MIN_LEARNED) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Hali erta</h2>
+        <p>Bu o'yin uchun avval shu darajada kamida ${MIN_LEARNED} ta so'zni o'rganing.</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="study.html?level=${levelId}">O'rganishni boshlash</a>
+          <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const pairs = shuffle(learnedWords).slice(0, Math.min(MAX_PAIRS, learnedWords.length));
+  totalPairs = pairs.length;
+  deck = shuffle(pairs.flatMap((p, i) => ([
+    { id: `${i}-en`, pairId: i, text: p.en, type: 'en' },
+    { id: `${i}-uz`, pairId: i, text: p.uz, type: 'uz' },
+  ])));
+
+  flippedCards = [];
+  matchedCount = 0;
+  moves = 0;
+  locked = false;
+  startTime = Date.now();
+  clearInterval(timerHandle);
+  timerHandle = setInterval(updateTimer, 500);
+
+  renderBoard();
+}
+
+function renderLocked() {
+  const idx = LEVELS.findIndex(l => l.id === levelId);
+  const prevLevel = LEVELS[idx - 1];
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🔒</div>
+      <h2>Bu daraja hali qulflangan</h2>
+      <p>O'ynash uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+      <div class="btns">
+        <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+        <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function renderBoard() {
+  root.innerHTML = `
+    <div class="match-head-row">
+      <a href="games.html?level=${levelId}">← O'yinlar</a>
+      <div class="match-stats">
+        <span>⏱ <b id="matchTimer">0:00</b></span>
+        <span>🔁 Yurishlar: <b id="matchMoves">0</b></span>
+        <span>✓ <b id="matchScore">0</b> / ${totalPairs}</span>
+      </div>
+    </div>
+    <div class="match-grid" id="matchGrid">
+      ${deck.map(c => `
+        <button class="match-card type-${c.type}" data-id="${c.id}" onclick="flipCard('${c.id}')">
+          <span class="mc-hidden">?</span>
+          <span class="mc-shown">${escapeHtml(c.text)}</span>
+        </button>`).join('')}
+    </div>
+  `;
+}
+
+function flipCard(id) {
+  if (locked) return;
+  const el = document.querySelector(`.match-card[data-id="${id}"]`);
+  if (!el || el.classList.contains('matched') || el.classList.contains('flipped')) return;
+  if (flippedCards.length >= 2) return;
+
+  el.classList.add('flipped');
+  flippedCards.push({ id, el });
+
+  if (flippedCards.length === 2) {
+    moves++;
+    document.getElementById('matchMoves').textContent = moves;
+    const [a, b] = flippedCards;
+    const cardA = deck.find(c => c.id === a.id);
+    const cardB = deck.find(c => c.id === b.id);
+
+    if (cardA.pairId === cardB.pairId) {
+      matchedCount++;
+      document.getElementById('matchScore').textContent = matchedCount;
+      a.el.classList.add('matched');
+      b.el.classList.add('matched');
+      flippedCards = [];
+      if (matchedCount === totalPairs) {
+        clearInterval(timerHandle);
+        setTimeout(renderComplete, 500);
+      }
+    } else {
+      locked = true;
+      a.el.classList.add('wrong-flash');
+      b.el.classList.add('wrong-flash');
+      setTimeout(() => {
+        a.el.classList.remove('flipped', 'wrong-flash');
+        b.el.classList.remove('flipped', 'wrong-flash');
+        flippedCards = [];
+        locked = false;
+      }, 750);
+    }
+  }
+}
+
+function updateTimer() {
+  const el = document.getElementById('matchTimer');
+  if (!el) { clearInterval(timerHandle); return; }
+  const secs = Math.floor((Date.now() - startTime) / 1000);
+  el.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+}
+
+function renderComplete() {
+  const secs = Math.floor((Date.now() - startTime) / 1000);
+  const timeStr = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🏆</div>
+      <h2>Barcha juftlar topildi!</h2>
+      <p>${totalPairs} ta juftni <b>${moves}</b> ta yurishda, <b>${timeStr}</b> vaqtda topdingiz.</p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="init()">Qayta o'ynash</button>
+        <a class="btn-secondary" href="games.html?level=${levelId}">Boshqa o'yin</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

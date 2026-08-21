@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>O'yinlar | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">← Darajalar</a>
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash" id="gamesRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const MIN_LEARNED = 4;
+const GAME_TYPES = [
+  {
+    id: 'match', file: 'match.html', icon: '🃏',
+    name: "Juftlab topish",
+    desc: "Kartalar to'ntariladi — inglizcha so'zni tarjimasi bilan juftlaysiz. Klassik xotira o'yini.",
+  },
+  {
+    id: 'speed', file: 'speed.html', icon: '⏱️',
+    name: "Vaqtga qarshi test",
+    desc: "Test kabi, lekin soat bilan — qancha tez javob bersangiz, shuncha ko'p ball olasiz.",
+  },
+  {
+    id: 'hangman', file: 'hangman.html', icon: '🎯',
+    name: "Osilgan odam",
+    desc: "O'zbekcha ma'no beriladi, inglizcha so'zni harflab topasiz. Xato sonlari cheklangan.",
+  },
+  {
+    id: 'type', file: 'type.html', icon: '⌨️',
+    name: "Tez terish",
+    desc: "So'z chiqadi — variantdan tanlamasdan, tarjimasini o'zingiz yozib kiritasiz. Xotiradan chaqirishni mustahkamlaydi.",
+  },
+];
+
+const user = requireAuth();
+const params = new URLSearchParams(location.search);
+const levelId = params.get('level');
+const root = document.getElementById('gamesRoot');
+
+if (user) {
+  document.getElementById('userLabel').textContent = user;
+  if (levelId) {
+    initGamePicker();
+  } else {
+    initLevelPicker();
+  }
+}
+
+async function initLevelPicker() {
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>🎮 O'yinlar</h1>
+      <p>Qaysi darajadagi so'zlar bilan o'ynaymiz? O'ynash uchun shu darajada kamida ${MIN_LEARNED} ta so'zni o'rgangan bo'lishingiz kerak.</p>
+    </div>
+    <div class="levels" id="levelsGrid"></div>
+  `;
+
+  const stats = await collectStats(user);
+  const grid = document.getElementById('levelsGrid');
+
+  grid.innerHTML = stats.perLevel.map((row, i) => {
+    const { level, learned, unlocked } = row;
+    if (!unlocked) {
+      return `
+        <div class="level-card locked" data-idx="0${i+1}">
+          <div class="level-hit">
+            <div class="lname">${level.name}</div>
+            <div class="lock-msg"><span class="lock-icon">🔒</span><span>Bu daraja hali qulflangan</span></div>
+          </div>
+        </div>`;
+    }
+    const ready = learned >= MIN_LEARNED;
+    return `
+      <div class="level-card ${ready ? '' : 'locked'}" data-idx="0${i+1}">
+        <button class="level-hit level-pick" ${ready ? `onclick="location.href='games.html?level=${level.id}'"` : 'disabled'}>
+          <div class="lname">${level.name}</div>
+          <div class="lcount-mini">${ready ? `🎮 O'ynashga tayyor — ${learned} ta so'z o'rganilgan` : `Kamida ${MIN_LEARNED} ta so'z o'rganing (hozir: ${learned})`}</div>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+async function initGamePicker() {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;
+    return;
+  }
+
+  root.innerHTML = `<div class="empty-state"><div class="emoji">🎮</div><p>Yuklanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) {
+    const idx = LEVELS.findIndex(l => l.id === levelId);
+    const prevLevel = LEVELS[idx - 1];
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Bu daraja hali qulflangan</h2>
+        <p>O'ynash uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+          <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let words = [];
+  try { words = await loadLevelWords(levelId); } catch (e) { /* ignore */ }
+  const progress = getProgress(user);
+  const learnedSet = new Set(progress[levelId]);
+  const learnedCount = words.filter(w => learnedSet.has(w.en.toLowerCase())).length;
+
+  if (learnedCount < MIN_LEARNED) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Hali erta</h2>
+        <p>O'yinlar uchun avval <b>${level.name}</b> darajasida kamida ${MIN_LEARNED} ta so'zni o'rganing (hozir: ${learnedCount}).</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="study.html?level=${levelId}">O'rganishni boshlash</a>
+          <a class="btn-secondary" href="games.html">Boshqa daraja</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>🎮 ${level.name} · O'yinlar</h1>
+      <p>O'rgangan ${learnedCount} ta so'zingiz bilan mashq qiling — o'yin turini tanlang.</p>
+      <p style="margin-top:14px"><a href="games.html" style="color:var(--mustard);font-size:13px;font-weight:600;text-decoration:none">← Boshqa daraja tanlash</a></p>
+    </div>
+    <div class="game-grid">
+      ${GAME_TYPES.map(g => `
+        <a class="game-card" href="${g.file}?level=${levelId}">
+          <div class="gicon">${g.icon}</div>
+          <div class="gname">${g.name}</div>
+          <div class="gdesc">${g.desc}</div>
+          <div class="gplay">Boshlash →</div>
+        </a>`).join('')}
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Vaqtga qarshi test | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="speedRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const MIN_LEARNED = 4;
+const SPEED_QUIZ_SIZE = 10;
+const QUESTION_MS = 8000;
+
+const user = requireAuth();
+const params = new URLSearchParams(location.search);
+const levelId = params.get('level');
+const level = LEVELS.find(l => l.id === levelId);
+const root = document.getElementById('speedRoot');
+
+let questions = [];
+let qIdx = 0;
+let score = 0;
+let correctCount = 0;
+let answered = false;
+let timerStart = 0;
+let rafHandle = null;
+let timeoutHandle = null;
+
+if (user) {
+  document.getElementById('userLabel').textContent = user;
+  if (!level) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;
+  } else {
+    init();
+  }
+}
+
+async function init() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">⏱️</div><p>Test tayyorlanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) { renderLocked(); return; }
+
+  let words = [];
+  try { words = await loadLevelWords(levelId); }
+  catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
+    return;
+  }
+
+  const progress = getProgress(user);
+  const learnedSet = new Set(progress[levelId]);
+  const learnedWords = words.filter(w => learnedSet.has(w.en.toLowerCase()));
+
+  if (learnedWords.length < MIN_LEARNED) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Hali erta</h2>
+        <p>Bu o'yin uchun avval shu darajada kamida ${MIN_LEARNED} ta so'zni o'rganing.</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="study.html?level=${levelId}">O'rganishni boshlash</a>
+          <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const pool = shuffle(learnedWords).slice(0, Math.min(SPEED_QUIZ_SIZE, learnedWords.length));
+  questions = pool.map(item => {
+    const wrongPool = words.filter(w => w.en !== item.en);
+    const wrongs = shuffle(wrongPool).slice(0, 3).map(w => w.uz);
+    const options = shuffle([item.uz, ...wrongs]);
+    return { item, options, correct: item.uz };
+  });
+
+  qIdx = 0;
+  score = 0;
+  correctCount = 0;
+  renderQuestion();
+}
+
+function renderLocked() {
+  const idx = LEVELS.findIndex(l => l.id === levelId);
+  const prevLevel = LEVELS[idx - 1];
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🔒</div>
+      <h2>Bu daraja hali qulflangan</h2>
+      <p>O'ynash uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+      <div class="btns">
+        <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+        <a class="btn-secondary" href="games.html">O'yinlarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function renderQuestion() {
+  if (qIdx >= questions.length) { renderResult(); return; }
+  answered = false;
+  const q = questions[qIdx];
+
+  root.innerHTML = `
+    <div class="study-head">
+      <a href="games.html?level=${levelId}">← O'yinlar</a>
+      <span class="counter">⏱️ Tezkor test · ${level.name} · ${qIdx + 1} / ${questions.length}</span>
+    </div>
+    <div class="session-track"><div class="session-fill" style="width:${(qIdx / questions.length) * 100}%"></div></div>
+    <div class="speed-score-row">
+      <span>Ball: <b id="scoreLabel">${score}</b></span>
+      <span>To'g'ri: <b id="correctLabel">${correctCount}</b> / ${qIdx}</span>
+    </div>
+    <div class="speed-timer-track"><div class="speed-timer-fill" id="speedFill" style="width:100%"></div></div>
+
+    <div class="quiz-card">
+      <div class="eyebrow">Bu so'zning tarjimasi qaysi?</div>
+      <div class="quiz-word">${escapeHtml(q.item.en)}</div>
+      ${q.item.ipa ? `<div class="ipa">/${escapeHtml(q.item.ipa)}/</div>` : ''}
+      <div class="quiz-options" id="quizOptions">
+        ${q.options.map(opt => `<button class="quiz-opt" data-opt="${escapeHtml(opt)}" onclick="handleAnswer(this)">${escapeHtml(opt)}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+  `;
+
+  startTimer();
+}
+
+function startTimer() {
+  timerStart = performance.now();
+  const fill = document.getElementById('speedFill');
+  cancelAnimationFrame(rafHandle);
+  clearTimeout(timeoutHandle);
+
+  function tick(now) {
+    const elapsed = now - timerStart;
+    const pct = Math.max(0, 1 - elapsed / QUESTION_MS);
+    if (fill) fill.style.width = (pct * 100) + '%';
+    if (!answered && elapsed < QUESTION_MS) {
+      rafHandle = requestAnimationFrame(tick);
+    }
+  }
+  rafHandle = requestAnimationFrame(tick);
+
+  timeoutHandle = setTimeout(() => {
+    if (!answered) handleAnswer(null);
+  }, QUESTION_MS);
+}
+
+function handleAnswer(btn) {
+  if (answered) return;
+  answered = true;
+  cancelAnimationFrame(rafHandle);
+  clearTimeout(timeoutHandle);
+
+  const elapsed = performance.now() - timerStart;
+  const q = questions[qIdx];
+  const chosen = btn ? btn.getAttribute('data-opt') : null;
+  const buttons = document.querySelectorAll('.quiz-opt');
+  const feedback = document.getElementById('quizFeedback');
+
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (b.getAttribute('data-opt') === q.correct) b.classList.add('correct');
+    else if (btn && b === btn) b.classList.add('wrong');
+  });
+
+  let pointsHtml = '';
+  if (chosen === q.correct) {
+    correctCount++;
+    const remainingFrac = Math.max(0, 1 - elapsed / QUESTION_MS);
+    const points = 50 + Math.round(remainingFrac * 50);
+    score += points;
+    document.getElementById('scoreLabel').textContent = score;
+    feedback.innerHTML = `<span class="ok">✓ To'g'ri!</span>`;
+    pointsHtml = `<div class="speed-points gain">+${points} ball (tezlik uchun bonus)</div>`;
+  } else if (chosen === null) {
+    feedback.innerHTML = `<span class="bad">⏰ Vaqt tugadi. To'g'ri javob: <b>${escapeHtml(q.correct)}</b></span>`;
+    pointsHtml = `<div class="speed-points zero">+0 ball</div>`;
+  } else {
+    feedback.innerHTML = `<span class="bad">✕ Noto'g'ri. To'g'ri javob: <b>${escapeHtml(q.correct)}</b></span>`;
+    pointsHtml = `<div class="speed-points zero">+0 ball</div>`;
+  }
+  document.getElementById('correctLabel').textContent = correctCount;
+
+  feedback.innerHTML += pointsHtml + `<button class="btn-primary" style="margin-top:14px" onclick="nextQuestion()">Keyingisi →</button>`;
+}
+
+function nextQuestion() {
+  qIdx++;
+  renderQuestion();
+}
+
+function renderResult() {
+  const pct = Math.round((correctCount / questions.length) * 100);
+  const isPerfect = correctCount === questions.length;
+  if (isPerfect) setFlag(user, 'quizPerfect');
+
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">${isPerfect ? '🏆' : pct >= 60 ? '⚡' : '💪'}</div>
+      <h2>Natija: ${score} ball</h2>
+      <p>${correctCount} / ${questions.length} to'g'ri javob (${pct}%).${isPerfect ? ' Mukammal natija — tabriklaymiz! 🎉' : ' Tezroq va aniqroq javob bering — ball ko\'proq bo\'ladi.'}</p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="init()">Qayta o'ynash</button>
+        <a class="btn-secondary" href="games.html?level=${levelId}">Boshqa o'yin</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@
   <div class="topbar">
     <div class="brand">Lug'at<span class="dot">.</span></div>
     <div class="userchip">
+      <a href="games.html" class="chip-link">🎮 O'yinlar</a>
       <a href="stats.html" class="chip-link">📊 Statistika</a>
       <span id="userLabel">—</span>
       <button id="logoutBtn">Chiqish</button>
@@ -98,6 +99,7 @@
         </button>
         <div class="card-btn-row">
           <button class="btn-quiz" ${learned < 4 ? 'disabled title="Test uchun kamida 4 ta so\'z o\'rganilgan bo\'lishi kerak"' : ''} onclick="location.href='quiz.html?level=${level.id}'">📝 Test</button>
+          <button class="btn-quiz" ${learned < 4 ? 'disabled title="O\'yinlar uchun kamida 4 ta so\'z o\'rganilgan bo\'lishi kerak"' : ''} onclick="location.href='games.html?level=${level.id}'">🎮 O'yinlar</button>
           ${dueReview > 0 ? `<button class="btn-review" onclick="location.href='study.html?level=${level.id}&mode=review'">🔁 Takrorlash (${dueReview})</button>` : ''}
         </div>
         ${laterCount > 0 ? `

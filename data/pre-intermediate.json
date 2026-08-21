@@ -1,642 +1,962 @@
 [
   {
     "en": "achievement",
-    "uz": "yutuq"
+    "uz": "yutuq",
+    "example": "I saw an achievement yesterday.",
+    "ipa": "əˈʧivmənt"
   },
   {
     "en": "ambition",
-    "uz": "intilish"
+    "uz": "intilish",
+    "example": "I saw an ambition yesterday.",
+    "ipa": "æmˈbɪʃən"
   },
   {
     "en": "ancestor",
-    "uz": "ajdod"
+    "uz": "ajdod",
+    "example": "I saw an ancestor yesterday.",
+    "ipa": "ˈænˌsɛstər"
   },
   {
     "en": "anxiety",
-    "uz": "xavotir"
+    "uz": "xavotir",
+    "example": "I saw an anxiety yesterday.",
+    "ipa": "æŋˈzaɪəti"
   },
   {
     "en": "appreciation",
-    "uz": "qadrlash"
+    "uz": "qadrlash",
+    "example": "I saw an appreciation yesterday.",
+    "ipa": "əˌpriʃiˈeɪʃən"
   },
   {
     "en": "argument",
-    "uz": "dalil/bahs"
+    "uz": "dalil/bahs",
+    "example": "I saw an argument yesterday.",
+    "ipa": "ˈɑrgjəmənt"
   },
   {
     "en": "assumption",
-    "uz": "taxmin"
+    "uz": "taxmin",
+    "example": "I saw an assumption yesterday.",
+    "ipa": "əˈsəmpʃən"
   },
   {
     "en": "attitude",
-    "uz": "munosabat"
+    "uz": "munosabat",
+    "example": "I saw an attitude yesterday.",
+    "ipa": "ˈætəˌtud"
   },
   {
     "en": "awareness",
-    "uz": "xabardorlik"
+    "uz": "xabardorlik",
+    "example": "I saw an awareness yesterday.",
+    "ipa": "əˈwɛrnəs"
   },
   {
     "en": "behavior",
-    "uz": "xulq-atvor"
+    "uz": "xulq-atvor",
+    "example": "I saw a behavior yesterday.",
+    "ipa": "bɪˈheɪvjər"
   },
   {
     "en": "belief",
-    "uz": "ishonch (e'tiqod)"
+    "uz": "ishonch (e'tiqod)",
+    "example": "I saw a belief yesterday.",
+    "ipa": "bɪˈlif"
   },
   {
     "en": "benefit",
-    "uz": "foyda"
+    "uz": "foyda",
+    "example": "I saw a benefit yesterday.",
+    "ipa": "ˈbɛnəfɪt"
   },
   {
     "en": "challenge",
-    "uz": "qiyinchilik/sinov"
+    "uz": "qiyinchilik/sinov",
+    "example": "I saw a challenge yesterday.",
+    "ipa": "ˈʧælənʤ"
   },
   {
     "en": "circumstance",
-    "uz": "holat/sharoit"
+    "uz": "holat/sharoit",
+    "example": "I saw a circumstance yesterday.",
+    "ipa": "ˈsərkəmˌstæns"
   },
   {
     "en": "commitment",
-    "uz": "sadoqat/majburiyat"
+    "uz": "sadoqat/majburiyat",
+    "example": "I saw a commitment yesterday.",
+    "ipa": "kəˈmɪtmənt"
   },
   {
     "en": "community",
-    "uz": "jamoa"
+    "uz": "jamoa",
+    "example": "I saw a community yesterday.",
+    "ipa": "kəmˈjunɪti"
   },
   {
     "en": "competition",
-    "uz": "raqobat"
+    "uz": "raqobat",
+    "example": "I saw a competition yesterday.",
+    "ipa": "ˌkɑmpəˈtɪʃən"
   },
   {
     "en": "complexity",
-    "uz": "murakkablik"
+    "uz": "murakkablik",
+    "example": "I saw a complexity yesterday.",
+    "ipa": "kəmˈplɛksɪti"
   },
   {
     "en": "confidence",
-    "uz": "ishonch"
+    "uz": "ishonch",
+    "example": "I saw a confidence yesterday.",
+    "ipa": "ˈkɑnfədɛns"
   },
   {
     "en": "conflict",
-    "uz": "ziddiyat"
+    "uz": "ziddiyat",
+    "example": "I saw a conflict yesterday.",
+    "ipa": "ˈkɑnflɪkt"
   },
   {
     "en": "consequence",
-    "uz": "oqibat"
+    "uz": "oqibat",
+    "example": "I saw a consequence yesterday.",
+    "ipa": "ˈkɑnsəkwəns"
   },
   {
     "en": "consideration",
-    "uz": "e'tibor"
+    "uz": "e'tibor",
+    "example": "I saw a consideration yesterday.",
+    "ipa": "kənˌsɪdərˈeɪʃən"
   },
   {
     "en": "contribution",
-    "uz": "hissa"
+    "uz": "hissa",
+    "example": "I saw a contribution yesterday.",
+    "ipa": "ˌkɑntrəˈbjuʃən"
   },
   {
     "en": "controversy",
-    "uz": "bahsli masala"
+    "uz": "bahsli masala",
+    "example": "I saw a controversy yesterday.",
+    "ipa": "ˈkɑntrəˌvərsi"
   },
   {
     "en": "cooperation",
-    "uz": "hamkorlik"
+    "uz": "hamkorlik",
+    "example": "I saw a cooperation yesterday.",
+    "ipa": "kˌwɔpərˈeɪʃən"
   },
   {
     "en": "creativity",
-    "uz": "ijodkorlik"
+    "uz": "ijodkorlik",
+    "example": "I saw a creativity yesterday.",
+    "ipa": "ˌkrieɪˈtɪvəti"
   },
   {
     "en": "curiosity",
-    "uz": "qiziquvchanlik"
+    "uz": "qiziquvchanlik",
+    "example": "I saw a curiosity yesterday.",
+    "ipa": "ˌkjʊriˈɑsəti"
   },
   {
     "en": "decision",
-    "uz": "qaror"
+    "uz": "qaror",
+    "example": "I saw a decision yesterday.",
+    "ipa": "dɪˈsɪʒən"
   },
   {
     "en": "dedication",
-    "uz": "fidoyilik"
+    "uz": "fidoyilik",
+    "example": "I saw a dedication yesterday.",
+    "ipa": "ˌdɛdəˈkeɪʃən"
   },
   {
     "en": "demand",
-    "uz": "talab"
+    "uz": "talab",
+    "example": "I saw a demand yesterday.",
+    "ipa": "dɪˈmænd"
   },
   {
     "en": "dependence",
-    "uz": "qaramlik"
+    "uz": "qaramlik",
+    "example": "I saw a dependence yesterday.",
+    "ipa": "dɪˈpɛndəns"
   },
   {
     "en": "determination",
-    "uz": "qat'iyat"
+    "uz": "qat'iyat",
+    "example": "I saw a determination yesterday.",
+    "ipa": "dɪˌtərməˈneɪʃən"
   },
   {
     "en": "disadvantage",
-    "uz": "kamchilik"
+    "uz": "kamchilik",
+    "example": "I saw a disadvantage yesterday.",
+    "ipa": "ˌdɪsədˈvænɪʤ"
   },
   {
     "en": "discipline",
-    "uz": "intizom"
+    "uz": "intizom",
+    "example": "I saw a discipline yesterday.",
+    "ipa": "ˈdɪsəplən"
   },
   {
     "en": "discrimination",
-    "uz": "kamsitish"
+    "uz": "kamsitish",
+    "example": "I saw a discrimination yesterday.",
+    "ipa": "dɪˌskrɪməˈneɪʃən"
   },
   {
     "en": "diversity",
-    "uz": "xilma-xillik"
+    "uz": "xilma-xillik",
+    "example": "I saw a diversity yesterday.",
+    "ipa": "dɪˈvərsɪti"
   },
   {
     "en": "efficiency",
-    "uz": "samaradorlik"
+    "uz": "samaradorlik",
+    "example": "I saw an efficiency yesterday.",
+    "ipa": "ɪˈfɪʃənsi"
   },
   {
     "en": "emotion",
-    "uz": "hissiyot"
+    "uz": "hissiyot",
+    "example": "I saw an emotion yesterday.",
+    "ipa": "ˈiˌmoʊʃən"
   },
   {
     "en": "employment",
-    "uz": "bandlik"
+    "uz": "bandlik",
+    "example": "I saw an employment yesterday.",
+    "ipa": "ɪmˈplɔɪmənt"
   },
   {
     "en": "encouragement",
-    "uz": "rag'batlantirish"
+    "uz": "rag'batlantirish",
+    "example": "I saw an encouragement yesterday.",
+    "ipa": "ɛnˈkərɪʤmənt"
   },
   {
     "en": "endurance",
-    "uz": "chidamlilik"
+    "uz": "chidamlilik",
+    "example": "I saw an endurance yesterday.",
+    "ipa": "ˈɛndərəns"
   },
   {
     "en": "enthusiasm",
-    "uz": "ishtiyoq"
+    "uz": "ishtiyoq",
+    "example": "I saw an enthusiasm yesterday.",
+    "ipa": "ɪnˈθuziˌæzəm"
   },
   {
     "en": "equality",
-    "uz": "tenglik"
+    "uz": "tenglik",
+    "example": "I saw an equality yesterday.",
+    "ipa": "ɪkˈwɑləti"
   },
   {
     "en": "ethic",
-    "uz": "axloq"
+    "uz": "axloq",
+    "example": "I saw an ethic yesterday.",
+    "ipa": "ˈɛθɪk"
   },
   {
     "en": "evidence",
-    "uz": "dalil (isbot)"
+    "uz": "dalil (isbot)",
+    "example": "I saw an evidence yesterday.",
+    "ipa": "ˈɛvədəns"
   },
   {
     "en": "evolution",
-    "uz": "evolyutsiya"
+    "uz": "evolyutsiya",
+    "example": "I saw an evolution yesterday.",
+    "ipa": "ˌɛvəˈluʃən"
   },
   {
     "en": "expectation",
-    "uz": "kutish/umid"
+    "uz": "kutish/umid",
+    "example": "I saw an expectation yesterday.",
+    "ipa": "ˌɛkspɛkˈteɪʃən"
   },
   {
     "en": "experiment",
-    "uz": "tajriba (ilmiy)"
+    "uz": "tajriba (ilmiy)",
+    "example": "I saw an experiment yesterday.",
+    "ipa": "ɪkˈspɛrəmənt"
   },
   {
     "en": "expression",
-    "uz": "ifoda"
+    "uz": "ifoda",
+    "example": "I saw an expression yesterday.",
+    "ipa": "ɪkˈsprɛʃən"
   },
   {
     "en": "fairness",
-    "uz": "adolatlilik"
+    "uz": "adolatlilik",
+    "example": "I saw a fairness yesterday.",
+    "ipa": "ˈfɛrnəs"
   },
   {
     "en": "flexibility",
-    "uz": "moslashuvchanlik"
+    "uz": "moslashuvchanlik",
+    "example": "I saw a flexibility yesterday.",
+    "ipa": "ˌflɛksəˈbɪləti"
   },
   {
     "en": "frustration",
-    "uz": "asabiylashish"
+    "uz": "asabiylashish",
+    "example": "I saw a frustration yesterday.",
+    "ipa": "frəˈstreɪʃən"
   },
   {
     "en": "generation",
-    "uz": "avlod"
+    "uz": "avlod",
+    "example": "I saw a generation yesterday.",
+    "ipa": "ˌʤɛnərˈeɪʃən"
   },
   {
     "en": "generosity",
-    "uz": "saxiylik"
+    "uz": "saxiylik",
+    "example": "I saw a generosity yesterday.",
+    "ipa": "ˌʤɛnərˈɑsəti"
   },
   {
     "en": "globalization",
-    "uz": "globallashuv"
+    "uz": "globallashuv",
+    "example": "I saw a globalization yesterday.",
+    "ipa": "ˌgloʊbəlɪˈzeɪʃən"
   },
   {
     "en": "gratitude",
-    "uz": "minnatdorchilik"
+    "uz": "minnatdorchilik",
+    "example": "I saw a gratitude yesterday.",
+    "ipa": "ˈgrætəˌtud"
   },
   {
     "en": "growth",
-    "uz": "o'sish"
+    "uz": "o'sish",
+    "example": "I saw a growth yesterday.",
+    "ipa": "groʊθ"
   },
   {
     "en": "habit",
-    "uz": "odat"
+    "uz": "odat",
+    "example": "I saw a habit yesterday.",
+    "ipa": "ˈhæbət"
   },
   {
     "en": "harmony",
-    "uz": "uyg'unlik"
+    "uz": "uyg'unlik",
+    "example": "I saw a harmony yesterday.",
+    "ipa": "ˈhɑrməni"
   },
   {
     "en": "hesitation",
-    "uz": "ikkilanish"
+    "uz": "ikkilanish",
+    "example": "I saw a hesitation yesterday.",
+    "ipa": "ˌhɛzəˈteɪʃən"
   },
   {
     "en": "honesty",
-    "uz": "halollik"
+    "uz": "halollik",
+    "example": "I saw a honesty yesterday.",
+    "ipa": "ˈɑnəsti"
   },
   {
     "en": "hospitality",
-    "uz": "mehmondo'stlik"
+    "uz": "mehmondo'stlik",
+    "example": "I saw a hospitality yesterday.",
+    "ipa": "ˌhɑspəˈtæləti"
   },
   {
     "en": "humanity",
-    "uz": "insoniyat"
+    "uz": "insoniyat",
+    "example": "I saw a humanity yesterday.",
+    "ipa": "juˈmænɪti"
   },
   {
     "en": "identity",
-    "uz": "o'ziga xoslik"
+    "uz": "o'ziga xoslik",
+    "example": "I saw an identity yesterday.",
+    "ipa": "aɪˈdɛntəˌti"
   },
   {
     "en": "ignorance",
-    "uz": "bilimsizlik"
+    "uz": "bilimsizlik",
+    "example": "I saw an ignorance yesterday.",
+    "ipa": "ˈɪgnərəns"
   },
   {
     "en": "imagination",
-    "uz": "tasavvur"
+    "uz": "tasavvur",
+    "example": "I saw an imagination yesterday.",
+    "ipa": "ˌɪˌmæʤəˈneɪʃən"
   },
   {
     "en": "independence",
-    "uz": "mustaqillik"
+    "uz": "mustaqillik",
+    "example": "I saw an independence yesterday.",
+    "ipa": "ˌɪndɪˈpɛndəns"
   },
   {
     "en": "individual",
-    "uz": "shaxs"
+    "uz": "shaxs",
+    "example": "I saw an individual yesterday.",
+    "ipa": "ˌɪndəˈvɪʤəwəl"
   },
   {
     "en": "inequality",
-    "uz": "tengsizlik"
+    "uz": "tengsizlik",
+    "example": "I saw an inequality yesterday.",
+    "ipa": "ˌɪnɪkˈwɑləti"
   },
   {
     "en": "influence",
-    "uz": "ta'sir"
+    "uz": "ta'sir",
+    "example": "I saw an influence yesterday.",
+    "ipa": "ˈɪnfluəns"
   },
   {
     "en": "initiative",
-    "uz": "tashabbus"
+    "uz": "tashabbus",
+    "example": "I saw an initiative yesterday.",
+    "ipa": "ˌɪˈnɪʃətɪv"
   },
   {
     "en": "innovation",
-    "uz": "innovatsiya"
+    "uz": "innovatsiya",
+    "example": "I saw an innovation yesterday.",
+    "ipa": "ˌɪnəˈveɪʃən"
   },
   {
     "en": "inspiration",
-    "uz": "ilhom"
+    "uz": "ilhom",
+    "example": "I saw an inspiration yesterday.",
+    "ipa": "ˌɪnspərˈeɪʃən"
   },
   {
     "en": "instinct",
-    "uz": "instinkt"
+    "uz": "instinkt",
+    "example": "I saw an instinct yesterday.",
+    "ipa": "ˈɪnstɪŋkt"
   },
   {
     "en": "institution",
-    "uz": "muassasa"
+    "uz": "muassasa",
+    "example": "I saw an institution yesterday.",
+    "ipa": "ˌɪnstɪˈtuʃən"
   },
   {
     "en": "integrity",
-    "uz": "poklik"
+    "uz": "poklik",
+    "example": "I saw an integrity yesterday.",
+    "ipa": "ˌɪnˈtɛgrəti"
   },
   {
     "en": "intelligence",
-    "uz": "aql"
+    "uz": "aql",
+    "example": "I saw an intelligence yesterday.",
+    "ipa": "ˌɪnˈtɛləʤəns"
   },
   {
     "en": "intention",
-    "uz": "niyat"
+    "uz": "niyat",
+    "example": "I saw an intention yesterday.",
+    "ipa": "ˌɪnˈtɛnʧən"
   },
   {
     "en": "interaction",
-    "uz": "o'zaro munosabat"
+    "uz": "o'zaro munosabat",
+    "example": "I saw an interaction yesterday.",
+    "ipa": "ˌɪnərˈækʃən"
   },
   {
     "en": "interpretation",
-    "uz": "talqin"
+    "uz": "talqin",
+    "example": "I saw an interpretation yesterday.",
+    "ipa": "ˌɪnˌtərprɪˈteɪʃən"
   },
   {
     "en": "investment",
-    "uz": "investitsiya"
+    "uz": "investitsiya",
+    "example": "I saw an investment yesterday.",
+    "ipa": "ˌɪnˈvɛstmənt"
   },
   {
     "en": "involvement",
-    "uz": "ishtirok"
+    "uz": "ishtirok",
+    "example": "I saw an involvement yesterday.",
+    "ipa": "ˌɪnˈvɑlvmənt"
   },
   {
     "en": "justice",
-    "uz": "adolat"
+    "uz": "adolat",
+    "example": "I saw a justice yesterday.",
+    "ipa": "ˈʤəstɪs"
   },
   {
     "en": "leadership",
-    "uz": "yetakchilik"
+    "uz": "yetakchilik",
+    "example": "I saw a leadership yesterday.",
+    "ipa": "ˈlidərˌʃɪp"
   },
   {
     "en": "legislation",
-    "uz": "qonunchilik"
+    "uz": "qonunchilik",
+    "example": "I saw a legislation yesterday.",
+    "ipa": "ˌlɛʤəsˈleɪʃən"
   },
   {
     "en": "liberty",
-    "uz": "erkinlik"
+    "uz": "erkinlik",
+    "example": "I saw a liberty yesterday.",
+    "ipa": "ˈlɪbərˌti"
   },
   {
     "en": "loyalty",
-    "uz": "sadoqat"
+    "uz": "sadoqat",
+    "example": "I saw a loyalty yesterday.",
+    "ipa": "ˈlɔɪəlti"
   },
   {
     "en": "maturity",
-    "uz": "yetuklik"
+    "uz": "yetuklik",
+    "example": "I saw a maturity yesterday.",
+    "ipa": "məˈʧʊrəti"
   },
   {
     "en": "measurement",
-    "uz": "o'lchov"
+    "uz": "o'lchov",
+    "example": "I saw a measurement yesterday.",
+    "ipa": "ˈmɛʒərmənt"
   },
   {
     "en": "memory",
-    "uz": "xotira"
+    "uz": "xotira",
+    "example": "I saw a memory yesterday.",
+    "ipa": "ˈmɛməri"
   },
   {
     "en": "mentality",
-    "uz": "dunyoqarash"
+    "uz": "dunyoqarash",
+    "example": "I saw a mentality yesterday.",
+    "ipa": "mɛnˈtælɪti"
   },
   {
     "en": "migration",
-    "uz": "migratsiya"
+    "uz": "migratsiya",
+    "example": "I saw a migration yesterday.",
+    "ipa": "maɪˈgreɪʃən"
   },
   {
     "en": "motivation",
-    "uz": "motivatsiya"
+    "uz": "motivatsiya",
+    "example": "I saw a motivation yesterday.",
+    "ipa": "ˌmoʊtəˈveɪʃən"
   },
   {
     "en": "negotiation",
-    "uz": "muzokara"
+    "uz": "muzokara",
+    "example": "I saw a negotiation yesterday.",
+    "ipa": "nɪˌgoʊʃiˈeɪʃən"
   },
   {
     "en": "obligation",
-    "uz": "majburiyat"
+    "uz": "majburiyat",
+    "example": "I saw an obligation yesterday.",
+    "ipa": "ˌɑbləˈgeɪʃən"
   },
   {
     "en": "observation",
-    "uz": "kuzatish"
+    "uz": "kuzatish",
+    "example": "I saw an observation yesterday.",
+    "ipa": "ˌɑbzərˈveɪʃən"
   },
   {
     "en": "opportunity",
-    "uz": "imkoniyat"
+    "uz": "imkoniyat",
+    "example": "I saw an opportunity yesterday.",
+    "ipa": "ˌɑpərˈtunəti"
   },
   {
     "en": "optimism",
-    "uz": "optimizm"
+    "uz": "optimizm",
+    "example": "I saw an optimism yesterday.",
+    "ipa": "ˈɑptɪˌmɪzəm"
   },
   {
     "en": "organization",
-    "uz": "tashkilot"
+    "uz": "tashkilot",
+    "example": "I saw an organization yesterday.",
+    "ipa": "ˌɔrgənəˈzeɪʃən"
   },
   {
     "en": "originality",
-    "uz": "o'ziga xoslik (asl)"
+    "uz": "o'ziga xoslik (asl)",
+    "example": "I saw an originality yesterday.",
+    "ipa": "ərˌɪʤəˈnælɪti"
   },
   {
     "en": "participation",
-    "uz": "ishtirok etish"
+    "uz": "ishtirok etish",
+    "example": "I saw a participation yesterday.",
+    "ipa": "pɑrˌtɪsəˈpeɪʃən"
   },
   {
     "en": "patience",
-    "uz": "sabr"
+    "uz": "sabr",
+    "example": "I saw a patience yesterday.",
+    "ipa": "ˈpeɪʃəns"
   },
   {
     "en": "perception",
-    "uz": "idrok"
+    "uz": "idrok",
+    "example": "I saw a perception yesterday.",
+    "ipa": "pərˈsɛpʃən"
   },
   {
     "en": "perspective",
-    "uz": "nuqtai nazar"
+    "uz": "nuqtai nazar",
+    "example": "I saw a perspective yesterday.",
+    "ipa": "pərˈspɛktɪv"
   },
   {
     "en": "persuasion",
-    "uz": "ishontirish"
+    "uz": "ishontirish",
+    "example": "I saw a persuasion yesterday.",
+    "ipa": "pərsˈweɪʒən"
   },
   {
     "en": "phenomenon",
-    "uz": "hodisa"
+    "uz": "hodisa",
+    "example": "I saw a phenomenon yesterday.",
+    "ipa": "fəˈnɑməˌnɑn"
   },
   {
     "en": "philosophy",
-    "uz": "falsafa"
+    "uz": "falsafa",
+    "example": "I saw a philosophy yesterday.",
+    "ipa": "fəˈlɑsəfi"
   },
   {
     "en": "possibility",
-    "uz": "imkoniyat (ehtimol)"
+    "uz": "imkoniyat (ehtimol)",
+    "example": "I saw a possibility yesterday.",
+    "ipa": "ˌpɑsəˈbɪləˌti"
   },
   {
     "en": "potential",
-    "uz": "salohiyat"
+    "uz": "salohiyat",
+    "example": "I saw a potential yesterday.",
+    "ipa": "pəˈtɛnʃəl"
   },
   {
     "en": "poverty",
-    "uz": "qashshoqlik"
+    "uz": "qashshoqlik",
+    "example": "I saw a poverty yesterday.",
+    "ipa": "ˈpɑvərti"
   },
   {
     "en": "prejudice",
-    "uz": "xurofot/kamsitish"
+    "uz": "xurofot/kamsitish",
+    "example": "I saw a prejudice yesterday.",
+    "ipa": "ˈprɛʤədɪs"
   },
   {
     "en": "preparation",
-    "uz": "tayyorgarlik"
+    "uz": "tayyorgarlik",
+    "example": "I saw a preparation yesterday.",
+    "ipa": "ˌprɛpərˈeɪʃən"
   },
   {
     "en": "preservation",
-    "uz": "saqlash"
+    "uz": "saqlash",
+    "example": "I saw a preservation yesterday.",
+    "ipa": "ˌprɛzərˈveɪʃən"
   },
   {
     "en": "pressure",
-    "uz": "bosim"
+    "uz": "bosim",
+    "example": "I saw a pressure yesterday.",
+    "ipa": "ˈprɛʃər"
   },
   {
     "en": "privilege",
-    "uz": "imtiyoz"
+    "uz": "imtiyoz",
+    "example": "I saw a privilege yesterday.",
+    "ipa": "ˈprɪvɪlɪʤ"
   },
   {
     "en": "procedure",
-    "uz": "tartib-qoida"
+    "uz": "tartib-qoida",
+    "example": "I saw a procedure yesterday.",
+    "ipa": "prəˈsiʤər"
   },
   {
     "en": "productivity",
-    "uz": "unumdorlik"
+    "uz": "unumdorlik",
+    "example": "I saw a productivity yesterday.",
+    "ipa": "ˌproʊdəkˈtɪvɪti"
   },
   {
     "en": "profession",
-    "uz": "kasb"
+    "uz": "kasb",
+    "example": "I saw a profession yesterday.",
+    "ipa": "prəˈfɛʃən"
   },
   {
     "en": "progress",
-    "uz": "taraqqiyot"
+    "uz": "taraqqiyot",
+    "example": "I saw a progress yesterday.",
+    "ipa": "ˈprɑˌgrɛs"
   },
   {
     "en": "prosperity",
-    "uz": "farovonlik"
+    "uz": "farovonlik",
+    "example": "I saw a prosperity yesterday.",
+    "ipa": "prɑˈspɛrəti"
   },
   {
     "en": "psychology",
-    "uz": "psixologiya"
+    "uz": "psixologiya",
+    "example": "I saw a psychology yesterday.",
+    "ipa": "saɪˈkɑləʤi"
   },
   {
     "en": "punctuality",
-    "uz": "aniqlik (vaqtga)"
+    "uz": "aniqlik (vaqtga)",
+    "example": "I saw a punctuality yesterday.",
+    "ipa": "ˌpəŋkʧuˈælɪti"
   },
   {
     "en": "purpose",
-    "uz": "maqsad"
+    "uz": "maqsad",
+    "example": "I saw a purpose yesterday.",
+    "ipa": "ˈpərpəs"
   },
   {
     "en": "qualification",
-    "uz": "malaka"
+    "uz": "malaka",
+    "example": "I saw a qualification yesterday.",
+    "ipa": "kˌwɑləfəˈkeɪʃən"
   },
   {
     "en": "recognition",
-    "uz": "tan olish"
+    "uz": "tan olish",
+    "example": "I saw a recognition yesterday.",
+    "ipa": "ˌrɛkɪgˈnɪʃən"
   },
   {
     "en": "reflection",
-    "uz": "mulohaza"
+    "uz": "mulohaza",
+    "example": "I saw a reflection yesterday.",
+    "ipa": "rɪˈflɛkʃən"
   },
   {
     "en": "regulation",
-    "uz": "qoida (rasmiy)"
+    "uz": "qoida (rasmiy)",
+    "example": "I saw a regulation yesterday.",
+    "ipa": "ˌrɛgjəˈleɪʃən"
   },
   {
     "en": "relationship",
-    "uz": "munosabat"
+    "uz": "munosabat",
+    "example": "I saw a relationship yesterday.",
+    "ipa": "riˈleɪʃənˌʃɪp"
   },
   {
     "en": "reliability",
-    "uz": "ishonchlilik"
+    "uz": "ishonchlilik",
+    "example": "I saw a reliability yesterday.",
+    "ipa": "riˌlaɪəˈbɪləti"
   },
   {
     "en": "resistance",
-    "uz": "qarshilik"
+    "uz": "qarshilik",
+    "example": "I saw a resistance yesterday.",
+    "ipa": "rɪˈzɪstəns"
   },
   {
     "en": "resource",
-    "uz": "resurs"
+    "uz": "resurs",
+    "example": "I saw a resource yesterday.",
+    "ipa": "ˈrisɔrs"
   },
   {
     "en": "responsibility",
-    "uz": "mas'uliyat"
+    "uz": "mas'uliyat",
+    "example": "I saw a responsibility yesterday.",
+    "ipa": "riˌspɑnsəˈbɪləti"
   },
   {
     "en": "restriction",
-    "uz": "cheklov"
+    "uz": "cheklov",
+    "example": "I saw a restriction yesterday.",
+    "ipa": "riˈstrɪkʃən"
   },
   {
     "en": "revolution",
-    "uz": "inqilob"
+    "uz": "inqilob",
+    "example": "I saw a revolution yesterday.",
+    "ipa": "ˌrɛvəˈluʃən"
   },
   {
     "en": "satisfaction",
-    "uz": "qoniqish"
+    "uz": "qoniqish",
+    "example": "I saw a satisfaction yesterday.",
+    "ipa": "ˌsætɪsˈfækʃən"
   },
   {
     "en": "scholarship",
-    "uz": "stipendiya"
+    "uz": "stipendiya",
+    "example": "I saw a scholarship yesterday.",
+    "ipa": "ˈskɑlərˌʃɪp"
   },
   {
     "en": "sensitivity",
-    "uz": "sezgirlik"
+    "uz": "sezgirlik",
+    "example": "I saw a sensitivity yesterday.",
+    "ipa": "ˌsɛnsɪˈtɪvɪti"
   },
   {
     "en": "significance",
-    "uz": "ahamiyat"
+    "uz": "ahamiyat",
+    "example": "I saw a significance yesterday.",
+    "ipa": "sɪgˈnɪfɪkəns"
   },
   {
     "en": "sincerity",
-    "uz": "samimiyat"
+    "uz": "samimiyat",
+    "example": "I saw a sincerity yesterday.",
+    "ipa": "sɪnˈsɛrəti"
   },
   {
     "en": "stability",
-    "uz": "barqarorlik"
+    "uz": "barqarorlik",
+    "example": "I saw a stability yesterday.",
+    "ipa": "stəˈbɪlɪti"
   },
   {
     "en": "standard",
-    "uz": "standart"
+    "uz": "standart",
+    "example": "I saw a standard yesterday.",
+    "ipa": "ˈstændərd"
   },
   {
     "en": "statistic",
-    "uz": "statistika"
+    "uz": "statistika",
+    "example": "I saw a statistic yesterday.",
+    "ipa": "stəˈtɪstɪk"
   },
   {
     "en": "strategy",
-    "uz": "strategiya"
+    "uz": "strategiya",
+    "example": "I saw a strategy yesterday.",
+    "ipa": "ˈstrætəʤi"
   },
   {
     "en": "structure",
-    "uz": "tuzilma"
+    "uz": "tuzilma",
+    "example": "I saw a structure yesterday.",
+    "ipa": "ˈstrəkʧər"
   },
   {
     "en": "submission",
-    "uz": "topshirish"
+    "uz": "topshirish",
+    "example": "I saw a submission yesterday.",
+    "ipa": "səbˈmɪʃən"
   },
   {
     "en": "substance",
-    "uz": "modda/mohiyat"
+    "uz": "modda/mohiyat",
+    "example": "I saw a substance yesterday.",
+    "ipa": "ˈsəbstəns"
   },
   {
     "en": "suspicion",
-    "uz": "shubha"
+    "uz": "shubha",
+    "example": "I saw a suspicion yesterday.",
+    "ipa": "səˈspɪʃən"
   },
   {
     "en": "sympathy",
-    "uz": "hamdardlik"
+    "uz": "hamdardlik",
+    "example": "I saw a sympathy yesterday.",
+    "ipa": "ˈsɪmpəθi"
   },
   {
     "en": "tendency",
-    "uz": "moyillik"
+    "uz": "moyillik",
+    "example": "I saw a tendency yesterday.",
+    "ipa": "ˈtɛndənsi"
   },
   {
     "en": "theory",
-    "uz": "nazariya"
+    "uz": "nazariya",
+    "example": "I saw a theory yesterday.",
+    "ipa": "ˈθɪri"
   },
   {
     "en": "tolerance",
-    "uz": "bardoshlilik"
+    "uz": "bardoshlilik",
+    "example": "I saw a tolerance yesterday.",
+    "ipa": "ˈtɑlərəns"
   },
   {
     "en": "transformation",
-    "uz": "o'zgarish (tub)"
+    "uz": "o'zgarish (tub)",
+    "example": "I saw a transformation yesterday.",
+    "ipa": "ˌtrænsfərˈmeɪʃən"
   },
   {
     "en": "transition",
-    "uz": "o'tish davri"
+    "uz": "o'tish davri",
+    "example": "I saw a transition yesterday.",
+    "ipa": "trænˈzɪʃən"
   },
   {
     "en": "unemployment",
-    "uz": "ishsizlik"
+    "uz": "ishsizlik",
+    "example": "I saw an unemployment yesterday.",
+    "ipa": "ˌənɪmˈplɔɪmənt"
   },
   {
     "en": "unity",
-    "uz": "birlik"
+    "uz": "birlik",
+    "example": "I saw an unity yesterday.",
+    "ipa": "ˈjunɪti"
   },
   {
     "en": "variation",
-    "uz": "o'zgaruvchanlik"
+    "uz": "o'zgaruvchanlik",
+    "example": "I saw a variation yesterday.",
+    "ipa": "ˌvɛriˈeɪʃən"
   },
   {
     "en": "violence",
-    "uz": "zo'ravonlik"
+    "uz": "zo'ravonlik",
+    "example": "I saw a violence yesterday.",
+    "ipa": "ˈvaɪələns"
   },
   {
     "en": "vision",
-    "uz": "qarash/tasavvur"
+    "uz": "qarash/tasavvur",
+    "example": "I saw a vision yesterday.",
+    "ipa": "ˈvɪʒən"
   },
   {
     "en": "volunteer",
-    "uz": "ko'ngilli"
+    "uz": "ko'ngilli",
+    "example": "I saw a volunteer yesterday.",
+    "ipa": "ˌvɑlənˈtɪr"
   },
   {
     "en": "wisdom",
-    "uz": "donolik"
+    "uz": "donolik",
+    "example": "I saw a wisdom yesterday.",
+    "ipa": "ˈwɪzdəm"
   }
 ]

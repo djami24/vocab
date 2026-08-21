@@ -1,870 +1,1304 @@
 [
   {
     "en": "one",
-    "uz": "bir"
+    "uz": "bir",
+    "example": "There are one books on the table.",
+    "ipa": "wən"
   },
   {
     "en": "two",
-    "uz": "ikki"
+    "uz": "ikki",
+    "example": "There are two books on the table.",
+    "ipa": "tu"
   },
   {
     "en": "three",
-    "uz": "uch"
+    "uz": "uch",
+    "example": "There are three books on the table.",
+    "ipa": "θri"
   },
   {
     "en": "four",
-    "uz": "to'rt"
+    "uz": "to'rt",
+    "example": "There are four books on the table.",
+    "ipa": "fɔr"
   },
   {
     "en": "five",
-    "uz": "besh"
+    "uz": "besh",
+    "example": "There are five books on the table.",
+    "ipa": "faɪv"
   },
   {
     "en": "six",
-    "uz": "olti"
+    "uz": "olti",
+    "example": "There are six books on the table.",
+    "ipa": "sɪks"
   },
   {
     "en": "seven",
-    "uz": "yetti"
+    "uz": "yetti",
+    "example": "There are seven books on the table.",
+    "ipa": "ˈsɛvən"
   },
   {
     "en": "eight",
-    "uz": "sakkiz"
+    "uz": "sakkiz",
+    "example": "There are eight books on the table.",
+    "ipa": "eɪt"
   },
   {
     "en": "nine",
-    "uz": "to'qqiz"
+    "uz": "to'qqiz",
+    "example": "There are nine books on the table.",
+    "ipa": "naɪn"
   },
   {
     "en": "ten",
-    "uz": "o'n"
+    "uz": "o'n",
+    "example": "There are ten books on the table.",
+    "ipa": "tɛn"
   },
   {
     "en": "eleven",
-    "uz": "o'n bir"
+    "uz": "o'n bir",
+    "example": "There are eleven books on the table.",
+    "ipa": "ˈilɛvən"
   },
   {
     "en": "twelve",
-    "uz": "o'n ikki"
+    "uz": "o'n ikki",
+    "example": "There are twelve books on the table.",
+    "ipa": "twɛlv"
   },
   {
     "en": "thirteen",
-    "uz": "o'n uch"
+    "uz": "o'n uch",
+    "example": "There are thirteen books on the table.",
+    "ipa": "ˈθərˈtin"
   },
   {
     "en": "fourteen",
-    "uz": "o'n to'rt"
+    "uz": "o'n to'rt",
+    "example": "There are fourteen books on the table.",
+    "ipa": "ˌfɔrˈtin"
   },
   {
     "en": "fifteen",
-    "uz": "o'n besh"
+    "uz": "o'n besh",
+    "example": "There are fifteen books on the table.",
+    "ipa": "ˈfɪfˈtin"
   },
   {
     "en": "twenty",
-    "uz": "yigirma"
+    "uz": "yigirma",
+    "example": "There are twenty books on the table.",
+    "ipa": "tˈwɛnti"
   },
   {
     "en": "thirty",
-    "uz": "o'ttiz"
+    "uz": "o'ttiz",
+    "example": "There are thirty books on the table.",
+    "ipa": "ˈθərˌdi"
   },
   {
     "en": "hundred",
-    "uz": "yuz"
+    "uz": "yuz",
+    "example": "There are hundred books on the table.",
+    "ipa": "ˈhənərd"
   },
   {
     "en": "thousand",
-    "uz": "ming"
+    "uz": "ming",
+    "example": "There are thousand books on the table.",
+    "ipa": "ˈθaʊzənd"
   },
   {
     "en": "red",
-    "uz": "qizil"
+    "uz": "qizil",
+    "example": "She is wearing a red dress.",
+    "ipa": "rɛd"
   },
   {
     "en": "blue",
-    "uz": "ko'k"
+    "uz": "ko'k",
+    "example": "She is wearing a blue dress.",
+    "ipa": "blu"
   },
   {
     "en": "green",
-    "uz": "yashil"
+    "uz": "yashil",
+    "example": "She is wearing a green dress.",
+    "ipa": "grin"
   },
   {
     "en": "yellow",
-    "uz": "sariq"
+    "uz": "sariq",
+    "example": "She is wearing a yellow dress.",
+    "ipa": "ˈjɛloʊ"
   },
   {
     "en": "black",
-    "uz": "qora"
+    "uz": "qora",
+    "example": "She is wearing a black dress.",
+    "ipa": "blæk"
   },
   {
     "en": "white",
-    "uz": "oq"
+    "uz": "oq",
+    "example": "She is wearing a white dress.",
+    "ipa": "waɪt"
   },
   {
     "en": "orange",
-    "uz": "to'q sariq"
+    "uz": "to'q sariq",
+    "example": "She is wearing a orange dress.",
+    "ipa": "ˈɔrɪnʤ"
   },
   {
     "en": "pink",
-    "uz": "pushti"
+    "uz": "pushti",
+    "example": "She is wearing a pink dress.",
+    "ipa": "pɪŋk"
   },
   {
     "en": "purple",
-    "uz": "binafsha"
+    "uz": "binafsha",
+    "example": "She is wearing a purple dress.",
+    "ipa": "ˈpərpəl"
   },
   {
     "en": "brown",
-    "uz": "jigarrang"
+    "uz": "jigarrang",
+    "example": "She is wearing a brown dress.",
+    "ipa": "braʊn"
   },
   {
     "en": "gray",
-    "uz": "kulrang"
+    "uz": "kulrang",
+    "example": "She is wearing a gray dress.",
+    "ipa": "greɪ"
   },
   {
     "en": "mother",
-    "uz": "ona"
+    "uz": "ona",
+    "example": "I saw a mother yesterday.",
+    "ipa": "ˈməðər"
   },
   {
     "en": "father",
-    "uz": "ota"
+    "uz": "ota",
+    "example": "I saw a father yesterday.",
+    "ipa": "ˈfɑðər"
   },
   {
     "en": "sister",
-    "uz": "opa/singil"
+    "uz": "opa/singil",
+    "example": "I saw a sister yesterday.",
+    "ipa": "ˈsɪstər"
   },
   {
     "en": "brother",
-    "uz": "aka/uka"
+    "uz": "aka/uka",
+    "example": "I saw a brother yesterday.",
+    "ipa": "ˈbrəðər"
   },
   {
     "en": "son",
-    "uz": "o'g'il"
+    "uz": "o'g'il",
+    "example": "I saw a son yesterday.",
+    "ipa": "sən"
   },
   {
     "en": "daughter",
-    "uz": "qiz"
+    "uz": "qiz",
+    "example": "I saw a daughter yesterday.",
+    "ipa": "ˈdɔtər"
   },
   {
     "en": "grandmother",
-    "uz": "buvi"
+    "uz": "buvi",
+    "example": "I saw a grandmother yesterday.",
+    "ipa": "ˈgrændˌməðər"
   },
   {
     "en": "grandfather",
-    "uz": "bobo"
+    "uz": "bobo",
+    "example": "I saw a grandfather yesterday.",
+    "ipa": "ˈgrænˌfɑðər"
   },
   {
     "en": "family",
-    "uz": "oila"
+    "uz": "oila",
+    "example": "I saw a family yesterday.",
+    "ipa": "ˈfæməli"
   },
   {
     "en": "friend",
-    "uz": "do'st"
+    "uz": "do'st",
+    "example": "I saw a friend yesterday.",
+    "ipa": "frɛnd"
   },
   {
     "en": "baby",
-    "uz": "chaqaloq"
+    "uz": "chaqaloq",
+    "example": "I saw a baby yesterday.",
+    "ipa": "ˈbeɪbi"
   },
   {
     "en": "man",
-    "uz": "erkak"
+    "uz": "erkak",
+    "example": "I saw a man yesterday.",
+    "ipa": "mæn"
   },
   {
     "en": "woman",
-    "uz": "ayol"
+    "uz": "ayol",
+    "example": "I saw a woman yesterday.",
+    "ipa": "ˈwʊmən"
   },
   {
     "en": "boy",
-    "uz": "o'g'il bola"
+    "uz": "o'g'il bola",
+    "example": "I saw a boy yesterday.",
+    "ipa": "bɔɪ"
   },
   {
     "en": "girl",
-    "uz": "qiz bola"
+    "uz": "qiz bola",
+    "example": "I saw a girl yesterday.",
+    "ipa": "gərl"
   },
   {
     "en": "child",
-    "uz": "bola"
+    "uz": "bola",
+    "example": "I saw a child yesterday.",
+    "ipa": "ʧaɪld"
   },
   {
     "en": "people",
-    "uz": "odamlar"
+    "uz": "odamlar",
+    "example": "I saw a people yesterday.",
+    "ipa": "ˈpipəl"
   },
   {
     "en": "Monday",
-    "uz": "dushanba"
+    "uz": "dushanba",
+    "example": "I have English class every Monday.",
+    "ipa": "ˈmənˌdeɪ"
   },
   {
     "en": "Tuesday",
-    "uz": "seshanba"
+    "uz": "seshanba",
+    "example": "I have English class every Tuesday.",
+    "ipa": "ˈtuzˌdeɪ"
   },
   {
     "en": "Wednesday",
-    "uz": "chorshanba"
+    "uz": "chorshanba",
+    "example": "I have English class every Wednesday.",
+    "ipa": "ˈwɛnzˌdeɪ"
   },
   {
     "en": "Thursday",
-    "uz": "payshanba"
+    "uz": "payshanba",
+    "example": "I have English class every Thursday.",
+    "ipa": "ˈθərzˌdeɪ"
   },
   {
     "en": "Friday",
-    "uz": "juma"
+    "uz": "juma",
+    "example": "I have English class every Friday.",
+    "ipa": "ˈfraɪˌdeɪ"
   },
   {
     "en": "Saturday",
-    "uz": "shanba"
+    "uz": "shanba",
+    "example": "I have English class every Saturday.",
+    "ipa": "ˈsæˌtɪˌdeɪ"
   },
   {
     "en": "Sunday",
-    "uz": "yakshanba"
+    "uz": "yakshanba",
+    "example": "I have English class every Sunday.",
+    "ipa": "ˈsənˌdi"
   },
   {
     "en": "today",
-    "uz": "bugun"
+    "uz": "bugun",
+    "example": "I saw a today yesterday.",
+    "ipa": "təˈdeɪ"
   },
   {
     "en": "tomorrow",
-    "uz": "ertaga"
+    "uz": "ertaga",
+    "example": "I saw a tomorrow yesterday.",
+    "ipa": "təˈmɑˌroʊ"
   },
   {
     "en": "yesterday",
-    "uz": "kecha"
+    "uz": "kecha",
+    "example": "I saw a yesterday yesterday.",
+    "ipa": "ˈjɛstərˌdeɪ"
   },
   {
     "en": "week",
-    "uz": "hafta"
+    "uz": "hafta",
+    "example": "I saw a week yesterday.",
+    "ipa": "wik"
   },
   {
     "en": "month",
-    "uz": "oy"
+    "uz": "oy",
+    "example": "I saw a month yesterday.",
+    "ipa": "mənθ"
   },
   {
     "en": "year",
-    "uz": "yil"
+    "uz": "yil",
+    "example": "I saw a year yesterday.",
+    "ipa": "jɪr"
   },
   {
     "en": "day",
-    "uz": "kun"
+    "uz": "kun",
+    "example": "I saw a day yesterday.",
+    "ipa": "deɪ"
   },
   {
     "en": "night",
-    "uz": "tun"
+    "uz": "tun",
+    "example": "I saw a night yesterday.",
+    "ipa": "naɪt"
   },
   {
     "en": "morning",
-    "uz": "ertalab"
+    "uz": "ertalab",
+    "example": "I saw a morning yesterday.",
+    "ipa": "ˈmɔrnɪŋ"
   },
   {
     "en": "evening",
-    "uz": "kechqurun"
+    "uz": "kechqurun",
+    "example": "I saw an evening yesterday.",
+    "ipa": "ˈivnɪŋ"
   },
   {
     "en": "house",
-    "uz": "uy"
+    "uz": "uy",
+    "example": "I saw a house yesterday.",
+    "ipa": "haʊs"
   },
   {
     "en": "home",
-    "uz": "uy (turar joy)"
+    "uz": "uy (turar joy)",
+    "example": "I saw a home yesterday.",
+    "ipa": "hoʊm"
   },
   {
     "en": "school",
-    "uz": "maktab"
+    "uz": "maktab",
+    "example": "I saw a school yesterday.",
+    "ipa": "skul"
   },
   {
     "en": "book",
-    "uz": "kitob"
+    "uz": "kitob",
+    "example": "I saw a book yesterday.",
+    "ipa": "bʊk"
   },
   {
     "en": "pen",
-    "uz": "ruchka"
+    "uz": "ruchka",
+    "example": "I saw a pen yesterday.",
+    "ipa": "pɛn"
   },
   {
     "en": "pencil",
-    "uz": "qalam"
+    "uz": "qalam",
+    "example": "I saw a pencil yesterday.",
+    "ipa": "ˈpɛnsəl"
   },
   {
     "en": "table",
-    "uz": "stol"
+    "uz": "stol",
+    "example": "I saw a table yesterday.",
+    "ipa": "ˈteɪbəl"
   },
   {
     "en": "chair",
-    "uz": "stul"
+    "uz": "stul",
+    "example": "I saw a chair yesterday.",
+    "ipa": "ʧɛr"
   },
   {
     "en": "door",
-    "uz": "eshik"
+    "uz": "eshik",
+    "example": "I saw a door yesterday.",
+    "ipa": "dɔr"
   },
   {
     "en": "window",
-    "uz": "deraza"
+    "uz": "deraza",
+    "example": "I saw a window yesterday.",
+    "ipa": "ˈwɪndoʊ"
   },
   {
     "en": "car",
-    "uz": "mashina"
+    "uz": "mashina",
+    "example": "I saw a car yesterday.",
+    "ipa": "kɑr"
   },
   {
     "en": "bus",
-    "uz": "avtobus"
+    "uz": "avtobus",
+    "example": "I saw a bus yesterday.",
+    "ipa": "bəs"
   },
   {
     "en": "train",
-    "uz": "poyezd"
+    "uz": "poyezd",
+    "example": "I saw a train yesterday.",
+    "ipa": "treɪn"
   },
   {
     "en": "plane",
-    "uz": "samolyot"
+    "uz": "samolyot",
+    "example": "I saw a plane yesterday.",
+    "ipa": "pleɪn"
   },
   {
     "en": "city",
-    "uz": "shahar"
+    "uz": "shahar",
+    "example": "I saw a city yesterday.",
+    "ipa": "ˈsɪti"
   },
   {
     "en": "street",
-    "uz": "ko'cha"
+    "uz": "ko'cha",
+    "example": "I saw a street yesterday.",
+    "ipa": "strit"
   },
   {
     "en": "room",
-    "uz": "xona"
+    "uz": "xona",
+    "example": "I saw a room yesterday.",
+    "ipa": "rum"
   },
   {
     "en": "bag",
-    "uz": "sumka"
+    "uz": "sumka",
+    "example": "I saw a bag yesterday.",
+    "ipa": "bæg"
   },
   {
     "en": "phone",
-    "uz": "telefon"
+    "uz": "telefon",
+    "example": "I saw a phone yesterday.",
+    "ipa": "foʊn"
   },
   {
     "en": "computer",
-    "uz": "kompyuter"
+    "uz": "kompyuter",
+    "example": "I saw a computer yesterday.",
+    "ipa": "kəmˈpjutər"
   },
   {
     "en": "water",
-    "uz": "suv"
+    "uz": "suv",
+    "example": "I saw a water yesterday.",
+    "ipa": "ˈwɔtər"
   },
   {
     "en": "food",
-    "uz": "ovqat"
+    "uz": "ovqat",
+    "example": "I saw a food yesterday.",
+    "ipa": "fud"
   },
   {
     "en": "bread",
-    "uz": "non"
+    "uz": "non",
+    "example": "I saw a bread yesterday.",
+    "ipa": "brɛd"
   },
   {
     "en": "milk",
-    "uz": "sut"
+    "uz": "sut",
+    "example": "I saw a milk yesterday.",
+    "ipa": "mɪlk"
   },
   {
     "en": "tea",
-    "uz": "choy"
+    "uz": "choy",
+    "example": "I saw a tea yesterday.",
+    "ipa": "ti"
   },
   {
     "en": "coffee",
-    "uz": "qahva"
+    "uz": "qahva",
+    "example": "I saw a coffee yesterday.",
+    "ipa": "ˈkɔfi"
   },
   {
     "en": "apple",
-    "uz": "olma"
+    "uz": "olma",
+    "example": "I saw an apple yesterday.",
+    "ipa": "ˈæpəl"
   },
   {
     "en": "egg",
-    "uz": "tuxum"
+    "uz": "tuxum",
+    "example": "I saw an egg yesterday.",
+    "ipa": "ɛg"
   },
   {
     "en": "meat",
-    "uz": "go'sht"
+    "uz": "go'sht",
+    "example": "I saw a meat yesterday.",
+    "ipa": "mit"
   },
   {
     "en": "rice",
-    "uz": "guruch"
+    "uz": "guruch",
+    "example": "I saw a rice yesterday.",
+    "ipa": "raɪs"
   },
   {
     "en": "fish",
-    "uz": "baliq"
+    "uz": "baliq",
+    "example": "I saw a fish yesterday.",
+    "ipa": "fɪʃ"
   },
   {
     "en": "cat",
-    "uz": "mushuk"
+    "uz": "mushuk",
+    "example": "I saw a cat yesterday.",
+    "ipa": "kæt"
   },
   {
     "en": "dog",
-    "uz": "it"
+    "uz": "it",
+    "example": "I saw a dog yesterday.",
+    "ipa": "dɔg"
   },
   {
     "en": "bird",
-    "uz": "qush"
+    "uz": "qush",
+    "example": "I saw a bird yesterday.",
+    "ipa": "bərd"
   },
   {
     "en": "tree",
-    "uz": "daraxt"
+    "uz": "daraxt",
+    "example": "I saw a tree yesterday.",
+    "ipa": "tri"
   },
   {
     "en": "flower",
-    "uz": "gul"
+    "uz": "gul",
+    "example": "I saw a flower yesterday.",
+    "ipa": "flaʊər"
   },
   {
     "en": "sun",
-    "uz": "quyosh"
+    "uz": "quyosh",
+    "example": "I saw a sun yesterday.",
+    "ipa": "sən"
   },
   {
     "en": "moon",
-    "uz": "oy (osmondagi)"
+    "uz": "oy (osmondagi)",
+    "example": "I saw a moon yesterday.",
+    "ipa": "mun"
   },
   {
     "en": "star",
-    "uz": "yulduz"
+    "uz": "yulduz",
+    "example": "I saw a star yesterday.",
+    "ipa": "stɑr"
   },
   {
     "en": "sky",
-    "uz": "osmon"
+    "uz": "osmon",
+    "example": "I saw a sky yesterday.",
+    "ipa": "skaɪ"
   },
   {
     "en": "rain",
-    "uz": "yomg'ir"
+    "uz": "yomg'ir",
+    "example": "I saw a rain yesterday.",
+    "ipa": "reɪn"
   },
   {
     "en": "snow",
-    "uz": "qor"
+    "uz": "qor",
+    "example": "I saw a snow yesterday.",
+    "ipa": "snoʊ"
   },
   {
     "en": "fire",
-    "uz": "olov"
+    "uz": "olov",
+    "example": "I saw a fire yesterday.",
+    "ipa": "faɪər"
   },
   {
     "en": "earth",
-    "uz": "yer"
+    "uz": "yer",
+    "example": "I saw an earth yesterday.",
+    "ipa": "ərθ"
   },
   {
     "en": "mountain",
-    "uz": "tog'"
+    "uz": "tog'",
+    "example": "I saw a mountain yesterday.",
+    "ipa": "ˈmaʊntən"
   },
   {
     "en": "river",
-    "uz": "daryo"
+    "uz": "daryo",
+    "example": "I saw a river yesterday.",
+    "ipa": "ˈrɪvər"
   },
   {
     "en": "sea",
-    "uz": "dengiz"
+    "uz": "dengiz",
+    "example": "I saw a sea yesterday.",
+    "ipa": "si"
   },
   {
     "en": "park",
-    "uz": "park"
+    "uz": "park",
+    "example": "I saw a park yesterday.",
+    "ipa": "pɑrk"
   },
   {
     "en": "shop",
-    "uz": "do'kon"
+    "uz": "do'kon",
+    "example": "I saw a shop yesterday.",
+    "ipa": "ʃɑp"
   },
   {
     "en": "market",
-    "uz": "bozor"
+    "uz": "bozor",
+    "example": "I saw a market yesterday.",
+    "ipa": "ˈmɑrkɪt"
   },
   {
     "en": "money",
-    "uz": "pul"
+    "uz": "pul",
+    "example": "I saw a money yesterday.",
+    "ipa": "ˈməni"
   },
   {
     "en": "time",
-    "uz": "vaqt"
+    "uz": "vaqt",
+    "example": "I saw a time yesterday.",
+    "ipa": "taɪm"
   },
   {
     "en": "name",
-    "uz": "ism"
+    "uz": "ism",
+    "example": "I saw a name yesterday.",
+    "ipa": "neɪm"
   },
   {
     "en": "age",
-    "uz": "yosh"
+    "uz": "yosh",
+    "example": "I saw an age yesterday.",
+    "ipa": "eɪʤ"
   },
   {
     "en": "job",
-    "uz": "ish"
+    "uz": "ish",
+    "example": "I saw a job yesterday.",
+    "ipa": "ʤɑb"
   },
   {
     "en": "work",
-    "uz": "ish/mehnat"
+    "uz": "ish/mehnat",
+    "example": "I saw a work yesterday.",
+    "ipa": "wərk"
   },
   {
     "en": "be",
-    "uz": "bo'lmoq"
+    "uz": "bo'lmoq",
+    "example": "I want to be every day.",
+    "ipa": "bi"
   },
   {
     "en": "have",
-    "uz": "ega bo'lmoq"
+    "uz": "ega bo'lmoq",
+    "example": "I want to have every day.",
+    "ipa": "hæv"
   },
   {
     "en": "do",
-    "uz": "qilmoq"
+    "uz": "qilmoq",
+    "example": "I want to do every day.",
+    "ipa": "du"
   },
   {
     "en": "go",
-    "uz": "bormoq"
+    "uz": "bormoq",
+    "example": "I want to go every day.",
+    "ipa": "goʊ"
   },
   {
     "en": "come",
-    "uz": "kelmoq"
+    "uz": "kelmoq",
+    "example": "I want to come every day.",
+    "ipa": "kəm"
   },
   {
     "en": "see",
-    "uz": "ko'rmoq"
+    "uz": "ko'rmoq",
+    "example": "I want to see every day.",
+    "ipa": "si"
   },
   {
     "en": "look",
-    "uz": "qaramoq"
+    "uz": "qaramoq",
+    "example": "I want to look every day.",
+    "ipa": "lʊk"
   },
   {
     "en": "eat",
-    "uz": "yemoq"
+    "uz": "yemoq",
+    "example": "I want to eat every day.",
+    "ipa": "it"
   },
   {
     "en": "drink",
-    "uz": "ichmoq"
+    "uz": "ichmoq",
+    "example": "I want to drink every day.",
+    "ipa": "drɪŋk"
   },
   {
     "en": "sleep",
-    "uz": "uxlamoq"
+    "uz": "uxlamoq",
+    "example": "I want to sleep every day.",
+    "ipa": "slip"
   },
   {
     "en": "walk",
-    "uz": "yurmoq"
+    "uz": "yurmoq",
+    "example": "I want to walk every day.",
+    "ipa": "wɔk"
   },
   {
     "en": "run",
-    "uz": "yugurmoq"
+    "uz": "yugurmoq",
+    "example": "I want to run every day.",
+    "ipa": "rən"
   },
   {
     "en": "speak",
-    "uz": "gapirmoq"
+    "uz": "gapirmoq",
+    "example": "I want to speak every day.",
+    "ipa": "spik"
   },
   {
     "en": "talk",
-    "uz": "suhbatlashmoq"
+    "uz": "suhbatlashmoq",
+    "example": "I want to talk every day.",
+    "ipa": "tɔk"
   },
   {
     "en": "say",
-    "uz": "aytmoq"
+    "uz": "aytmoq",
+    "example": "I want to say every day.",
+    "ipa": "seɪ"
   },
   {
     "en": "ask",
-    "uz": "so'ramoq"
+    "uz": "so'ramoq",
+    "example": "I want to ask every day.",
+    "ipa": "æsk"
   },
   {
     "en": "answer",
-    "uz": "javob bermoq"
+    "uz": "javob bermoq",
+    "example": "I want to answer every day.",
+    "ipa": "ˈænsər"
   },
   {
     "en": "read",
-    "uz": "o'qimoq"
+    "uz": "o'qimoq",
+    "example": "I want to read every day.",
+    "ipa": "rɛd"
   },
   {
     "en": "write",
-    "uz": "yozmoq"
+    "uz": "yozmoq",
+    "example": "I want to write every day.",
+    "ipa": "raɪt"
   },
   {
     "en": "listen",
-    "uz": "tinglamoq"
+    "uz": "tinglamoq",
+    "example": "I want to listen every day.",
+    "ipa": "ˈlɪsən"
   },
   {
     "en": "hear",
-    "uz": "eshitmoq"
+    "uz": "eshitmoq",
+    "example": "I want to hear every day.",
+    "ipa": "hir"
   },
   {
     "en": "know",
-    "uz": "bilmoq"
+    "uz": "bilmoq",
+    "example": "I want to know every day.",
+    "ipa": "noʊ"
   },
   {
     "en": "think",
-    "uz": "o'ylamoq"
+    "uz": "o'ylamoq",
+    "example": "I want to think every day.",
+    "ipa": "θɪŋk"
   },
   {
     "en": "want",
-    "uz": "xohlamoq"
+    "uz": "xohlamoq",
+    "example": "I want to want every day.",
+    "ipa": "wɔnt"
   },
   {
     "en": "like",
-    "uz": "yoqtirmoq"
+    "uz": "yoqtirmoq",
+    "example": "I want to like every day.",
+    "ipa": "laɪk"
   },
   {
     "en": "love",
-    "uz": "sevmoq"
+    "uz": "sevmoq",
+    "example": "I want to love every day.",
+    "ipa": "ləv"
   },
   {
     "en": "need",
-    "uz": "kerak bo'lmoq"
+    "uz": "kerak bo'lmoq",
+    "example": "I want to need every day.",
+    "ipa": "nid"
   },
   {
     "en": "help",
-    "uz": "yordam bermoq"
+    "uz": "yordam bermoq",
+    "example": "I want to help every day.",
+    "ipa": "hɛlp"
   },
   {
     "en": "give",
-    "uz": "bermoq"
+    "uz": "bermoq",
+    "example": "I want to give every day.",
+    "ipa": "gɪv"
   },
   {
     "en": "take",
-    "uz": "olmoq"
+    "uz": "olmoq",
+    "example": "I want to take every day.",
+    "ipa": "teɪk"
   },
   {
     "en": "make",
-    "uz": "yasamoq"
+    "uz": "yasamoq",
+    "example": "I want to make every day.",
+    "ipa": "meɪk"
   },
   {
     "en": "play",
-    "uz": "o'ynamoq"
+    "uz": "o'ynamoq",
+    "example": "I want to play every day.",
+    "ipa": "pleɪ"
   },
   {
     "en": "study",
-    "uz": "o'qimoq (ta'lim)"
+    "uz": "o'qimoq (ta'lim)",
+    "example": "I want to study every day.",
+    "ipa": "ˈstədi"
   },
   {
     "en": "learn",
-    "uz": "o'rganmoq"
+    "uz": "o'rganmoq",
+    "example": "I want to learn every day.",
+    "ipa": "lərn"
   },
   {
     "en": "teach",
-    "uz": "o'qitmoq"
+    "uz": "o'qitmoq",
+    "example": "I want to teach every day.",
+    "ipa": "tiʧ"
   },
   {
     "en": "live",
-    "uz": "yashamoq"
+    "uz": "yashamoq",
+    "example": "I want to live every day.",
+    "ipa": "lɪv"
   },
   {
     "en": "stay",
-    "uz": "qolmoq"
+    "uz": "qolmoq",
+    "example": "I want to stay every day.",
+    "ipa": "steɪ"
   },
   {
     "en": "open",
-    "uz": "ochmoq"
+    "uz": "ochmoq",
+    "example": "I want to open every day.",
+    "ipa": "ˈoʊpən"
   },
   {
     "en": "close",
-    "uz": "yopmoq"
+    "uz": "yopmoq",
+    "example": "I want to close every day.",
+    "ipa": "kloʊz"
   },
   {
     "en": "buy",
-    "uz": "sotib olmoq"
+    "uz": "sotib olmoq",
+    "example": "I want to buy every day.",
+    "ipa": "baɪ"
   },
   {
     "en": "sell",
-    "uz": "sotmoq"
+    "uz": "sotmoq",
+    "example": "I want to sell every day.",
+    "ipa": "sɛl"
   },
   {
     "en": "wear",
-    "uz": "kiymoq"
+    "uz": "kiymoq",
+    "example": "I want to wear every day.",
+    "ipa": "wɛr"
   },
   {
     "en": "cook",
-    "uz": "pishirmoq"
+    "uz": "pishirmoq",
+    "example": "I want to cook every day.",
+    "ipa": "kʊk"
   },
   {
     "en": "clean",
-    "uz": "tozalamoq"
+    "uz": "tozalamoq",
+    "example": "I want to clean every day.",
+    "ipa": "klin"
   },
   {
     "en": "wash",
-    "uz": "yuvmoq"
+    "uz": "yuvmoq",
+    "example": "I want to wash every day.",
+    "ipa": "wɑʃ"
   },
   {
     "en": "wait",
-    "uz": "kutmoq"
+    "uz": "kutmoq",
+    "example": "I want to wait every day.",
+    "ipa": "weɪt"
   },
   {
     "en": "start",
-    "uz": "boshlamoq"
+    "uz": "boshlamoq",
+    "example": "I want to start every day.",
+    "ipa": "stɑrt"
   },
   {
     "en": "finish",
-    "uz": "tugatmoq"
+    "uz": "tugatmoq",
+    "example": "I want to finish every day.",
+    "ipa": "ˈfɪnɪʃ"
   },
   {
     "en": "stop",
-    "uz": "to'xtamoq"
+    "uz": "to'xtamoq",
+    "example": "I want to stop every day.",
+    "ipa": "stɑp"
   },
   {
     "en": "sit",
-    "uz": "o'tirmoq"
+    "uz": "o'tirmoq",
+    "example": "I want to sit every day.",
+    "ipa": "sɪt"
   },
   {
     "en": "stand",
-    "uz": "turmoq"
+    "uz": "turmoq",
+    "example": "I want to stand every day.",
+    "ipa": "stænd"
   },
   {
     "en": "big",
-    "uz": "katta"
+    "uz": "katta",
+    "example": "This book is very big.",
+    "ipa": "bɪg"
   },
   {
     "en": "small",
-    "uz": "kichik"
+    "uz": "kichik",
+    "example": "This book is very small.",
+    "ipa": "smɔl"
   },
   {
     "en": "tall",
-    "uz": "baland (bo'yli)"
+    "uz": "baland (bo'yli)",
+    "example": "This book is very tall.",
+    "ipa": "tɔl"
   },
   {
     "en": "short",
-    "uz": "past/qisqa"
+    "uz": "past/qisqa",
+    "example": "This book is very short.",
+    "ipa": "ʃɔrt"
   },
   {
     "en": "long",
-    "uz": "uzun"
+    "uz": "uzun",
+    "example": "This book is very long.",
+    "ipa": "lɔŋ"
   },
   {
     "en": "new",
-    "uz": "yangi"
+    "uz": "yangi",
+    "example": "This book is very new.",
+    "ipa": "nu"
   },
   {
     "en": "old",
-    "uz": "eski/qari"
+    "uz": "eski/qari",
+    "example": "This book is very old.",
+    "ipa": "oʊld"
   },
   {
     "en": "young",
-    "uz": "yosh"
+    "uz": "yosh",
+    "example": "This book is very young.",
+    "ipa": "jəŋ"
   },
   {
     "en": "good",
-    "uz": "yaxshi"
+    "uz": "yaxshi",
+    "example": "This book is very good.",
+    "ipa": "gʊd"
   },
   {
     "en": "bad",
-    "uz": "yomon"
+    "uz": "yomon",
+    "example": "This book is very bad.",
+    "ipa": "bæd"
   },
   {
     "en": "happy",
-    "uz": "baxtli"
+    "uz": "baxtli",
+    "example": "This book is very happy.",
+    "ipa": "ˈhæpi"
   },
   {
     "en": "sad",
-    "uz": "g'amgin"
+    "uz": "g'amgin",
+    "example": "This book is very sad.",
+    "ipa": "sæd"
   },
   {
     "en": "hot",
-    "uz": "issiq"
+    "uz": "issiq",
+    "example": "This book is very hot.",
+    "ipa": "hɑt"
   },
   {
     "en": "cold",
-    "uz": "sovuq"
+    "uz": "sovuq",
+    "example": "This book is very cold.",
+    "ipa": "koʊld"
   },
   {
     "en": "easy",
-    "uz": "oson"
+    "uz": "oson",
+    "example": "This book is very easy.",
+    "ipa": "ˈizi"
   },
   {
     "en": "difficult",
-    "uz": "qiyin"
+    "uz": "qiyin",
+    "example": "This book is very difficult.",
+    "ipa": "ˈdɪfəkəlt"
   },
   {
     "en": "beautiful",
-    "uz": "chiroyli"
+    "uz": "chiroyli",
+    "example": "This book is very beautiful.",
+    "ipa": "ˈbjutəfəl"
   },
   {
     "en": "fast",
-    "uz": "tez"
+    "uz": "tez",
+    "example": "This book is very fast.",
+    "ipa": "fæst"
   },
   {
     "en": "slow",
-    "uz": "sekin"
+    "uz": "sekin",
+    "example": "This book is very slow.",
+    "ipa": "sloʊ"
   },
   {
     "en": "strong",
-    "uz": "kuchli"
+    "uz": "kuchli",
+    "example": "This book is very strong.",
+    "ipa": "strɔŋ"
   },
   {
     "en": "weak",
-    "uz": "kuchsiz"
+    "uz": "kuchsiz",
+    "example": "This book is very weak.",
+    "ipa": "wik"
   },
   {
     "en": "rich",
-    "uz": "boy"
+    "uz": "boy",
+    "example": "This book is very rich.",
+    "ipa": "rɪʧ"
   },
   {
     "en": "poor",
-    "uz": "kambag'al"
+    "uz": "kambag'al",
+    "example": "This book is very poor.",
+    "ipa": "pur"
   },
   {
     "en": "dirty",
-    "uz": "iflos"
+    "uz": "iflos",
+    "example": "This book is very dirty.",
+    "ipa": "ˈdərti"
   },
   {
     "en": "full",
-    "uz": "to'liq"
+    "uz": "to'liq",
+    "example": "This book is very full.",
+    "ipa": "fʊl"
   },
   {
     "en": "empty",
-    "uz": "bo'sh"
+    "uz": "bo'sh",
+    "example": "This book is very empty.",
+    "ipa": "ˈɛmti"
   },
   {
     "en": "heavy",
-    "uz": "og'ir"
+    "uz": "og'ir",
+    "example": "This book is very heavy.",
+    "ipa": "ˈhɛvi"
   },
   {
     "en": "light",
-    "uz": "yengil"
+    "uz": "yengil",
+    "example": "This book is very light.",
+    "ipa": "laɪt"
   },
   {
     "en": "near",
-    "uz": "yaqin"
+    "uz": "yaqin",
+    "example": "This book is very near.",
+    "ipa": "nɪr"
   },
   {
     "en": "far",
-    "uz": "uzoq"
+    "uz": "uzoq",
+    "example": "This book is very far.",
+    "ipa": "fɑr"
   },
   {
     "en": "early",
-    "uz": "erta"
+    "uz": "erta",
+    "example": "This book is very early.",
+    "ipa": "ˈərli"
   },
   {
     "en": "late",
-    "uz": "kech"
+    "uz": "kech",
+    "example": "This book is very late.",
+    "ipa": "leɪt"
   },
   {
     "en": "here",
-    "uz": "bu yerda"
+    "uz": "bu yerda",
+    "example": "Please come here.",
+    "ipa": "hir"
   },
   {
     "en": "there",
-    "uz": "u yerda"
+    "uz": "u yerda",
+    "example": "Put the bag over there.",
+    "ipa": "ðɛr"
   },
   {
     "en": "yes",
-    "uz": "ha"
+    "uz": "ha",
+    "example": "Yes, I understand the lesson.",
+    "ipa": "jɛs"
   },
   {
     "en": "no",
-    "uz": "yo'q"
+    "uz": "yo'q",
+    "example": "No, I don't have a car.",
+    "ipa": "noʊ"
   },
   {
     "en": "and",
-    "uz": "va"
+    "uz": "va",
+    "example": "I like tea and coffee.",
+    "ipa": "ənd"
   },
   {
     "en": "but",
-    "uz": "lekin"
+    "uz": "lekin",
+    "example": "It is small but comfortable.",
+    "ipa": "bət"
   },
   {
     "en": "or",
-    "uz": "yoki"
+    "uz": "yoki",
+    "example": "Do you want tea or coffee?",
+    "ipa": "ər"
   },
   {
     "en": "because",
-    "uz": "chunki"
+    "uz": "chunki",
+    "example": "I stayed home because it was raining.",
+    "ipa": "bɪˈkəz"
   },
   {
     "en": "what",
-    "uz": "nima"
+    "uz": "nima",
+    "example": "What is your name?",
+    "ipa": "wət"
   },
   {
     "en": "who",
-    "uz": "kim"
+    "uz": "kim",
+    "example": "Who is your teacher?",
+    "ipa": "hu"
   },
   {
     "en": "where",
-    "uz": "qayerda"
+    "uz": "qayerda",
+    "example": "Where do you live?",
+    "ipa": "wɛr"
   },
   {
     "en": "when",
-    "uz": "qachon"
+    "uz": "qachon",
+    "example": "When does the class start?",
+    "ipa": "wɪn"
   },
   {
     "en": "why",
-    "uz": "nega"
+    "uz": "nega",
+    "example": "Why are you late?",
+    "ipa": "waɪ"
   },
   {
     "en": "how",
-    "uz": "qanday"
+    "uz": "qanday",
+    "example": "How do you say this word?",
+    "ipa": "haʊ"
   }
 ]

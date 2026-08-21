@@ -1,0 +1,920 @@
+[
+  {
+    "en": "abstract",
+    "uz": "mavhum",
+    "ipa": "ˈæbˌstrækt",
+    "example": "This concept — \"abstract\" — is often discussed in academic writing."
+  },
+  {
+    "en": "accumulate",
+    "uz": "to'plamoq",
+    "ipa": "əˈkjumjəˌleɪt",
+    "example": "They decided to accumulate the new plan."
+  },
+  {
+    "en": "adjacent",
+    "uz": "chegaradosh",
+    "ipa": "əˈʤeɪsənt",
+    "example": "This concept — \"adjacent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "advocate",
+    "uz": "yoqlab chiqmoq",
+    "ipa": "ˈædvəˌkeɪt",
+    "example": "They decided to advocate the new plan."
+  },
+  {
+    "en": "aesthetic",
+    "uz": "estetik",
+    "ipa": "ɛsˈθɛtɪk",
+    "example": "This concept — \"aesthetic\" — is often discussed in academic writing."
+  },
+  {
+    "en": "albeit",
+    "uz": "garchi",
+    "ipa": "ɔlˈbiɪt",
+    "example": "The plan worked, albeit slowly."
+  },
+  {
+    "en": "allocate",
+    "uz": "ajratmoq (resurs)",
+    "ipa": "ˈæləˌkeɪt",
+    "example": "They decided to allocate the new plan."
+  },
+  {
+    "en": "ambiguous",
+    "uz": "noaniq (ikki xil ma'noli)",
+    "ipa": "æmˈbɪgjuəs",
+    "example": "This concept — \"ambiguous\" — is often discussed in academic writing."
+  },
+  {
+    "en": "arbitrary",
+    "uz": "o'zboshimchalik bilan",
+    "ipa": "ˈɑrbɪˌtrɛri",
+    "example": "This concept — \"arbitrary\" — is often discussed in academic writing."
+  },
+  {
+    "en": "articulate",
+    "uz": "aniq ifodalamoq",
+    "ipa": "ɑrˈtɪkjəˌleɪt",
+    "example": "They decided to articulate the new plan."
+  },
+  {
+    "en": "assert",
+    "uz": "qat'iy aytmoq",
+    "ipa": "əˈsərt",
+    "example": "They decided to assert the new plan."
+  },
+  {
+    "en": "assess",
+    "uz": "baholamoq",
+    "ipa": "əˈsɛs",
+    "example": "They decided to assess the new plan."
+  },
+  {
+    "en": "attain",
+    "uz": "erishmoq",
+    "ipa": "əˈteɪn",
+    "example": "They decided to attain the new plan."
+  },
+  {
+    "en": "attribute",
+    "uz": "bog'lamoq (sababini)",
+    "ipa": "əˈtrɪˌbjut",
+    "example": "They decided to attribute the new plan."
+  },
+  {
+    "en": "authentic",
+    "uz": "asl (haqiqiy)",
+    "ipa": "əˈθɛnɪk",
+    "example": "This concept — \"authentic\" — is often discussed in academic writing."
+  },
+  {
+    "en": "autonomy",
+    "uz": "mustaqillik",
+    "ipa": "əˈtɑnəmi",
+    "example": "This concept — \"autonomy\" — is often discussed in academic writing."
+  },
+  {
+    "en": "bias",
+    "uz": "xolislik yo'qligi",
+    "ipa": "baɪəs",
+    "example": "This concept — \"bias\" — is often discussed in academic writing."
+  },
+  {
+    "en": "blur",
+    "uz": "xiralashtirmoq",
+    "ipa": "blər",
+    "example": "They decided to blur the new plan."
+  },
+  {
+    "en": "coherent",
+    "uz": "izchil (mantiqiy)",
+    "ipa": "koʊˈhɪrənt",
+    "example": "This concept — \"coherent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "coincide",
+    "uz": "mos tushmoq",
+    "ipa": "ˌkoʊɪnˈsaɪd",
+    "example": "They decided to coincide the new plan."
+  },
+  {
+    "en": "commence",
+    "uz": "boshlanmoq",
+    "ipa": "kəˈmɛns",
+    "example": "They decided to commence the new plan."
+  },
+  {
+    "en": "compelling",
+    "uz": "ishontiruvchi",
+    "ipa": "kəmˈpɛlɪŋ",
+    "example": "This concept — \"compelling\" — is often discussed in academic writing."
+  },
+  {
+    "en": "compensate",
+    "uz": "o'rnini qoplamoq",
+    "ipa": "ˈkɑmpənˌseɪt",
+    "example": "They decided to compensate the new plan."
+  },
+  {
+    "en": "compile",
+    "uz": "to'plamoq (ma'lumot)",
+    "ipa": "kəmˈpaɪl",
+    "example": "They decided to compile the new plan."
+  },
+  {
+    "en": "complement",
+    "uz": "to'ldirmoq",
+    "ipa": "ˈkɑmpləmənt",
+    "example": "They decided to complement the new plan."
+  },
+  {
+    "en": "comprehend",
+    "uz": "tushunib yetmoq",
+    "ipa": "ˌkɑmpriˈhɛnd",
+    "example": "They decided to comprehend the new plan."
+  },
+  {
+    "en": "comprehensive",
+    "uz": "har tomonlama",
+    "ipa": "ˌkɑmpriˈhɛnsɪv",
+    "example": "This concept — \"comprehensive\" — is often discussed in academic writing."
+  },
+  {
+    "en": "compromise",
+    "uz": "murosaga kelmoq",
+    "ipa": "ˈkɑmprəˌmaɪz",
+    "example": "They decided to compromise the new plan."
+  },
+  {
+    "en": "conceive",
+    "uz": "tasavvur qilmoq",
+    "ipa": "kənˈsiv",
+    "example": "They decided to conceive the new plan."
+  },
+  {
+    "en": "conceptual",
+    "uz": "kontseptual",
+    "ipa": "kənˈsɛpʧuəl",
+    "example": "This concept — \"conceptual\" — is often discussed in academic writing."
+  },
+  {
+    "en": "consequently",
+    "uz": "natijada",
+    "ipa": "ˈkɑnsəkˌwɛntli",
+    "example": "It rained heavily; consequently, the match was postponed."
+  },
+  {
+    "en": "considerable",
+    "uz": "salmoqli",
+    "ipa": "kənˈsɪdərəbəl",
+    "example": "This concept — \"considerable\" — is often discussed in academic writing."
+  },
+  {
+    "en": "constitute",
+    "uz": "tashkil qilmoq",
+    "ipa": "ˈkɑnstəˌtut",
+    "example": "They decided to constitute the new plan."
+  },
+  {
+    "en": "constrain",
+    "uz": "cheklamoq",
+    "ipa": "kənˈstreɪn",
+    "example": "They decided to constrain the new plan."
+  },
+  {
+    "en": "contemplate",
+    "uz": "chuqur o'ylamoq",
+    "ipa": "ˈkɑntəmˌpleɪt",
+    "example": "They decided to contemplate the new plan."
+  },
+  {
+    "en": "contemporary",
+    "uz": "zamonaviy (hozirgi)",
+    "ipa": "kənˈtɛmpərˌɛri",
+    "example": "This concept — \"contemporary\" — is often discussed in academic writing."
+  },
+  {
+    "en": "contradict",
+    "uz": "zid kelmoq",
+    "ipa": "ˌkɑntrəˈdɪkt",
+    "example": "They decided to contradict the new plan."
+  },
+  {
+    "en": "convention",
+    "uz": "an'ana/qoida",
+    "ipa": "kənˈvɛnʃən",
+    "example": "This concept — \"convention\" — is often discussed in academic writing."
+  },
+  {
+    "en": "convey",
+    "uz": "yetkazmoq (ma'no)",
+    "ipa": "kənˈveɪ",
+    "example": "They decided to convey the new plan."
+  },
+  {
+    "en": "correlate",
+    "uz": "o'zaro bog'liq bo'lmoq",
+    "ipa": "ˈkɔrəˌleɪt",
+    "example": "They decided to correlate the new plan."
+  },
+  {
+    "en": "credible",
+    "uz": "ishonchli",
+    "ipa": "ˈkrɛdəbəl",
+    "example": "This concept — \"credible\" — is often discussed in academic writing."
+  },
+  {
+    "en": "criteria",
+    "uz": "mezonlar",
+    "ipa": "kraɪˈtɪriə",
+    "example": "This concept — \"criteria\" — is often discussed in academic writing."
+  },
+  {
+    "en": "cumulative",
+    "uz": "yig'ma",
+    "ipa": "ˈkjumjələtɪv",
+    "example": "This concept — \"cumulative\" — is often discussed in academic writing."
+  },
+  {
+    "en": "deficient",
+    "uz": "yetishmovchi",
+    "ipa": "dɪˈfɪʃənt",
+    "example": "This concept — \"deficient\" — is often discussed in academic writing."
+  },
+  {
+    "en": "deliberate",
+    "uz": "ataylab qilingan",
+    "ipa": "dɪˈlɪbərˌeɪt",
+    "example": "This concept — \"deliberate\" — is often discussed in academic writing."
+  },
+  {
+    "en": "denote",
+    "uz": "bildirmoq",
+    "ipa": "dɪˈnoʊt",
+    "example": "They decided to denote the new plan."
+  },
+  {
+    "en": "depict",
+    "uz": "tasvirlamoq",
+    "ipa": "dɪˈpɪkt",
+    "example": "They decided to depict the new plan."
+  },
+  {
+    "en": "deprive",
+    "uz": "mahrum qilmoq",
+    "ipa": "dɪˈpraɪv",
+    "example": "They decided to deprive the new plan."
+  },
+  {
+    "en": "derive",
+    "uz": "kelib chiqmoq",
+    "ipa": "dəraɪv",
+    "example": "They decided to derive the new plan."
+  },
+  {
+    "en": "discern",
+    "uz": "farqlay olmoq",
+    "ipa": "dɪˈsərn",
+    "example": "They decided to discern the new plan."
+  },
+  {
+    "en": "discrete",
+    "uz": "alohida (uzuq)",
+    "ipa": "dɪˈskrit",
+    "example": "This concept — \"discrete\" — is often discussed in academic writing."
+  },
+  {
+    "en": "discretion",
+    "uz": "ixtiyor/tanlov erki",
+    "ipa": "dɪˈskrɛʃən",
+    "example": "This concept — \"discretion\" — is often discussed in academic writing."
+  },
+  {
+    "en": "disregard",
+    "uz": "e'tiborsiz qoldirmoq",
+    "ipa": "ˌdɪsrɪˈgɑrd",
+    "example": "They decided to disregard the new plan."
+  },
+  {
+    "en": "disrupt",
+    "uz": "izdan chiqarmoq",
+    "ipa": "dɪsˈrəpt",
+    "example": "They decided to disrupt the new plan."
+  },
+  {
+    "en": "distort",
+    "uz": "buzib ko'rsatmoq",
+    "ipa": "dɪˈstɔrt",
+    "example": "They decided to distort the new plan."
+  },
+  {
+    "en": "diverge",
+    "uz": "ajralib chiqmoq",
+    "ipa": "dɪˈvərʤ",
+    "example": "They decided to diverge the new plan."
+  },
+  {
+    "en": "dominant",
+    "uz": "hukmron",
+    "ipa": "ˈdɑmənənt",
+    "example": "This concept — \"dominant\" — is often discussed in academic writing."
+  },
+  {
+    "en": "dwell",
+    "uz": "yashamoq/to'xtalib o'tmoq",
+    "ipa": "dwɛl",
+    "example": "They decided to dwell the new plan."
+  },
+  {
+    "en": "elaborate",
+    "uz": "batafsil bayon qilmoq",
+    "ipa": "ɪˈlæbərˌeɪt",
+    "example": "They decided to elaborate the new plan."
+  },
+  {
+    "en": "elicit",
+    "uz": "yuzaga chiqarmoq",
+    "ipa": "ɪˈlɪsɪt",
+    "example": "They decided to elicit the new plan."
+  },
+  {
+    "en": "eliminate",
+    "uz": "yo'q qilmoq",
+    "ipa": "ɪˈlɪməˌneɪt",
+    "example": "They decided to eliminate the new plan."
+  },
+  {
+    "en": "embody",
+    "uz": "mujassam etmoq",
+    "ipa": "ɪmˈbɑdi",
+    "example": "They decided to embody the new plan."
+  },
+  {
+    "en": "emerge",
+    "uz": "paydo bo'lmoq",
+    "ipa": "ˈimərʤ",
+    "example": "They decided to emerge the new plan."
+  },
+  {
+    "en": "empirical",
+    "uz": "tajribaviy",
+    "ipa": "ˌɛmˈpɪrɪkəl",
+    "example": "This concept — \"empirical\" — is often discussed in academic writing."
+  },
+  {
+    "en": "endeavor",
+    "uz": "harakat qilmoq",
+    "ipa": "ɪnˈdɛvər",
+    "example": "They decided to endeavor the new plan."
+  },
+  {
+    "en": "enhance",
+    "uz": "kuchaytirmoq/yaxshilamoq",
+    "ipa": "ɛnˈhæns",
+    "example": "They decided to enhance the new plan."
+  },
+  {
+    "en": "enormous",
+    "uz": "ulkan",
+    "ipa": "ɪˈnɔrmɪs",
+    "example": "This concept — \"enormous\" — is often discussed in academic writing."
+  },
+  {
+    "en": "equivalent",
+    "uz": "teng ma'noli",
+    "ipa": "ɪkˈwɪvələnt",
+    "example": "This concept — \"equivalent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "erode",
+    "uz": "yemirmoq",
+    "ipa": "ˈiroʊd",
+    "example": "They decided to erode the new plan."
+  },
+  {
+    "en": "evoke",
+    "uz": "uyg'otmoq (his)",
+    "ipa": "ɪˈvoʊk",
+    "example": "They decided to evoke the new plan."
+  },
+  {
+    "en": "explicit",
+    "uz": "aniq (ochiq)",
+    "ipa": "ɪkˈsplɪsət",
+    "example": "This concept — \"explicit\" — is often discussed in academic writing."
+  },
+  {
+    "en": "exploit",
+    "uz": "foydalanib qolmoq",
+    "ipa": "ˌɛkˈsplɔɪt",
+    "example": "They decided to exploit the new plan."
+  },
+  {
+    "en": "facilitate",
+    "uz": "yengillashtirmoq",
+    "ipa": "fəˈsɪləˌteɪt",
+    "example": "They decided to facilitate the new plan."
+  },
+  {
+    "en": "feasible",
+    "uz": "amalga oshirish mumkin",
+    "ipa": "ˈfizəbəl",
+    "example": "This concept — \"feasible\" — is often discussed in academic writing."
+  },
+  {
+    "en": "fluctuate",
+    "uz": "tebranib turmoq",
+    "ipa": "ˈfləkʧəˌweɪt",
+    "example": "They decided to fluctuate the new plan."
+  },
+  {
+    "en": "formulate",
+    "uz": "shakllantirmoq",
+    "ipa": "ˈfɔrmjəˌleɪt",
+    "example": "They decided to formulate the new plan."
+  },
+  {
+    "en": "fragment",
+    "uz": "bo'lak",
+    "ipa": "ˈfrægmənt",
+    "example": "This concept — \"fragment\" — is often discussed in academic writing."
+  },
+  {
+    "en": "fundamental",
+    "uz": "asosiy (tub)",
+    "ipa": "ˌfəndəˈmɛnəl",
+    "example": "This concept — \"fundamental\" — is often discussed in academic writing."
+  },
+  {
+    "en": "hence",
+    "uz": "shu sababli",
+    "ipa": "hɛns",
+    "example": "He was late; hence, he missed the meeting."
+  },
+  {
+    "en": "hierarchy",
+    "uz": "ierarxiya",
+    "ipa": "ˈhaɪˌrɑrki",
+    "example": "This concept — \"hierarchy\" — is often discussed in academic writing."
+  },
+  {
+    "en": "hypothesis",
+    "uz": "gipoteza",
+    "ipa": "haɪˈpɑθəsəs",
+    "example": "This concept — \"hypothesis\" — is often discussed in academic writing."
+  },
+  {
+    "en": "implicit",
+    "uz": "ma'noda yashiringan",
+    "ipa": "ˌɪmˈplɪsət",
+    "example": "This concept — \"implicit\" — is often discussed in academic writing."
+  },
+  {
+    "en": "incentive",
+    "uz": "rag'bat",
+    "ipa": "ˌɪnˈsɛnɪv",
+    "example": "This concept — \"incentive\" — is often discussed in academic writing."
+  },
+  {
+    "en": "incorporate",
+    "uz": "qo'shib olmoq",
+    "ipa": "ˌɪnˈkɔrpərˌeɪt",
+    "example": "They decided to incorporate the new plan."
+  },
+  {
+    "en": "indispensable",
+    "uz": "ajralmas (zarur)",
+    "ipa": "ˌɪndɪˈspɛnsəbəl",
+    "example": "This concept — \"indispensable\" — is often discussed in academic writing."
+  },
+  {
+    "en": "inevitable",
+    "uz": "muqarrar",
+    "ipa": "ˌɪˈnɛvətəbəl",
+    "example": "This concept — \"inevitable\" — is often discussed in academic writing."
+  },
+  {
+    "en": "infer",
+    "uz": "xulosa chiqarmoq",
+    "ipa": "ˌɪnˈfər",
+    "example": "They decided to infer the new plan."
+  },
+  {
+    "en": "inherent",
+    "uz": "tabiiy (o'ziga xos)",
+    "ipa": "ˌɪnˈhɛrənt",
+    "example": "This concept — \"inherent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "initiate",
+    "uz": "boshlab bermoq",
+    "ipa": "ˌɪˈnɪʃiˌeɪt",
+    "example": "They decided to initiate the new plan."
+  },
+  {
+    "en": "innate",
+    "uz": "tug'ma",
+    "ipa": "ˌɪˈneɪt",
+    "example": "This concept — \"innate\" — is often discussed in academic writing."
+  },
+  {
+    "en": "integral",
+    "uz": "ajralmas qism",
+    "ipa": "ˈɪnəgrəl",
+    "example": "This concept — \"integral\" — is often discussed in academic writing."
+  },
+  {
+    "en": "intricate",
+    "uz": "murakkab (ingichka)",
+    "ipa": "ˈɪntrəkət",
+    "example": "This concept — \"intricate\" — is often discussed in academic writing."
+  },
+  {
+    "en": "intrinsic",
+    "uz": "ichki (mohiyatan)",
+    "ipa": "ˌɪnˈtrɪnsɪk",
+    "example": "This concept — \"intrinsic\" — is often discussed in academic writing."
+  },
+  {
+    "en": "invoke",
+    "uz": "murojaat qilmoq",
+    "ipa": "ˌɪnˈvoʊk",
+    "example": "They decided to invoke the new plan."
+  },
+  {
+    "en": "irrelevant",
+    "uz": "aloqador emas",
+    "ipa": "ˌɪˈrɛləvənt",
+    "example": "This concept — \"irrelevant\" — is often discussed in academic writing."
+  },
+  {
+    "en": "legitimate",
+    "uz": "qonuniy",
+    "ipa": "ləˈʤɪtəmət",
+    "example": "This concept — \"legitimate\" — is often discussed in academic writing."
+  },
+  {
+    "en": "manifest",
+    "uz": "namoyon bo'lmoq",
+    "ipa": "ˈmænəˌfɛst",
+    "example": "They decided to manifest the new plan."
+  },
+  {
+    "en": "mediate",
+    "uz": "murosaga keltirmoq",
+    "ipa": "ˈmidiˌeɪt",
+    "example": "They decided to mediate the new plan."
+  },
+  {
+    "en": "mitigate",
+    "uz": "yumshatmoq",
+    "ipa": "ˈmɪtəˌgeɪt",
+    "example": "They decided to mitigate the new plan."
+  },
+  {
+    "en": "mundane",
+    "uz": "oddiy (zerikarli)",
+    "ipa": "mənˈdeɪn",
+    "example": "This concept — \"mundane\" — is often discussed in academic writing."
+  },
+  {
+    "en": "nonetheless",
+    "uz": "shunga qaramay",
+    "ipa": "ˌnənðəˈlɛs",
+    "example": "It was difficult; nonetheless, we succeeded."
+  },
+  {
+    "en": "notion",
+    "uz": "tushuncha",
+    "ipa": "ˈnoʊʃən",
+    "example": "This concept — \"notion\" — is often discussed in academic writing."
+  },
+  {
+    "en": "notwithstanding",
+    "uz": "qaramasdan",
+    "ipa": "ˌnɑtwɪθˈstændɪŋ",
+    "example": "Notwithstanding the criticism, she continued her work."
+  },
+  {
+    "en": "obscure",
+    "uz": "noaniq (tushunarsiz)",
+    "ipa": "əbˈskjʊr",
+    "example": "This concept — \"obscure\" — is often discussed in academic writing."
+  },
+  {
+    "en": "ongoing",
+    "uz": "davom etayotgan",
+    "ipa": "ˈɔnˌgoʊɪŋ",
+    "example": "This concept — \"ongoing\" — is often discussed in academic writing."
+  },
+  {
+    "en": "outweigh",
+    "uz": "ustun kelmoq",
+    "ipa": "ˈaʊtˌweɪ",
+    "example": "They decided to outweigh the new plan."
+  },
+  {
+    "en": "paradox",
+    "uz": "paradoks",
+    "ipa": "ˈpɛrəˌdɑks",
+    "example": "This concept — \"paradox\" — is often discussed in academic writing."
+  },
+  {
+    "en": "parallel",
+    "uz": "parallel/o'xshash",
+    "ipa": "ˈpɛrəˌlɛl",
+    "example": "This concept — \"parallel\" — is often discussed in academic writing."
+  },
+  {
+    "en": "peripheral",
+    "uz": "ikkinchi darajali",
+    "ipa": "pərˈɪfərəl",
+    "example": "This concept — \"peripheral\" — is often discussed in academic writing."
+  },
+  {
+    "en": "perpetual",
+    "uz": "abadiy davom etuvchi",
+    "ipa": "pərˈpɛʧuəl",
+    "example": "This concept — \"perpetual\" — is often discussed in academic writing."
+  },
+  {
+    "en": "plausible",
+    "uz": "ishonarli",
+    "ipa": "ˈplɔzəbəl",
+    "example": "This concept — \"plausible\" — is often discussed in academic writing."
+  },
+  {
+    "en": "precede",
+    "uz": "oldin bo'lmoq",
+    "ipa": "prɪˈsid",
+    "example": "They decided to precede the new plan."
+  },
+  {
+    "en": "precise",
+    "uz": "aniq (ravshan)",
+    "ipa": "prɪˈsaɪs",
+    "example": "This concept — \"precise\" — is often discussed in academic writing."
+  },
+  {
+    "en": "predominant",
+    "uz": "ustunlik qiluvchi",
+    "ipa": "prɪˈdɑmənənt",
+    "example": "This concept — \"predominant\" — is often discussed in academic writing."
+  },
+  {
+    "en": "prevail",
+    "uz": "g'olib chiqmoq",
+    "ipa": "prɪˈveɪl",
+    "example": "They decided to prevail the new plan."
+  },
+  {
+    "en": "prevalent",
+    "uz": "keng tarqalgan",
+    "ipa": "ˈprɛvələnt",
+    "example": "This concept — \"prevalent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "profound",
+    "uz": "chuqur (ta'sirli)",
+    "ipa": "proʊˈfaʊnd",
+    "example": "This concept — \"profound\" — is often discussed in academic writing."
+  },
+  {
+    "en": "prompt",
+    "uz": "undamoq/tezkor",
+    "ipa": "prɑmpt",
+    "example": "They decided to prompt the new plan."
+  },
+  {
+    "en": "provoke",
+    "uz": "qo'zg'atmoq",
+    "ipa": "prəˈvoʊk",
+    "example": "They decided to provoke the new plan."
+  },
+  {
+    "en": "rational",
+    "uz": "aqlga to'g'ri keluvchi",
+    "ipa": "ˈræʃənəl",
+    "example": "This concept — \"rational\" — is often discussed in academic writing."
+  },
+  {
+    "en": "reciprocal",
+    "uz": "o'zaro",
+    "ipa": "rɪˈsɪprəkəl",
+    "example": "This concept — \"reciprocal\" — is often discussed in academic writing."
+  },
+  {
+    "en": "reinforce",
+    "uz": "mustahkamlamoq",
+    "ipa": "ˌriɪnˈfɔrs",
+    "example": "They decided to reinforce the new plan."
+  },
+  {
+    "en": "reluctant",
+    "uz": "istamay",
+    "ipa": "rɪˈləktənt",
+    "example": "This concept — \"reluctant\" — is often discussed in academic writing."
+  },
+  {
+    "en": "render",
+    "uz": "aylantirmoq (holatga)",
+    "ipa": "ˈrɛndər",
+    "example": "They decided to render the new plan."
+  },
+  {
+    "en": "reside",
+    "uz": "istiqomat qilmoq",
+    "ipa": "rɪˈzaɪd",
+    "example": "They decided to reside the new plan."
+  },
+  {
+    "en": "resilient",
+    "uz": "chidamli (bardoshli)",
+    "ipa": "rɪˈzɪljənt",
+    "example": "This concept — \"resilient\" — is often discussed in academic writing."
+  },
+  {
+    "en": "restrain",
+    "uz": "jilovlamoq",
+    "ipa": "riˈstreɪn",
+    "example": "They decided to restrain the new plan."
+  },
+  {
+    "en": "retain",
+    "uz": "saqlab qolmoq",
+    "ipa": "rɪˈteɪn",
+    "example": "They decided to retain the new plan."
+  },
+  {
+    "en": "retrieve",
+    "uz": "qaytarib olmoq",
+    "ipa": "rɪˈtriv",
+    "example": "They decided to retrieve the new plan."
+  },
+  {
+    "en": "scrutiny",
+    "uz": "sinchkovlik bilan tekshirish",
+    "ipa": "ˈskrutəni",
+    "example": "This concept — \"scrutiny\" — is often discussed in academic writing."
+  },
+  {
+    "en": "skeptical",
+    "uz": "shubhali qaraydigan",
+    "ipa": "ˈskɛptɪkəl",
+    "example": "This concept — \"skeptical\" — is often discussed in academic writing."
+  },
+  {
+    "en": "solely",
+    "uz": "faqat",
+    "ipa": "ˈsoʊəli",
+    "example": "The decision was based solely on the data."
+  },
+  {
+    "en": "spectrum",
+    "uz": "spektr (doira)",
+    "ipa": "ˈspɛktrəm",
+    "example": "This concept — \"spectrum\" — is often discussed in academic writing."
+  },
+  {
+    "en": "speculate",
+    "uz": "taxmin qilmoq",
+    "ipa": "ˈspɛkjəˌleɪt",
+    "example": "They decided to speculate the new plan."
+  },
+  {
+    "en": "spontaneous",
+    "uz": "o'z-o'zidan",
+    "ipa": "spɑnˈteɪniəs",
+    "example": "This concept — \"spontaneous\" — is often discussed in academic writing."
+  },
+  {
+    "en": "subsequent",
+    "uz": "keyingi",
+    "ipa": "ˈsəbsəkwənt",
+    "example": "This concept — \"subsequent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "subtle",
+    "uz": "nozik (sezilmas)",
+    "ipa": "ˈsətəl",
+    "example": "This concept — \"subtle\" — is often discussed in academic writing."
+  },
+  {
+    "en": "superficial",
+    "uz": "yuzaki",
+    "ipa": "ˌsupərˈfɪʃəl",
+    "example": "This concept — \"superficial\" — is often discussed in academic writing."
+  },
+  {
+    "en": "suppress",
+    "uz": "bostirmoq",
+    "ipa": "səˈprɛs",
+    "example": "They decided to suppress the new plan."
+  },
+  {
+    "en": "tangible",
+    "uz": "aniq (ushlab ko'rsa bo'ladigan)",
+    "ipa": "ˈtænʤəbəl",
+    "example": "This concept — \"tangible\" — is often discussed in academic writing."
+  },
+  {
+    "en": "tentative",
+    "uz": "vaqtinchalik/dastlabki",
+    "ipa": "ˈtɛntətɪv",
+    "example": "This concept — \"tentative\" — is often discussed in academic writing."
+  },
+  {
+    "en": "thorough",
+    "uz": "puxta",
+    "ipa": "θəroʊ",
+    "example": "This concept — \"thorough\" — is often discussed in academic writing."
+  },
+  {
+    "en": "transparent",
+    "uz": "shaffof",
+    "ipa": "trænˈspɛrənt",
+    "example": "This concept — \"transparent\" — is often discussed in academic writing."
+  },
+  {
+    "en": "ubiquitous",
+    "uz": "hamma joyda uchraydigan",
+    "ipa": "juˈbɪkwɪtəs",
+    "example": "This concept — \"ubiquitous\" — is often discussed in academic writing."
+  },
+  {
+    "en": "underlying",
+    "uz": "yashirin asos bo'lgan",
+    "ipa": "ˌəndərˈlaɪɪŋ",
+    "example": "This concept — \"underlying\" — is often discussed in academic writing."
+  },
+  {
+    "en": "undermine",
+    "uz": "izdan chiqarmoq (obro'sini)",
+    "ipa": "ˈəndərˌmaɪn",
+    "example": "They decided to undermine the new plan."
+  },
+  {
+    "en": "unprecedented",
+    "uz": "misli ko'rilmagan",
+    "ipa": "ənˈprɛsɪˌdɛntɪd",
+    "example": "This concept — \"unprecedented\" — is often discussed in academic writing."
+  },
+  {
+    "en": "validate",
+    "uz": "tasdiqlamoq (haqiqiyligini)",
+    "ipa": "ˈvælədeɪt",
+    "example": "They decided to validate the new plan."
+  },
+  {
+    "en": "versatile",
+    "uz": "ko'p qirrali",
+    "ipa": "ˈvərsətəl",
+    "example": "This concept — \"versatile\" — is often discussed in academic writing."
+  },
+  {
+    "en": "viable",
+    "uz": "amalga oshirish mumkin bo'lgan",
+    "ipa": "ˈvaɪəbəl",
+    "example": "This concept — \"viable\" — is often discussed in academic writing."
+  },
+  {
+    "en": "vulnerable",
+    "uz": "himoyasiz (zaif)",
+    "ipa": "ˈvəlnərəbəl",
+    "example": "This concept — \"vulnerable\" — is often discussed in academic writing."
+  },
+  {
+    "en": "whereas",
+    "uz": "biroq/holbuki",
+    "ipa": "wɛˈræz",
+    "example": "He likes tea, whereas she prefers coffee."
+  },
+  {
+    "en": "wary",
+    "uz": "ehtiyot bo'ladigan",
+    "ipa": "ˈwɛri",
+    "example": "This concept — \"wary\" — is often discussed in academic writing."
+  }
+]

@@ -1,874 +1,1310 @@
 [
   {
     "en": "weather",
-    "uz": "ob-havo"
+    "uz": "ob-havo",
+    "example": "I saw a weather yesterday.",
+    "ipa": "ˈwɛðər"
   },
   {
     "en": "cloud",
-    "uz": "bulut"
+    "uz": "bulut",
+    "example": "I saw a cloud yesterday.",
+    "ipa": "klaʊd"
   },
   {
     "en": "wind",
-    "uz": "shamol"
+    "uz": "shamol",
+    "example": "I saw a wind yesterday.",
+    "ipa": "wɪnd"
   },
   {
     "en": "storm",
-    "uz": "bo'ron"
+    "uz": "bo'ron",
+    "example": "I saw a storm yesterday.",
+    "ipa": "stɔrm"
   },
   {
     "en": "thunder",
-    "uz": "momaqaldiroq"
+    "uz": "momaqaldiroq",
+    "example": "I saw a thunder yesterday.",
+    "ipa": "ˈθəndər"
   },
   {
     "en": "temperature",
-    "uz": "harorat"
+    "uz": "harorat",
+    "example": "I saw a temperature yesterday.",
+    "ipa": "ˈtɛmpərəʧər"
   },
   {
     "en": "season",
-    "uz": "fasl"
+    "uz": "fasl",
+    "example": "I saw a season yesterday.",
+    "ipa": "ˈsizən"
   },
   {
     "en": "spring",
-    "uz": "bahor"
+    "uz": "bahor",
+    "example": "I saw a spring yesterday.",
+    "ipa": "spərɪŋ"
   },
   {
     "en": "summer",
-    "uz": "yoz"
+    "uz": "yoz",
+    "example": "I saw a summer yesterday.",
+    "ipa": "ˈsəmər"
   },
   {
     "en": "autumn",
-    "uz": "kuz"
+    "uz": "kuz",
+    "example": "I saw an autumn yesterday.",
+    "ipa": "ˈɔtəm"
   },
   {
     "en": "winter",
-    "uz": "qish"
+    "uz": "qish",
+    "example": "I saw a winter yesterday.",
+    "ipa": "ˈwɪntər"
   },
   {
     "en": "hospital",
-    "uz": "kasalxona"
+    "uz": "kasalxona",
+    "example": "I saw a hospital yesterday.",
+    "ipa": "ˈhɑˌspɪtəl"
   },
   {
     "en": "airport",
-    "uz": "aeroport"
+    "uz": "aeroport",
+    "example": "I saw an airport yesterday.",
+    "ipa": "ˈɛrˌpɔrt"
   },
   {
     "en": "station",
-    "uz": "bekat/vokzal"
+    "uz": "bekat/vokzal",
+    "example": "I saw a station yesterday.",
+    "ipa": "ˈsteɪʃən"
   },
   {
     "en": "restaurant",
-    "uz": "restoran"
+    "uz": "restoran",
+    "example": "I saw a restaurant yesterday.",
+    "ipa": "ˈrɛˌstrɑnt"
   },
   {
     "en": "hotel",
-    "uz": "mehmonxona"
+    "uz": "mehmonxona",
+    "example": "I saw a hotel yesterday.",
+    "ipa": "hoʊˈtɛl"
   },
   {
     "en": "museum",
-    "uz": "muzey"
+    "uz": "muzey",
+    "example": "I saw a museum yesterday.",
+    "ipa": "mˈjuziəm"
   },
   {
     "en": "library",
-    "uz": "kutubxona"
+    "uz": "kutubxona",
+    "example": "I saw a library yesterday.",
+    "ipa": "ˈlaɪbrɛˌri"
   },
   {
     "en": "bank",
-    "uz": "bank"
+    "uz": "bank",
+    "example": "I saw a bank yesterday.",
+    "ipa": "bæŋk"
   },
   {
     "en": "office",
-    "uz": "ofis"
+    "uz": "ofis",
+    "example": "I saw an office yesterday.",
+    "ipa": "ˈɔfəs"
   },
   {
     "en": "factory",
-    "uz": "zavod"
+    "uz": "zavod",
+    "example": "I saw a factory yesterday.",
+    "ipa": "ˈfæktəri"
   },
   {
     "en": "farm",
-    "uz": "fermer xo'jaligi"
+    "uz": "fermer xo'jaligi",
+    "example": "I saw a farm yesterday.",
+    "ipa": "fɑrm"
   },
   {
     "en": "village",
-    "uz": "qishloq"
+    "uz": "qishloq",
+    "example": "I saw a village yesterday.",
+    "ipa": "ˈvɪlɪʤ"
   },
   {
     "en": "country",
-    "uz": "davlat"
+    "uz": "davlat",
+    "example": "I saw a country yesterday.",
+    "ipa": "ˈkəntri"
   },
   {
     "en": "island",
-    "uz": "orol"
+    "uz": "orol",
+    "example": "I saw an island yesterday.",
+    "ipa": "ˈaɪlənd"
   },
   {
     "en": "beach",
-    "uz": "plyaj"
+    "uz": "plyaj",
+    "example": "I saw a beach yesterday.",
+    "ipa": "biʧ"
   },
   {
     "en": "forest",
-    "uz": "o'rmon"
+    "uz": "o'rmon",
+    "example": "I saw a forest yesterday.",
+    "ipa": "ˈfɔrɪst"
   },
   {
     "en": "desert",
-    "uz": "cho'l"
+    "uz": "cho'l",
+    "example": "I saw a desert yesterday.",
+    "ipa": "ˈdɛzərt"
   },
   {
     "en": "bridge",
-    "uz": "ko'prik"
+    "uz": "ko'prik",
+    "example": "I saw a bridge yesterday.",
+    "ipa": "brɪʤ"
   },
   {
     "en": "tower",
-    "uz": "minora"
+    "uz": "minora",
+    "example": "I saw a tower yesterday.",
+    "ipa": "taʊər"
   },
   {
     "en": "castle",
-    "uz": "qal'a"
+    "uz": "qal'a",
+    "example": "I saw a castle yesterday.",
+    "ipa": "ˈkæsəl"
   },
   {
     "en": "head",
-    "uz": "bosh"
+    "uz": "bosh",
+    "example": "I saw a head yesterday.",
+    "ipa": "hɛd"
   },
   {
     "en": "eye",
-    "uz": "ko'z"
+    "uz": "ko'z",
+    "example": "I saw an eye yesterday.",
+    "ipa": "aɪ"
   },
   {
     "en": "ear",
-    "uz": "quloq"
+    "uz": "quloq",
+    "example": "I saw an ear yesterday.",
+    "ipa": "ɪr"
   },
   {
     "en": "nose",
-    "uz": "burun"
+    "uz": "burun",
+    "example": "I saw a nose yesterday.",
+    "ipa": "noʊz"
   },
   {
     "en": "mouth",
-    "uz": "og'iz"
+    "uz": "og'iz",
+    "example": "I saw a mouth yesterday.",
+    "ipa": "maʊθ"
   },
   {
     "en": "hand",
-    "uz": "qo'l (kaft)"
+    "uz": "qo'l (kaft)",
+    "example": "I saw a hand yesterday.",
+    "ipa": "hænd"
   },
   {
     "en": "arm",
-    "uz": "qo'l (bilak)"
+    "uz": "qo'l (bilak)",
+    "example": "I saw an arm yesterday.",
+    "ipa": "ɑrm"
   },
   {
     "en": "leg",
-    "uz": "oyoq"
+    "uz": "oyoq",
+    "example": "I saw a leg yesterday.",
+    "ipa": "lɛg"
   },
   {
     "en": "foot",
-    "uz": "oyoq (panja)"
+    "uz": "oyoq (panja)",
+    "example": "I saw a foot yesterday.",
+    "ipa": "fʊt"
   },
   {
     "en": "finger",
-    "uz": "barmoq"
+    "uz": "barmoq",
+    "example": "I want to finger every day.",
+    "ipa": "ˈfɪŋgər"
   },
   {
     "en": "hair",
-    "uz": "soch"
+    "uz": "soch",
+    "example": "I saw a hair yesterday.",
+    "ipa": "hɛr"
   },
   {
     "en": "face",
-    "uz": "yuz"
+    "uz": "yuz",
+    "example": "I saw a face yesterday.",
+    "ipa": "feɪs"
   },
   {
     "en": "neck",
-    "uz": "bo'yin"
+    "uz": "bo'yin",
+    "example": "I saw a neck yesterday.",
+    "ipa": "nɛk"
   },
   {
     "en": "heart",
-    "uz": "yurak"
+    "uz": "yurak",
+    "example": "I saw a heart yesterday.",
+    "ipa": "hɑrt"
   },
   {
     "en": "tooth",
-    "uz": "tish"
+    "uz": "tish",
+    "example": "I saw a tooth yesterday.",
+    "ipa": "tuθ"
   },
   {
     "en": "skin",
-    "uz": "teri"
+    "uz": "teri",
+    "example": "I saw a skin yesterday.",
+    "ipa": "skɪn"
   },
   {
     "en": "angry",
-    "uz": "g'azablangan"
+    "uz": "g'azablangan",
+    "example": "This book is very angry.",
+    "ipa": "ˈæŋgri"
   },
   {
     "en": "afraid",
-    "uz": "qo'rqqan"
+    "uz": "qo'rqqan",
+    "example": "This book is very afraid.",
+    "ipa": "əˈfreɪd"
   },
   {
     "en": "surprised",
-    "uz": "hayron qolgan"
+    "uz": "hayron qolgan",
+    "example": "This book is very surprised.",
+    "ipa": "səˈpraɪzd"
   },
   {
     "en": "tired",
-    "uz": "charchagan"
+    "uz": "charchagan",
+    "example": "This book is very tired.",
+    "ipa": "taɪərd"
   },
   {
     "en": "bored",
-    "uz": "zerikkan"
+    "uz": "zerikkan",
+    "example": "This book is very bored.",
+    "ipa": "bɔrd"
   },
   {
     "en": "excited",
-    "uz": "hayajonlangan"
+    "uz": "hayajonlangan",
+    "example": "This book is very excited.",
+    "ipa": "ɪkˈsaɪtɪd"
   },
   {
     "en": "worried",
-    "uz": "tashvishlangan"
+    "uz": "tashvishlangan",
+    "example": "This book is very worried.",
+    "ipa": "ˈwərid"
   },
   {
     "en": "proud",
-    "uz": "faxrlanuvchi"
+    "uz": "faxrlanuvchi",
+    "example": "This book is very proud.",
+    "ipa": "praʊd"
   },
   {
     "en": "shy",
-    "uz": "uyatchan"
+    "uz": "uyatchan",
+    "example": "This book is very shy.",
+    "ipa": "ʃaɪ"
   },
   {
     "en": "brave",
-    "uz": "botir"
+    "uz": "botir",
+    "example": "This book is very brave.",
+    "ipa": "breɪv"
   },
   {
     "en": "kind",
-    "uz": "mehribon"
+    "uz": "mehribon",
+    "example": "This book is very kind.",
+    "ipa": "kaɪnd"
   },
   {
     "en": "polite",
-    "uz": "muloyim"
+    "uz": "muloyim",
+    "example": "This book is very polite.",
+    "ipa": "pəˈlaɪt"
   },
   {
     "en": "rude",
-    "uz": "qo'pol"
+    "uz": "qo'pol",
+    "example": "This book is very rude.",
+    "ipa": "rud"
   },
   {
     "en": "honest",
-    "uz": "halol"
+    "uz": "halol",
+    "example": "This book is very honest.",
+    "ipa": "ˈɑnəst"
   },
   {
     "en": "funny",
-    "uz": "kulgili"
+    "uz": "kulgili",
+    "example": "This book is very funny.",
+    "ipa": "ˈfəni"
   },
   {
     "en": "serious",
-    "uz": "jiddiy"
+    "uz": "jiddiy",
+    "example": "This book is very serious.",
+    "ipa": "ˈsɪriəs"
   },
   {
     "en": "careful",
-    "uz": "ehtiyotkor"
+    "uz": "ehtiyotkor",
+    "example": "This book is very careful.",
+    "ipa": "ˈkɛrfəl"
   },
   {
     "en": "dangerous",
-    "uz": "xavfli"
+    "uz": "xavfli",
+    "example": "This book is very dangerous.",
+    "ipa": "ˈdeɪnʤərəs"
   },
   {
     "en": "safe",
-    "uz": "xavfsiz"
+    "uz": "xavfsiz",
+    "example": "This book is very safe.",
+    "ipa": "seɪf"
   },
   {
     "en": "comfortable",
-    "uz": "qulay"
+    "uz": "qulay",
+    "example": "This book is very comfortable.",
+    "ipa": "ˈkəmfərtəbəl"
   },
   {
     "en": "famous",
-    "uz": "mashhur"
+    "uz": "mashhur",
+    "example": "This book is very famous.",
+    "ipa": "ˈfeɪməs"
   },
   {
     "en": "popular",
-    "uz": "ommabop"
+    "uz": "ommabop",
+    "example": "This book is very popular.",
+    "ipa": "ˈpɑpjələr"
   },
   {
     "en": "important",
-    "uz": "muhim"
+    "uz": "muhim",
+    "example": "This book is very important.",
+    "ipa": "ˌɪmˈpɔrtənt"
   },
   {
     "en": "interesting",
-    "uz": "qiziqarli"
+    "uz": "qiziqarli",
+    "example": "This book is very interesting.",
+    "ipa": "ˈɪntəˌrɛstɪŋ"
   },
   {
     "en": "boring",
-    "uz": "zerikarli"
+    "uz": "zerikarli",
+    "example": "This book is very boring.",
+    "ipa": "ˈbɔrɪŋ"
   },
   {
     "en": "expensive",
-    "uz": "qimmat"
+    "uz": "qimmat",
+    "example": "This book is very expensive.",
+    "ipa": "ɪkˈspɛnsɪv"
   },
   {
     "en": "cheap",
-    "uz": "arzon"
+    "uz": "arzon",
+    "example": "This book is very cheap.",
+    "ipa": "ʧip"
   },
   {
     "en": "modern",
-    "uz": "zamonaviy"
+    "uz": "zamonaviy",
+    "example": "This book is very modern.",
+    "ipa": "ˈmɑdərn"
   },
   {
     "en": "traditional",
-    "uz": "an'anaviy"
+    "uz": "an'anaviy",
+    "example": "This book is very traditional.",
+    "ipa": "trəˈdɪʃənəl"
   },
   {
     "en": "similar",
-    "uz": "o'xshash"
+    "uz": "o'xshash",
+    "example": "This book is very similar.",
+    "ipa": "ˈsɪmələr"
   },
   {
     "en": "different",
-    "uz": "farqli"
+    "uz": "farqli",
+    "example": "This book is very different.",
+    "ipa": "ˈdɪfərənt"
   },
   {
     "en": "travel",
-    "uz": "sayohat qilmoq"
+    "uz": "sayohat qilmoq",
+    "example": "I want to travel every day.",
+    "ipa": "ˈtrævəl"
   },
   {
     "en": "visit",
-    "uz": "tashrif buyurmoq"
+    "uz": "tashrif buyurmoq",
+    "example": "I want to visit every day.",
+    "ipa": "ˈvɪzɪt"
   },
   {
     "en": "arrive",
-    "uz": "yetib kelmoq"
+    "uz": "yetib kelmoq",
+    "example": "I want to arrive every day.",
+    "ipa": "əraɪv"
   },
   {
     "en": "leave",
-    "uz": "ketmoq"
+    "uz": "ketmoq",
+    "example": "I want to leave every day.",
+    "ipa": "liv"
   },
   {
     "en": "return",
-    "uz": "qaytmoq"
+    "uz": "qaytmoq",
+    "example": "I want to return every day.",
+    "ipa": "rɪˈtərn"
   },
   {
     "en": "continue",
-    "uz": "davom ettirmoq"
+    "uz": "davom ettirmoq",
+    "example": "I want to continue every day.",
+    "ipa": "kənˈtɪnju"
   },
   {
     "en": "decide",
-    "uz": "qaror qilmoq"
+    "uz": "qaror qilmoq",
+    "example": "I want to decide every day.",
+    "ipa": "ˌdɪˈsaɪd"
   },
   {
     "en": "forget",
-    "uz": "unutmoq"
+    "uz": "unutmoq",
+    "example": "I want to forget every day.",
+    "ipa": "fərˈgɛt"
   },
   {
     "en": "remember",
-    "uz": "eslamoq"
+    "uz": "eslamoq",
+    "example": "I want to remember every day.",
+    "ipa": "rɪˈmɛmbər"
   },
   {
     "en": "imagine",
-    "uz": "tasavvur qilmoq"
+    "uz": "tasavvur qilmoq",
+    "example": "I want to imagine every day.",
+    "ipa": "ˌɪˈmæʤən"
   },
   {
     "en": "explain",
-    "uz": "tushuntirmoq"
+    "uz": "tushuntirmoq",
+    "example": "I want to explain every day.",
+    "ipa": "ɪkˈspleɪn"
   },
   {
     "en": "describe",
-    "uz": "tasvirlamoq"
+    "uz": "tasvirlamoq",
+    "example": "I want to describe every day.",
+    "ipa": "dɪˈskraɪb"
   },
   {
     "en": "compare",
-    "uz": "solishtirmoq"
+    "uz": "solishtirmoq",
+    "example": "I want to compare every day.",
+    "ipa": "kəmˈpɛr"
   },
   {
     "en": "choose",
-    "uz": "tanlamoq"
+    "uz": "tanlamoq",
+    "example": "I want to choose every day.",
+    "ipa": "ʧuz"
   },
   {
     "en": "invite",
-    "uz": "taklif qilmoq"
+    "uz": "taklif qilmoq",
+    "example": "I want to invite every day.",
+    "ipa": "ˌɪnˈvaɪt"
   },
   {
     "en": "celebrate",
-    "uz": "nishonlamoq"
+    "uz": "nishonlamoq",
+    "example": "I want to celebrate every day.",
+    "ipa": "ˈsɛləˌbreɪt"
   },
   {
     "en": "marry",
-    "uz": "turmushga chiqmoq/uylanmoq"
+    "uz": "turmushga chiqmoq/uylanmoq",
+    "example": "I want to marry every day.",
+    "ipa": "ˈmɛri"
   },
   {
     "en": "borrow",
-    "uz": "qarz olmoq"
+    "uz": "qarz olmoq",
+    "example": "I want to borrow every day.",
+    "ipa": "ˈbɑˌroʊ"
   },
   {
     "en": "lend",
-    "uz": "qarz bermoq"
+    "uz": "qarz bermoq",
+    "example": "I want to lend every day.",
+    "ipa": "lɛnd"
   },
   {
     "en": "save",
-    "uz": "tejamoq"
+    "uz": "tejamoq",
+    "example": "I want to save every day.",
+    "ipa": "seɪv"
   },
   {
     "en": "spend",
-    "uz": "sarflamoq"
+    "uz": "sarflamoq",
+    "example": "I want to spend every day.",
+    "ipa": "spɛnd"
   },
   {
     "en": "earn",
-    "uz": "daromad topmoq"
+    "uz": "daromad topmoq",
+    "example": "I want to earn every day.",
+    "ipa": "ərn"
   },
   {
     "en": "pay",
-    "uz": "to'lamoq"
+    "uz": "to'lamoq",
+    "example": "I want to pay every day.",
+    "ipa": "peɪ"
   },
   {
     "en": "cost",
-    "uz": "narxi bo'lmoq"
+    "uz": "narxi bo'lmoq",
+    "example": "I want to cost every day.",
+    "ipa": "kɔst"
   },
   {
     "en": "improve",
-    "uz": "yaxshilamoq"
+    "uz": "yaxshilamoq",
+    "example": "I want to improve every day.",
+    "ipa": "ˌɪmˈpruv"
   },
   {
     "en": "increase",
-    "uz": "oshirmoq"
+    "uz": "oshirmoq",
+    "example": "I want to increase every day.",
+    "ipa": "ˌɪnˈkris"
   },
   {
     "en": "decrease",
-    "uz": "kamaytirmoq"
+    "uz": "kamaytirmoq",
+    "example": "I want to decrease every day.",
+    "ipa": "ˈdiˌkris"
   },
   {
     "en": "change",
-    "uz": "o'zgartirmoq"
+    "uz": "o'zgartirmoq",
+    "example": "I want to change every day.",
+    "ipa": "ʧeɪnʤ"
   },
   {
     "en": "repair",
-    "uz": "ta'mirlamoq"
+    "uz": "ta'mirlamoq",
+    "example": "I want to repair every day.",
+    "ipa": "rɪˈpɛr"
   },
   {
     "en": "break",
-    "uz": "sindirmoq"
+    "uz": "sindirmoq",
+    "example": "I want to break every day.",
+    "ipa": "breɪk"
   },
   {
     "en": "build",
-    "uz": "qurmoq"
+    "uz": "qurmoq",
+    "example": "I want to build every day.",
+    "ipa": "bɪld"
   },
   {
     "en": "destroy",
-    "uz": "yo'q qilmoq"
+    "uz": "yo'q qilmoq",
+    "example": "I want to destroy every day.",
+    "ipa": "dɪˈstrɔɪ"
   },
   {
     "en": "protect",
-    "uz": "himoya qilmoq"
+    "uz": "himoya qilmoq",
+    "example": "I want to protect every day.",
+    "ipa": "prəˈtɛkt"
   },
   {
     "en": "discover",
-    "uz": "kashf qilmoq"
+    "uz": "kashf qilmoq",
+    "example": "I want to discover every day.",
+    "ipa": "dɪˈskəvər"
   },
   {
     "en": "invent",
-    "uz": "ixtiro qilmoq"
+    "uz": "ixtiro qilmoq",
+    "example": "I want to invent every day.",
+    "ipa": "ˌɪnˈvɛnt"
   },
   {
     "en": "develop",
-    "uz": "rivojlantirmoq"
+    "uz": "rivojlantirmoq",
+    "example": "I want to develop every day.",
+    "ipa": "dɪˈvɛləp"
   },
   {
     "en": "produce",
-    "uz": "ishlab chiqarmoq"
+    "uz": "ishlab chiqarmoq",
+    "example": "I want to produce every day.",
+    "ipa": "ˈproʊdus"
   },
   {
     "en": "deliver",
-    "uz": "yetkazib bermoq"
+    "uz": "yetkazib bermoq",
+    "example": "I want to deliver every day.",
+    "ipa": "dɪˈlɪvər"
   },
   {
     "en": "collect",
-    "uz": "yig'moq"
+    "uz": "yig'moq",
+    "example": "I want to collect every day.",
+    "ipa": "kəˈlɛkt"
   },
   {
     "en": "share",
-    "uz": "baham ko'rmoq"
+    "uz": "baham ko'rmoq",
+    "example": "I want to share every day.",
+    "ipa": "ʃɛr"
   },
   {
     "en": "agree",
-    "uz": "rozi bo'lmoq"
+    "uz": "rozi bo'lmoq",
+    "example": "I want to agree every day.",
+    "ipa": "əˈgri"
   },
   {
     "en": "disagree",
-    "uz": "rozi bo'lmaslik"
+    "uz": "rozi bo'lmaslik",
+    "example": "I saw a disagree yesterday.",
+    "ipa": "dɪsəˈgri"
   },
   {
     "en": "argue",
-    "uz": "bahslashmoq"
+    "uz": "bahslashmoq",
+    "example": "I want to argue every day.",
+    "ipa": "ˈɑrgju"
   },
   {
     "en": "apologize",
-    "uz": "uzr so'ramoq"
+    "uz": "uzr so'ramoq",
+    "example": "I want to apologize every day.",
+    "ipa": "əˈpɑləˌʤaɪz"
   },
   {
     "en": "promise",
-    "uz": "va'da bermoq"
+    "uz": "va'da bermoq",
+    "example": "I want to promise every day.",
+    "ipa": "ˈprɑməs"
   },
   {
     "en": "suggest",
-    "uz": "taklif qilmoq (fikr)"
+    "uz": "taklif qilmoq (fikr)",
+    "example": "I want to suggest every day.",
+    "ipa": "səˈʤɛst"
   },
   {
     "en": "recommend",
-    "uz": "tavsiya qilmoq"
+    "uz": "tavsiya qilmoq",
+    "example": "I want to recommend every day.",
+    "ipa": "ˌrɛkəˈmɛnd"
   },
   {
     "en": "warn",
-    "uz": "ogohlantirmoq"
+    "uz": "ogohlantirmoq",
+    "example": "I want to warn every day.",
+    "ipa": "wɔrn"
   },
   {
     "en": "advise",
-    "uz": "maslahat bermoq"
+    "uz": "maslahat bermoq",
+    "example": "I want to advise every day.",
+    "ipa": "ədˈvaɪz"
   },
   {
     "en": "complain",
-    "uz": "shikoyat qilmoq"
+    "uz": "shikoyat qilmoq",
+    "example": "I want to complain every day.",
+    "ipa": "kəmˈpleɪn"
   },
   {
     "en": "thank",
-    "uz": "rahmat aytmoq"
+    "uz": "rahmat aytmoq",
+    "example": "I want to thank every day.",
+    "ipa": "θæŋk"
   },
   {
     "en": "congratulate",
-    "uz": "tabriklamoq"
+    "uz": "tabriklamoq",
+    "example": "I want to congratulate every day.",
+    "ipa": "kənˈgræʧəˌleɪt"
   },
   {
     "en": "opinion",
-    "uz": "fikr"
+    "uz": "fikr",
+    "example": "I saw an opinion yesterday.",
+    "ipa": "əˈpɪnjən"
   },
   {
     "en": "idea",
-    "uz": "g'oya"
+    "uz": "g'oya",
+    "example": "I saw an idea yesterday.",
+    "ipa": "aɪˈdiə"
   },
   {
     "en": "plan",
-    "uz": "reja"
+    "uz": "reja",
+    "example": "I saw a plan yesterday.",
+    "ipa": "plæn"
   },
   {
     "en": "problem",
-    "uz": "muammo"
+    "uz": "muammo",
+    "example": "I saw a problem yesterday.",
+    "ipa": "ˈprɑbləm"
   },
   {
     "en": "solution",
-    "uz": "yechim"
+    "uz": "yechim",
+    "example": "I saw a solution yesterday.",
+    "ipa": "səˈluʃən"
   },
   {
     "en": "reason",
-    "uz": "sabab"
+    "uz": "sabab",
+    "example": "I saw a reason yesterday.",
+    "ipa": "ˈrizən"
   },
   {
     "en": "result",
-    "uz": "natija"
+    "uz": "natija",
+    "example": "I saw a result yesterday.",
+    "ipa": "rɪˈzəlt"
   },
   {
     "en": "example",
-    "uz": "misol"
+    "uz": "misol",
+    "example": "I saw an example yesterday.",
+    "ipa": "ɪgˈzæmpəl"
   },
   {
     "en": "experience",
-    "uz": "tajriba"
+    "uz": "tajriba",
+    "example": "I saw an experience yesterday.",
+    "ipa": "ɪkˈspɪriəns"
   },
   {
     "en": "knowledge",
-    "uz": "bilim"
+    "uz": "bilim",
+    "example": "I saw a knowledge yesterday.",
+    "ipa": "ˈnɑlɪʤ"
   },
   {
     "en": "information",
-    "uz": "ma'lumot"
+    "uz": "ma'lumot",
+    "example": "I saw an information yesterday.",
+    "ipa": "ˌɪnˌfɔrˈmeɪʃən"
   },
   {
     "en": "news",
-    "uz": "yangilik"
+    "uz": "yangilik",
+    "example": "I saw a news yesterday.",
+    "ipa": "nuz"
   },
   {
     "en": "advertisement",
-    "uz": "reklama"
+    "uz": "reklama",
+    "example": "I saw an advertisement yesterday.",
+    "ipa": "ˌædvərˈtaɪzmənt"
   },
   {
     "en": "message",
-    "uz": "xabar"
+    "uz": "xabar",
+    "example": "I saw a message yesterday.",
+    "ipa": "ˈmɛsɪʤ"
   },
   {
     "en": "letter",
-    "uz": "xat"
+    "uz": "xat",
+    "example": "I saw a letter yesterday.",
+    "ipa": "ˈlɛtər"
   },
   {
     "en": "email",
-    "uz": "elektron xat"
+    "uz": "elektron xat",
+    "example": "I saw an email yesterday.",
+    "ipa": "iˈmeɪl"
   },
   {
     "en": "newspaper",
-    "uz": "gazeta"
+    "uz": "gazeta",
+    "example": "I saw a newspaper yesterday.",
+    "ipa": "ˈnuzˌpeɪpər"
   },
   {
     "en": "magazine",
-    "uz": "jurnal"
+    "uz": "jurnal",
+    "example": "I saw a magazine yesterday.",
+    "ipa": "ˈmægəˌzin"
   },
   {
     "en": "article",
-    "uz": "maqola"
+    "uz": "maqola",
+    "example": "I saw an article yesterday.",
+    "ipa": "ˈɑrtɪkəl"
   },
   {
     "en": "report",
-    "uz": "hisobot"
+    "uz": "hisobot",
+    "example": "I saw a report yesterday.",
+    "ipa": "rɪˈpɔrt"
   },
   {
     "en": "document",
-    "uz": "hujjat"
+    "uz": "hujjat",
+    "example": "I saw a document yesterday.",
+    "ipa": "ˈdɑkjəmɛnt"
   },
   {
     "en": "form",
-    "uz": "blank/shakl"
+    "uz": "blank/shakl",
+    "example": "I saw a form yesterday.",
+    "ipa": "fɔrm"
   },
   {
     "en": "ticket",
-    "uz": "chipta"
+    "uz": "chipta",
+    "example": "I saw a ticket yesterday.",
+    "ipa": "ˈtɪkɪt"
   },
   {
     "en": "passport",
-    "uz": "pasport"
+    "uz": "pasport",
+    "example": "I saw a passport yesterday.",
+    "ipa": "ˈpæˌspɔrt"
   },
   {
     "en": "luggage",
-    "uz": "yuk (sayohat)"
+    "uz": "yuk (sayohat)",
+    "example": "I saw a luggage yesterday.",
+    "ipa": "ˈləgɪʤ"
   },
   {
     "en": "suitcase",
-    "uz": "chamadon"
+    "uz": "chamadon",
+    "example": "I saw a suitcase yesterday.",
+    "ipa": "ˈsutˌkeɪs"
   },
   {
     "en": "map",
-    "uz": "xarita"
+    "uz": "xarita",
+    "example": "I saw a map yesterday.",
+    "ipa": "mæp"
   },
   {
     "en": "guide",
-    "uz": "yo'l ko'rsatuvchi"
+    "uz": "yo'l ko'rsatuvchi",
+    "example": "I saw a guide yesterday.",
+    "ipa": "gaɪd"
   },
   {
     "en": "journey",
-    "uz": "sayohat (yo'l)"
+    "uz": "sayohat (yo'l)",
+    "example": "I saw a journey yesterday.",
+    "ipa": "ˈʤərni"
   },
   {
     "en": "trip",
-    "uz": "sayohat (qisqa)"
+    "uz": "sayohat (qisqa)",
+    "example": "I saw a trip yesterday.",
+    "ipa": "trɪp"
   },
   {
     "en": "holiday",
-    "uz": "bayram/ta'til"
+    "uz": "bayram/ta'til",
+    "example": "I saw a holiday yesterday.",
+    "ipa": "ˈhɑlɪˌdeɪ"
   },
   {
     "en": "vacation",
-    "uz": "ta'til"
+    "uz": "ta'til",
+    "example": "I saw a vacation yesterday.",
+    "ipa": "veɪˈkeɪʃən"
   },
   {
     "en": "adventure",
-    "uz": "sarguzasht"
+    "uz": "sarguzasht",
+    "example": "I saw an adventure yesterday.",
+    "ipa": "ədˈvɛnʧər"
   },
   {
     "en": "culture",
-    "uz": "madaniyat"
+    "uz": "madaniyat",
+    "example": "I saw a culture yesterday.",
+    "ipa": "ˈkəlʧər"
   },
   {
     "en": "tradition",
-    "uz": "an'ana"
+    "uz": "an'ana",
+    "example": "I saw a tradition yesterday.",
+    "ipa": "trəˈdɪʃən"
   },
   {
     "en": "language",
-    "uz": "til"
+    "uz": "til",
+    "example": "I saw a language yesterday.",
+    "ipa": "ˈlæŋgwɪʤ"
   },
   {
     "en": "translation",
-    "uz": "tarjima"
+    "uz": "tarjima",
+    "example": "I saw a translation yesterday.",
+    "ipa": "trænzˈleɪʃən"
   },
   {
     "en": "dictionary",
-    "uz": "lug'at"
+    "uz": "lug'at",
+    "example": "I saw a dictionary yesterday.",
+    "ipa": "ˈdɪkʃəˌnɛri"
   },
   {
     "en": "grammar",
-    "uz": "grammatika"
+    "uz": "grammatika",
+    "example": "I saw a grammar yesterday.",
+    "ipa": "ˈgræmər"
   },
   {
     "en": "vocabulary",
-    "uz": "lug'at boyligi"
+    "uz": "lug'at boyligi",
+    "example": "I saw a vocabulary yesterday.",
+    "ipa": "voʊˈkæbjəˌlɛri"
   },
   {
     "en": "sentence",
-    "uz": "gap (jumla)"
+    "uz": "gap (jumla)",
+    "example": "I saw a sentence yesterday.",
+    "ipa": "ˈsɛntəns"
   },
   {
     "en": "paragraph",
-    "uz": "paragraf"
+    "uz": "paragraf",
+    "example": "I saw a paragraph yesterday.",
+    "ipa": "ˈpɛrəˌgræf"
   },
   {
     "en": "chapter",
-    "uz": "bob"
+    "uz": "bob",
+    "example": "I saw a chapter yesterday.",
+    "ipa": "ˈʧæptər"
   },
   {
     "en": "subject",
-    "uz": "fan/mavzu"
+    "uz": "fan/mavzu",
+    "example": "I saw a subject yesterday.",
+    "ipa": "ˈsəbʤɪkt"
   },
   {
     "en": "lesson",
-    "uz": "dars"
+    "uz": "dars",
+    "example": "I saw a lesson yesterday.",
+    "ipa": "ˈlɛsən"
   },
   {
     "en": "homework",
-    "uz": "uy vazifasi"
+    "uz": "uy vazifasi",
+    "example": "I saw a homework yesterday.",
+    "ipa": "ˈhoʊmˌwərk"
   },
   {
     "en": "exam",
-    "uz": "imtihon"
+    "uz": "imtihon",
+    "example": "I saw an exam yesterday.",
+    "ipa": "ɪgˈzæm"
   },
   {
     "en": "test",
-    "uz": "test"
+    "uz": "test",
+    "example": "I saw a test yesterday.",
+    "ipa": "tɛst"
   },
   {
     "en": "grade",
-    "uz": "baho"
+    "uz": "baho",
+    "example": "I saw a grade yesterday.",
+    "ipa": "greɪd"
   },
   {
     "en": "degree",
-    "uz": "daraja (ta'lim)"
+    "uz": "daraja (ta'lim)",
+    "example": "I saw a degree yesterday.",
+    "ipa": "dɪˈgri"
   },
   {
     "en": "university",
-    "uz": "universitet"
+    "uz": "universitet",
+    "example": "I saw an university yesterday.",
+    "ipa": "ˌjunəˈvərsəti"
   },
   {
     "en": "college",
-    "uz": "kollej"
+    "uz": "kollej",
+    "example": "I saw a college yesterday.",
+    "ipa": "ˈkɑlɪʤ"
   },
   {
     "en": "course",
-    "uz": "kurs"
+    "uz": "kurs",
+    "example": "I saw a course yesterday.",
+    "ipa": "kɔrs"
   },
   {
     "en": "skill",
-    "uz": "mahorat"
+    "uz": "mahorat",
+    "example": "I saw a skill yesterday.",
+    "ipa": "skɪl"
   },
   {
     "en": "ability",
-    "uz": "qobiliyat"
+    "uz": "qobiliyat",
+    "example": "I saw an ability yesterday.",
+    "ipa": "əˈbɪləˌti"
   },
   {
     "en": "talent",
-    "uz": "iste'dod"
+    "uz": "iste'dod",
+    "example": "I saw a talent yesterday.",
+    "ipa": "ˈtælənt"
   },
   {
     "en": "goal",
-    "uz": "maqsad"
+    "uz": "maqsad",
+    "example": "I saw a goal yesterday.",
+    "ipa": "goʊl"
   },
   {
     "en": "dream",
-    "uz": "orzu"
+    "uz": "orzu",
+    "example": "I saw a dream yesterday.",
+    "ipa": "drim"
   },
   {
     "en": "future",
-    "uz": "kelajak"
+    "uz": "kelajak",
+    "example": "I saw a future yesterday.",
+    "ipa": "fˈjuʧər"
   },
   {
     "en": "past",
-    "uz": "o'tmish"
+    "uz": "o'tmish",
+    "example": "I saw a past yesterday.",
+    "ipa": "pæst"
   },
   {
     "en": "present",
-    "uz": "hozirgi zamon"
+    "uz": "hozirgi zamon",
+    "example": "I saw a present yesterday.",
+    "ipa": "ˈprɛzənt"
   },
   {
     "en": "history",
-    "uz": "tarix"
+    "uz": "tarix",
+    "example": "I saw a history yesterday.",
+    "ipa": "ˈhɪstəri"
   },
   {
     "en": "science",
-    "uz": "fan (ilm)"
+    "uz": "fan (ilm)",
+    "example": "I saw a science yesterday.",
+    "ipa": "saɪəns"
   },
   {
     "en": "technology",
-    "uz": "texnologiya"
+    "uz": "texnologiya",
+    "example": "I saw a technology yesterday.",
+    "ipa": "tɛkˈnɑləʤi"
   },
   {
     "en": "internet",
-    "uz": "internet"
+    "uz": "internet",
+    "example": "I saw an internet yesterday.",
+    "ipa": "ˈɪntərˌnɛt"
   },
   {
     "en": "website",
-    "uz": "veb-sayt"
+    "uz": "veb-sayt",
+    "example": "I saw a website yesterday.",
+    "ipa": "ˈwɛbˌsaɪt"
   },
   {
     "en": "software",
-    "uz": "dastur"
+    "uz": "dastur",
+    "example": "I saw a software yesterday.",
+    "ipa": "ˈsɔfˌwɛr"
   },
   {
     "en": "device",
-    "uz": "qurilma"
+    "uz": "qurilma",
+    "example": "I saw a device yesterday.",
+    "ipa": "dɪˈvaɪs"
   },
   {
     "en": "machine",
-    "uz": "mashina (mexanizm)"
+    "uz": "mashina (mexanizm)",
+    "example": "I saw a machine yesterday.",
+    "ipa": "məˈʃin"
   },
   {
     "en": "energy",
-    "uz": "energiya"
+    "uz": "energiya",
+    "example": "I saw an energy yesterday.",
+    "ipa": "ˈɛnərʤi"
   },
   {
     "en": "electricity",
-    "uz": "elektr"
+    "uz": "elektr",
+    "example": "I saw an electricity yesterday.",
+    "ipa": "ɪˌlɛkˈtrɪsəti"
   },
   {
     "en": "environment",
-    "uz": "atrof-muhit"
+    "uz": "atrof-muhit",
+    "example": "I saw an environment yesterday.",
+    "ipa": "ɪnˈvaɪrənmənt"
   },
   {
     "en": "pollution",
-    "uz": "ifloslanish"
+    "uz": "ifloslanish",
+    "example": "I saw a pollution yesterday.",
+    "ipa": "pəˈluʃən"
   },
   {
     "en": "climate",
-    "uz": "iqlim"
+    "uz": "iqlim",
+    "example": "I saw a climate yesterday.",
+    "ipa": "ˈklaɪmɪt"
   },
   {
     "en": "population",
-    "uz": "aholi"
+    "uz": "aholi",
+    "example": "I saw a population yesterday.",
+    "ipa": "ˌpɑpjəˈleɪʃən"
   },
   {
     "en": "government",
-    "uz": "hukumat"
+    "uz": "hukumat",
+    "example": "I saw a government yesterday.",
+    "ipa": "ˈgəvərnmənt"
   },
   {
     "en": "society",
-    "uz": "jamiyat"
+    "uz": "jamiyat",
+    "example": "I saw a society yesterday.",
+    "ipa": "soʊˈsaɪɪti"
   },
   {
     "en": "economy",
-    "uz": "iqtisodiyot"
+    "uz": "iqtisodiyot",
+    "example": "I saw an economy yesterday.",
+    "ipa": "ɪˈkɑnəmi"
   },
   {
     "en": "industry",
-    "uz": "sanoat"
+    "uz": "sanoat",
+    "example": "I saw an industry yesterday.",
+    "ipa": "ˈɪndəstri"
   },
   {
     "en": "agriculture",
-    "uz": "qishloq xo'jaligi"
+    "uz": "qishloq xo'jaligi",
+    "example": "I saw an agriculture yesterday.",
+    "ipa": "ˈægrɪˌkəlʧər"
   },
   {
     "en": "tourism",
-    "uz": "turizm"
+    "uz": "turizm",
+    "example": "I saw a tourism yesterday.",
+    "ipa": "ˈtʊˌrɪzəm"
   },
   {
     "en": "transport",
-    "uz": "transport"
+    "uz": "transport",
+    "example": "I saw a transport yesterday.",
+    "ipa": "ˈtrænspɔrt"
   },
   {
     "en": "traffic",
-    "uz": "tirbandlik/harakat"
+    "uz": "tirbandlik/harakat",
+    "example": "I saw a traffic yesterday.",
+    "ipa": "ˈtræfɪk"
   },
   {
     "en": "vehicle",
-    "uz": "transport vositasi"
+    "uz": "transport vositasi",
+    "example": "I saw a vehicle yesterday.",
+    "ipa": "ˈviɪkəl"
   },
   {
     "en": "fuel",
-    "uz": "yoqilg'i"
+    "uz": "yoqilg'i",
+    "example": "I saw a fuel yesterday.",
+    "ipa": "fjuəl"
   },
   {
     "en": "pilot",
-    "uz": "uchuvchi"
+    "uz": "uchuvchi",
+    "example": "I saw a pilot yesterday.",
+    "ipa": "ˈpaɪlət"
   },
   {
     "en": "driver",
-    "uz": "haydovchi"
+    "uz": "haydovchi",
+    "example": "I saw a driver yesterday.",
+    "ipa": "ˈdraɪvər"
   },
   {
     "en": "passenger",
-    "uz": "yo'lovchi"
+    "uz": "yo'lovchi",
+    "example": "I saw a passenger yesterday.",
+    "ipa": "ˈpæsənʤər"
   }
 ]

@@ -68,8 +68,23 @@
     const stats = await collectStats(user);
 
     grid.innerHTML = stats.perLevel.map((row, i) => {
-      const { level, learned, total, laterCount, dueReview, isDone } = row;
+      const { level, learned, total, laterCount, dueReview, isDone, unlocked } = row;
       const pct = total ? Math.round((learned / total) * 100) : 0;
+
+      if (!unlocked) {
+        const prevLevel = LEVELS[i - 1];
+        return `
+        <div class="level-card locked" data-idx="0${i+1}" title="Bu daraja hali qulflangan">
+          <div class="level-hit">
+            <div class="lname">${level.name}</div>
+            <div class="lock-msg">
+              <span class="lock-icon">🔒</span>
+              <span>Ochish uchun <b>${prevLevel.name}</b> darajasini tugating</span>
+            </div>
+          </div>
+        </div>`;
+      }
+
       return `
       <div class="level-card" data-idx="0${i+1}">
         <button class="level-hit" onclick="location.href='study.html?level=${level.id}'">

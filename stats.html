@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Statistika | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">← Darajalar</a>
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="dash-head">
+      <h1>Statistikangiz</h1>
+      <p>O'rganish jarayoningiz, kunlik faolligingiz va qo'lga kiritgan yutuqlaringiz.</p>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+
+    <div class="panel">
+      <h2 class="panel-title">🔥 Faollik — so'nggi 14 kun</h2>
+      <div id="chartWrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-title">🏅 Yutuqlar</h2>
+      <div class="badges-grid" id="badgesGrid"></div>
+    </div>
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const user = requireAuth();
+  if (user) {
+    document.getElementById('userLabel').textContent = user;
+    render();
+  }
+
+  async function render() {
+    const stats = await collectStats(user);
+    const overallPct = stats.totalWords ? Math.round((stats.totalLearned / stats.totalWords) * 100) : 0;
+
+    document.getElementById('statsBar').innerHTML = `
+      <div class="stat-pill">
+        <span class="sp-num">${stats.totalLearned}</span>
+        <span class="sp-lbl">Jami o'rganilgan so'z</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num">${overallPct}%</span>
+        <span class="sp-lbl">Umumiy progress</span>
+      </div>
+      <div class="stat-pill stat-pill--streak">
+        <span class="sp-num">🔥 ${stats.streak.current}</span>
+        <span class="sp-lbl">Joriy seriya (kun)</span>
+      </div>
+      <div class="stat-pill stat-pill--streak">
+        <span class="sp-num">🏆 ${stats.streak.longest}</span>
+        <span class="sp-lbl">Eng uzun seriya</span>
+      </div>
+    `;
+
+    renderChart();
+    renderBadges(stats);
+  }
+
+  function renderChart() {
+    const days = getLast14Days(user);
+    const max = Math.max(1, ...days.map(d => d.count));
+    const w = 620, h = 160, barGap = 6;
+    const barW = (w / days.length) - barGap;
+    const bars = days.map((d, i) => {
+      const barH = Math.round((d.count / max) * (h - 30));
+      const x = i * (barW + barGap);
+      const y = h - barH - 20;
+      const label = d.date.slice(5); // MM-DD
+      const isToday = i === days.length - 1;
+      return `
+        <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4"
+          fill="${isToday ? 'var(--mustard)' : d.count > 0 ? 'var(--sage)' : 'rgba(27,16,53,0.12)'}"
+          stroke="var(--ink)" stroke-width="1.5"/>
+        ${d.count > 0 ? `<text x="${x + barW/2}" y="${y - 6}" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="var(--text-on-ink)">${d.count}</text>` : ''}
+        <text x="${x + barW/2}" y="${h - 4}" text-anchor="middle" font-size="9" font-family="var(--font-mono)" fill="var(--text-on-ink-muted)">${label}</text>
+      `;
+    }).join('');
+
+    document.getElementById('chartWrap').innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" class="activity-chart" preserveAspectRatio="xMidYMid meet">
+        ${bars}
+      </svg>
+      <p class="chart-note">Har bir ustun — o'sha kuni o'rganilgan yangi so'zlar soni.</p>
+    `;
+  }
+
+  function renderBadges(stats) {
+    const badges = computeBadges(stats);
+    document.getElementById('badgesGrid').innerHTML = badges.map(b => `
+      <div class="badge-item ${b.earned ? 'earned' : 'locked'}">
+        <div class="badge-icon">${b.earned ? '🏅' : '🔒'}</div>
+        <div class="badge-title">${b.title}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@
   <div class="topbar">
     <div class="brand">Lug'at<span class="dot">.</span></div>
     <div class="userchip">
+      <a href="stats.html" class="chip-link">📊 Statistika</a>
       <span id="userLabel">—</span>
       <button id="logoutBtn">Chiqish</button>
     </div>
@@ -23,12 +24,20 @@
       <p>Har bir daraja o'zining alohida so'zlar to'plamiga ega — bir daraja ichida bir xil so'z ikki marta chiqmaydi.</p>
     </div>
 
-    <div class="stats-bar" id="statsBar">
-      <!-- JS orqali to'ldiriladi -->
+    <div class="stats-bar" id="statsBar"></div>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Barcha darajalardan so'z qidiring... (masalan: apple, ona)" autocomplete="off"/>
+      <div class="search-results" id="searchResults"></div>
     </div>
 
-    <div class="levels" id="levelsGrid">
-      <!-- JS orqali to'ldiriladi -->
+    <div class="levels" id="levelsGrid"></div>
+
+    <div class="backup-row">
+      <button class="btn-ghost" id="exportBtn">⬇ Progressni yuklab olish</button>
+      <label class="btn-ghost" for="importFile">⬆ Progressni yuklash
+        <input type="file" id="importFile" accept="application/json" style="display:none"/>
+      </label>
     </div>
   </div>
 
@@ -42,12 +51,13 @@
     document.getElementById('userLabel').textContent = user;
     document.getElementById('logoutBtn').addEventListener('click', logout);
     renderLevels();
+    wireSearch();
+    wireBackup();
   }
 
   async function renderLevels() {
     const grid = document.getElementById('levelsGrid');
     const statsBar = document.getElementById('statsBar');
-    const progress = getProgress(user);
     grid.innerHTML = LEVELS.map((l, i) =>
       `<div class="level-card" style="opacity:.5" data-idx="0${i+1}">
         <div class="lname">${l.name}</div>
@@ -55,21 +65,11 @@
       </div>`
     ).join('');
 
-    let totalLearned = 0, totalWords = 0, totalLater = 0;
+    const stats = await collectStats(user);
 
-    const cards = await Promise.all(LEVELS.map(async (level, i) => {
-      let words = [];
-      try { words = await loadLevelWords(level.id); } catch (e) { console.error(e); }
-      const learned = progress[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
-      const total = words.length;
+    grid.innerHTML = stats.perLevel.map((row, i) => {
+      const { level, learned, total, laterCount, dueReview, isDone } = row;
       const pct = total ? Math.round((learned / total) * 100) : 0;
-      const isDone = total > 0 && learned >= total;
-      const laterCount = progress.later[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
-
-      totalLearned += learned;
-      totalWords += total;
-      totalLater += laterCount;
-
       return `
       <div class="level-card" data-idx="0${i+1}">
         <button class="level-hit" onclick="location.href='study.html?level=${level.id}'">
@@ -81,31 +81,102 @@
           </div>
           ${isDone ? `<div class="done-pill">✓ Ushbu to'plam tugallandi</div>` : ''}
         </button>
+        <div class="card-btn-row">
+          <button class="btn-quiz" ${learned < 4 ? 'disabled title="Test uchun kamida 4 ta so\'z o\'rganilgan bo\'lishi kerak"' : ''} onclick="location.href='quiz.html?level=${level.id}'">📝 Test</button>
+          ${dueReview > 0 ? `<button class="btn-review" onclick="location.href='study.html?level=${level.id}&mode=review'">🔁 Takrorlash (${dueReview})</button>` : ''}
+        </div>
         ${laterCount > 0 ? `
         <div class="later-row">
           <span class="later-tag">↻ Keyinroq: <b>${laterCount}</b> ta so'z</span>
           <button class="btn-later" onclick="location.href='study.html?level=${level.id}&mode=later'">O'rganish</button>
         </div>` : ''}
       </div>`;
-    }));
+    }).join('');
 
-    grid.innerHTML = cards.join('');
-
-    const overallPct = totalWords ? Math.round((totalLearned / totalWords) * 100) : 0;
+    const overallPct = stats.totalWords ? Math.round((stats.totalLearned / stats.totalWords) * 100) : 0;
     statsBar.innerHTML = `
       <div class="stat-pill">
-        <span class="sp-num">${totalLearned}</span>
+        <span class="sp-num">${stats.totalLearned}</span>
         <span class="sp-lbl">Jami o'rganilgan so'z</span>
       </div>
       <div class="stat-pill">
         <span class="sp-num">${overallPct}%</span>
         <span class="sp-lbl">Umumiy progress</span>
       </div>
-      <div class="stat-pill ${totalLater > 0 ? 'stat-pill--later' : ''}">
-        <span class="sp-num">${totalLater}</span>
+      <div class="stat-pill ${stats.totalLater > 0 ? 'stat-pill--later' : ''}">
+        <span class="sp-num">${stats.totalLater}</span>
         <span class="sp-lbl">Keyinroqqa qoldirilgan</span>
       </div>
+      <div class="stat-pill stat-pill--streak">
+        <span class="sp-num">🔥 ${stats.streak.current}</span>
+        <span class="sp-lbl">Kunlik seriya</span>
+      </div>
     `;
+  }
+
+  function wireSearch() {
+    const input = document.getElementById('searchInput');
+    const resultsBox = document.getElementById('searchResults');
+    let allData = null;
+    let debounceTimer = null;
+
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = input.value.trim().toLowerCase();
+      if (!q) { resultsBox.classList.remove('show'); resultsBox.innerHTML = ''; return; }
+      debounceTimer = setTimeout(async () => {
+        if (!allData) allData = await loadAllWords();
+        const matches = [];
+        for (const { level, words } of allData) {
+          for (const w of words) {
+            if (w.en.toLowerCase().includes(q) || w.uz.toLowerCase().includes(q)) {
+              matches.push({ level, word: w });
+              if (matches.length >= 20) break;
+            }
+          }
+          if (matches.length >= 20) break;
+        }
+        if (matches.length === 0) {
+          resultsBox.innerHTML = `<div class="sr-empty">Hech narsa topilmadi.</div>`;
+        } else {
+          resultsBox.innerHTML = matches.map(m => `
+            <button class="sr-item" onclick="location.href='study.html?level=${m.level.id}'">
+              <span class="sr-en">${escapeHtml(m.word.en)}</span>
+              <span class="sr-uz">${escapeHtml(m.word.uz)}</span>
+              <span class="sr-level">${m.level.name}</span>
+            </button>`).join('');
+        }
+        resultsBox.classList.add('show');
+      }, 180);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-box')) resultsBox.classList.remove('show');
+    });
+  }
+
+  function wireBackup() {
+    document.getElementById('exportBtn').addEventListener('click', () => exportProgress(user));
+    document.getElementById('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const obj = JSON.parse(text);
+        importProgressFromObject(user, obj);
+        alert('Progress muvaffaqiyatli yuklandi.');
+        location.reload();
+      } catch (err) {
+        alert('Faylni o\'qib bo\'lmadi. Bu to\'g\'ri eksport fayli ekanini tekshiring.');
+      }
+      e.target.value = '';
+    });
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
   }
 </script>
 </body>

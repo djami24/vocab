@@ -497,6 +497,27 @@ button { font-family: inherit; }
 .btn-later:hover { filter: brightness(1.06); }
 .btn-later:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
 
+/* "qulflangan" (hali ochilmagan) daraja kartasi */
+.level-card.locked {
+  opacity: 0.68;
+  border-top-color: rgba(27,16,53,0.25);
+}
+.level-card.locked:hover { transform: none; }
+.level-card.locked .level-hit { cursor: default; }
+.level-card.locked .lname { color: var(--text-muted); }
+.lock-msg {
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.lock-msg b { color: var(--text-on-paper); }
+.lock-icon { font-size: 18px; flex-shrink: 0; }
+
 /* ── STUDY SCREEN ────────────────────────────────── */
 .study {
   flex: 1;
@@ -1006,4 +1027,3 @@ footer.site-foot {
 }
 .quiz-feedback .ok { color: var(--sage); }
 .quiz-feedback .bad { color: var(--stamp-dark); }
-

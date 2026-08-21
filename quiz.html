@@ -50,6 +50,10 @@ if (user) {
 
 async function init() {
   root.innerHTML = `<div class="empty-state"><div class="emoji">📝</div><p>Test tayyorlanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) { renderLocked(); return; }
+
   let words = [];
   try {
     words = await loadLevelWords(levelId);
@@ -86,6 +90,21 @@ async function init() {
   qIdx = 0;
   score = 0;
   renderQuestion();
+}
+
+function renderLocked() {
+  const idx = LEVELS.findIndex(l => l.id === levelId);
+  const prevLevel = LEVELS[idx - 1];
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🔒</div>
+      <h2>Bu daraja hali qulflangan</h2>
+      <p>Test ishlash uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+      <div class="btns">
+        <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
 }
 
 function renderQuestion() {

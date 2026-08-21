@@ -53,6 +53,10 @@ if (user) {
 
 async function init() {
   root.innerHTML = `<div class="empty-state"><div class="emoji">📖</div><p>So'zlar yuklanmoqda...</p></div>`;
+
+  const unlocked = await isLevelUnlocked(user, levelId);
+  if (!unlocked) { renderLocked(); return; }
+
   let words = [];
   try {
     words = await loadLevelWords(levelId);
@@ -94,6 +98,21 @@ async function init() {
   laterThisSession = 0;
   reviewedThisSession = 0;
   renderCard();
+}
+
+function renderLocked() {
+  const levelIdx = LEVELS.findIndex(l => l.id === levelId);
+  const prevLevel = LEVELS[levelIdx - 1];
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">🔒</div>
+      <h2>Bu daraja hali qulflangan</h2>
+      <p>Bu darajani ochish uchun avval <b>${prevLevel.name}</b> darajasini to'liq tugating.</p>
+      <div class="btns">
+        <a class="btn-primary" style="margin-top:0" href="study.html?level=${prevLevel.id}">${prevLevel.name}'ni davom ettirish</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
 }
 
 function renderEmptyMode(emoji, title, text) {

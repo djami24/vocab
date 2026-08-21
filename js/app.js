@@ -241,7 +241,9 @@ async function collectStats(user) {
   const flags = getFlags(user);
   let totalLearned = 0, totalWords = 0, totalLater = 0;
   const levelDone = {};
+  const levelUnlocked = {};
   const perLevel = [];
+  let prevDone = true; // birinchi daraja doim ochiq
 
   for (const level of LEVELS) {
     let words = [];
@@ -250,14 +252,42 @@ async function collectStats(user) {
     const total = words.length;
     const laterCount = progress.later[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
     const dueReview = getDueReviewCount(user, level.id);
-    levelDone[level.id] = total > 0 && learned >= total;
+    const isDone = total > 0 && learned >= total;
+    // Daraja ochiqmi: oldingi daraja tugagan bo'lsa YOKI bu darajada
+    // allaqachon progress bor bo'lsa (so'zlar ro'yxati keyinchalik
+    // kengaytirilsa ham, foydalanuvchi qo'lga kiritgan progress hech
+    // qachon qayta "qulflanib" qolmasligi uchun).
+    const unlocked = prevDone || learned > 0;
+    levelDone[level.id] = isDone;
+    levelUnlocked[level.id] = unlocked;
+    prevDone = isDone;
     totalLearned += learned;
     totalWords += total;
     totalLater += laterCount;
-    perLevel.push({ level, learned, total, laterCount, dueReview, isDone: levelDone[level.id] });
+    perLevel.push({ level, learned, total, laterCount, dueReview, isDone, unlocked });
   }
 
-  return { totalLearned, totalWords, totalLater, levelDone, perLevel, streak, flags };
+  return { totalLearned, totalWords, totalLater, levelDone, levelUnlocked, perLevel, streak, flags };
+}
+
+// Bitta darajaning hozir ochiqmi-yo'qligini tekshiradi (study/quiz
+// sahifalari to'g'ridan-to'g'ri URL orqali ochilganda ham himoya qilish
+// uchun) — collectStats kabi barcha darajalarni emas, faqat kerakli
+// oldingi darajani yuklaydi, shu bilan yengil ishlaydi.
+async function isLevelUnlocked(user, levelId) {
+  const idx = LEVELS.findIndex(l => l.id === levelId);
+  if (idx < 0) return false;
+  if (idx === 0) return true;
+
+  const progress = getProgress(user);
+  if (progress[levelId] && progress[levelId].length > 0) return true; // progress bor — doim ochiq
+
+  const prevLevel = LEVELS[idx - 1];
+  let prevWords = [];
+  try { prevWords = await loadLevelWords(prevLevel.id); } catch { return false; }
+  if (prevWords.length === 0) return false;
+  const learnedPrev = progress[prevLevel.id].filter(w => prevWords.some(x => x.en.toLowerCase() === w)).length;
+  return learnedPrev >= prevWords.length;
 }
 function computeBadges(stats) {
   return BADGE_DEFS.map(b => ({ ...b, earned: !!b.check(stats) }));

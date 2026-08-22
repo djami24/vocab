@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Vaqtga qarshi test | Lug'at</title>
 <link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -30,7 +34,7 @@ const MIN_LEARNED = 4;
 const SPEED_QUIZ_SIZE = 10;
 const QUESTION_MS = 8000;
 
-const user = requireAuth();
+let user = null;
 const params = new URLSearchParams(location.search);
 const levelId = params.get('level');
 const level = LEVELS.find(l => l.id === levelId);
@@ -45,14 +49,16 @@ let timerStart = 0;
 let rafHandle = null;
 let timeoutHandle = null;
 
-if (user) {
+(async () => {
+  user = await requireAuth();
+  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
   document.getElementById('userLabel').textContent = user;
   if (!level) {
     root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;
   } else {
     init();
   }
-}
+})();
 
 async function init() {
   root.innerHTML = `<div class="empty-state"><div class="emoji">⏱️</div><p>Test tayyorlanmoqda...</p></div>`;

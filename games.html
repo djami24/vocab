@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>O'yinlar | Lug'at</title>
 <link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -51,19 +55,21 @@ const GAME_TYPES = [
   },
 ];
 
-const user = requireAuth();
+let user = null;
 const params = new URLSearchParams(location.search);
 const levelId = params.get('level');
 const root = document.getElementById('gamesRoot');
 
-if (user) {
+(async () => {
+  user = await requireAuth();
+  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
   document.getElementById('userLabel').textContent = user;
   if (levelId) {
     initGamePicker();
   } else {
     initLevelPicker();
   }
-}
+})();
 
 async function initLevelPicker() {
   root.innerHTML = `

@@ -13,71 +13,146 @@ const LEVELS = [
 const SESSION_SIZE = 10; // bitta o'qish sessiyasidagi so'zlar soni
 const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
 
-// ── User / auth ───────────────────────────────────────────────────
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem('vocab_users') || '{}'); }
-  catch { return {}; }
+// ── Firebase auth va foydalanuvchi ma'lumotlari keshi ──────────────
+// `auth` va `db` — js/firebase-config.js faylida yaratiladigan globallar.
+// Sahifa ochilganda ma'lumotlar Firestore'dan bir marta o'qiladi va
+// xotirada saqlanadi (_userDataCache) — barcha o'qish funksiyalari shu
+// keshdan sinxron ishlaydi, yozish funksiyalari esa keshni yangilab,
+// Firestore'ga fon rejimida (debounce bilan) yozadi.
+
+let _currentUser = null;      // Firebase Auth foydalanuvchi obyekti
+let _userDataCache = null;    // { progress, activity, flags }
+let _authReadyPromise = null;
+let _persistTimer = null;
+
+function authReady() {
+  if (!_authReadyPromise) {
+    _authReadyPromise = new Promise((resolve) => {
+      auth.onAuthStateChanged(async (user) => {
+        _currentUser = user;
+        if (user) {
+          try { await loadUserData(user.uid); }
+          catch (e) { console.error("Ma'lumotlarni yuklashda xatolik:", e); _userDataCache = emptyUserData(); }
+        } else {
+          _userDataCache = null;
+        }
+        resolve(user);
+      });
+    });
+  }
+  return _authReadyPromise;
 }
-function saveUsers(users) {
-  localStorage.setItem('vocab_users', JSON.stringify(users));
+
+async function requireAuth() {
+  const user = await authReady();
+  if (!user) { location.href = 'index.html'; return null; }
+  return user.email || user.uid;
 }
-function getCurrentUser() {
-  return localStorage.getItem('vocab_current_user') || '';
-}
-function setCurrentUser(name) {
-  localStorage.setItem('vocab_current_user', name);
-}
+
 function logout() {
-  localStorage.removeItem('vocab_current_user');
-  location.href = 'index.html';
+  clearTimeout(_persistTimer);
+  auth.signOut().then(() => { location.href = 'index.html'; });
 }
-function requireAuth() {
-  const u = getCurrentUser();
-  if (!u) { location.href = 'index.html'; return null; }
-  return u;
+
+// ── Ro'yxatdan o'tish / kirish / parolni tiklash ────────────────────
+async function registerUser(email, password) {
+  const cred = await auth.createUserWithEmailAndPassword(email, password);
+  _currentUser = cred.user; // loadUserData yangi hujjat yaratganda email shu yerdan olinadi
+  await loadUserData(cred.user.uid);
+  return cred.user;
 }
-function registerOrLogin(name) {
-  name = name.trim();
-  if (!name) return null;
-  const users = getUsers();
-  if (!users[name]) {
-    users[name] = { createdAt: new Date().toISOString() };
-    saveUsers(users);
+async function loginUser(email, password) {
+  const cred = await auth.signInWithEmailAndPassword(email, password);
+  _currentUser = cred.user;
+  await loadUserData(cred.user.uid);
+  return cred.user;
+}
+async function sendPasswordReset(email) {
+  await auth.sendPasswordResetEmail(email);
+}
+function authErrorMessage(err) {
+  const map = {
+    'auth/email-already-in-use': "Bu email allaqachon ro'yxatdan o'tgan. Kirish oynasidan foydalaning.",
+    'auth/invalid-email': "Email manzili noto'g'ri formatda.",
+    'auth/weak-password': "Parol juda oddiy — kamida 6 ta belgidan iborat bo'lishi kerak.",
+    'auth/user-not-found': "Bunday foydalanuvchi topilmadi.",
+    'auth/wrong-password': "Parol noto'g'ri.",
+    'auth/invalid-credential': "Email yoki parol noto'g'ri.",
+    'auth/missing-password': "Parolni kiriting.",
+    'auth/too-many-requests': "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring.",
+  };
+  return map[err.code] || ("Xatolik yuz berdi: " + (err.message || err.code || ''));
+}
+
+// ── Foydalanuvchi hujjati (Firestore) ───────────────────────────────
+function userDocRef(uid) { return db.collection('users').doc(uid); }
+
+function emptyUserData() {
+  const progress = {};
+  LEVELS.forEach(l => { progress[l.id] = []; });
+  progress.later = {};
+  progress.reviews = {};
+  LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; });
+  return { progress, activity: {}, flags: {} };
+}
+
+function normalizeUserData(data) {
+  const out = emptyUserData();
+  const p = data && typeof data.progress === 'object' ? data.progress : {};
+  LEVELS.forEach(l => { if (Array.isArray(p[l.id])) out.progress[l.id] = p[l.id]; });
+  if (p.later && typeof p.later === 'object') {
+    LEVELS.forEach(l => { if (Array.isArray(p.later[l.id])) out.progress.later[l.id] = p.later[l.id]; });
   }
-  setCurrentUser(name);
-  return name;
+  if (p.reviews && typeof p.reviews === 'object') {
+    LEVELS.forEach(l => { if (p.reviews[l.id] && typeof p.reviews[l.id] === 'object') out.progress.reviews[l.id] = p.reviews[l.id]; });
+  }
+  if (data && data.activity && typeof data.activity === 'object') out.activity = data.activity;
+  if (data && data.flags && typeof data.flags === 'object') out.flags = data.flags;
+  return out;
 }
 
-// ── Progress ──────────────────────────────────────────────────────
-function progressKey(user) { return 'vocab_progress_' + user; }
+async function loadUserData(uid) {
+  const ref = userDocRef(uid);
+  const snap = await ref.get();
+  if (snap.exists) {
+    _userDataCache = normalizeUserData(snap.data());
+  } else {
+    _userDataCache = emptyUserData();
+    await ref.set({
+      email: _currentUser ? _currentUser.email : '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      progress: _userDataCache.progress,
+      activity: _userDataCache.activity,
+      flags: _userDataCache.flags,
+    });
+  }
+}
 
-function getProgress(user) {
+// Fonda, biroz kechiktirib Firestore'ga yozadi (ketma-ket ko'p yozishlarni birlashtiradi)
+function persistUserData() {
+  if (!_currentUser || !_userDataCache) return;
+  clearTimeout(_persistTimer);
+  _persistTimer = setTimeout(() => { flushPersist(); }, 600);
+}
+async function flushPersist() {
+  clearTimeout(_persistTimer);
+  if (!_currentUser || !_userDataCache) return;
   try {
-    const p = JSON.parse(localStorage.getItem(progressKey(user)) || '{}');
-    LEVELS.forEach(l => { if (!Array.isArray(p[l.id])) p[l.id] = []; });
-    if (!p.later || typeof p.later !== 'object') p.later = {};
-    LEVELS.forEach(l => { if (!Array.isArray(p.later[l.id])) p.later[l.id] = []; });
-    if (!p.reviews || typeof p.reviews !== 'object') p.reviews = {};
-    LEVELS.forEach(l => { if (!p.reviews[l.id] || typeof p.reviews[l.id] !== 'object') p.reviews[l.id] = {}; });
-    return p;
-  } catch {
-    return emptyProgress();
-  }
+    await userDocRef(_currentUser.uid).set({
+      progress: _userDataCache.progress,
+      activity: _userDataCache.activity,
+      flags: _userDataCache.flags,
+    }, { merge: true });
+  } catch (e) { console.error('Saqlashda xatolik:', e); }
 }
-function emptyProgress() {
-  const empty = {};
-  LEVELS.forEach(l => { empty[l.id] = []; });
-  empty.later = {};
-  empty.reviews = {};
-  LEVELS.forEach(l => { empty.later[l.id] = []; empty.reviews[l.id] = {}; });
-  return empty;
-}
-function saveProgress(user, progress) {
-  localStorage.setItem(progressKey(user), JSON.stringify(progress));
-}
+window.addEventListener('beforeunload', () => { if (_persistTimer) flushPersist(); });
 
-function markLearned(user, levelId, enWord) {
-  const progress = getProgress(user);
+// ── Progress (keshdan sinxron o'qiladi) ─────────────────────────────
+function getProgress(_user) { return _userDataCache.progress; }
+function saveProgress(_user, progress) { _userDataCache.progress = progress; persistUserData(); }
+
+function markLearned(_user, levelId, enWord) {
+  const progress = getProgress();
   const key = enWord.toLowerCase();
   const wasNew = !progress[levelId].includes(key);
   if (wasNew) {
@@ -92,23 +167,23 @@ function markLearned(user, levelId, enWord) {
     progress.reviews[levelId][key] = { interval: 1, due: addDays(todayStr(), 1), ease: 2.3 };
   }
 
-  saveProgress(user, progress);
-  if (wasNew) recordActivity(user);
+  saveProgress(_user, progress);
+  if (wasNew) recordActivity(_user);
   return progress;
 }
 
 // "Keyinroq" — foydalanuvchi hozircha o'tkazib yuborgan so'zlar shu yerga tushadi
-function markLater(user, levelId, enWord) {
-  const progress = getProgress(user);
+function markLater(_user, levelId, enWord) {
+  const progress = getProgress();
   const key = enWord.toLowerCase();
   if (!progress.later[levelId].includes(key) && !progress[levelId].includes(key)) {
     progress.later[levelId].push(key);
-    saveProgress(user, progress);
+    saveProgress(_user, progress);
   }
   return progress;
 }
-function getLaterWords(user, levelId) {
-  return getProgress(user).later[levelId];
+function getLaterWords(_user, levelId) {
+  return getProgress().later[levelId];
 }
 
 // ── Takrorlash (spaced repetition, soddalashtirilgan SM-2) ─────────
@@ -118,17 +193,17 @@ function addDays(dateStr, days) {
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
 }
-function getDueReviewWords(user, levelId) {
-  const progress = getProgress(user);
+function getDueReviewWords(_user, levelId) {
+  const progress = getProgress();
   const today = todayStr();
   const reviews = progress.reviews[levelId] || {};
   return Object.keys(reviews).filter(word => reviews[word].due <= today);
 }
-function getDueReviewCount(user, levelId) {
-  return getDueReviewWords(user, levelId).length;
+function getDueReviewCount(_user, levelId) {
+  return getDueReviewWords(_user, levelId).length;
 }
-function reviewWord(user, levelId, enWord, remembered) {
-  const progress = getProgress(user);
+function reviewWord(_user, levelId, enWord, remembered) {
+  const progress = getProgress();
   const key = enWord.toLowerCase();
   const entry = progress.reviews[levelId][key] || { interval: 1, due: todayStr(), ease: 2.3 };
   if (remembered) {
@@ -140,30 +215,22 @@ function reviewWord(user, levelId, enWord, remembered) {
     entry.due = addDays(todayStr(), 1);
   }
   progress.reviews[levelId][key] = entry;
-  saveProgress(user, progress);
+  saveProgress(_user, progress);
   return progress;
 }
 
 // ── Faoliyat tarixi va streak (kunlik ketma-ketlik) ────────────────
-function activityKey(user) { return 'vocab_activity_' + user; }
-function getActivity(user) {
-  try {
-    const a = JSON.parse(localStorage.getItem(activityKey(user)) || '{}');
-    return (a && typeof a === 'object') ? a : {};
-  } catch { return {}; }
-}
-function saveActivity(user, activity) {
-  localStorage.setItem(activityKey(user), JSON.stringify(activity));
-}
-function recordActivity(user) {
-  const activity = getActivity(user);
+function getActivity(_user) { return _userDataCache.activity; }
+function saveActivity(_user, activity) { _userDataCache.activity = activity; persistUserData(); }
+function recordActivity(_user) {
+  const activity = getActivity();
   const today = todayStr();
   activity[today] = (activity[today] || 0) + 1;
-  saveActivity(user, activity);
+  saveActivity(_user, activity);
   return activity;
 }
-function getStreak(user) {
-  const activity = getActivity(user);
+function getStreak(_user) {
+  const activity = getActivity();
   let d = new Date();
   let key = d.toISOString().slice(0, 10);
   if (!activity[key]) {
@@ -190,8 +257,8 @@ function getStreak(user) {
   }
   return { current, longest };
 }
-function getLast14Days(user) {
-  const activity = getActivity(user);
+function getLast14Days(_user) {
+  const activity = getActivity();
   const out = [];
   const d = new Date();
   for (let i = 13; i >= 0; i--) {
@@ -204,15 +271,12 @@ function getLast14Days(user) {
 }
 
 // ── Qo'shimcha bayroqlar (masalan: testda 100% natija) ─────────────
-function flagsKey(user) { return 'vocab_flags_' + user; }
-function getFlags(user) {
-  try { return JSON.parse(localStorage.getItem(flagsKey(user)) || '{}'); }
-  catch { return {}; }
-}
-function setFlag(user, name) {
-  const flags = getFlags(user);
+function getFlags(_user) { return _userDataCache.flags; }
+function setFlag(_user, name) {
+  const flags = getFlags();
   flags[name] = true;
-  localStorage.setItem(flagsKey(user), JSON.stringify(flags));
+  _userDataCache.flags = flags;
+  persistUserData();
 }
 
 // ── Yutuqlar (badges) ───────────────────────────────────────────────
@@ -308,17 +372,19 @@ function exportProgress(user) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `lugat-progress-${user}-${todayStr()}.json`;
+  const safeName = String(user).replace(/[^a-zA-Z0-9_-]+/g, '_');
+  a.download = `lugat-progress-${safeName}-${todayStr()}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
 }
-function importProgressFromObject(user, obj) {
+async function importProgressFromObject(_user, obj) {
   if (!obj || typeof obj !== 'object') throw new Error('Noto\u2019g\u2019ri fayl formati');
-  if (obj.progress) saveProgress(user, obj.progress);
-  if (obj.activity) saveActivity(user, obj.activity);
-  if (obj.flags) localStorage.setItem(flagsKey(user), JSON.stringify(obj.flags));
+  if (obj.progress) _userDataCache.progress = obj.progress;
+  if (obj.activity) _userDataCache.activity = obj.activity;
+  if (obj.flags) _userDataCache.flags = obj.flags;
+  await flushPersist();
 }
 
 // ── Word data ─────────────────────────────────────────────────────

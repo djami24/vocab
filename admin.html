@@ -3,79 +3,720 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Admin panel | Lug'at</title>
-<link rel="stylesheet" href="css/style.css"/>
+<title>Admin Panel | Lug'at</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+
+<style>
+/* ── HARD RESET — style.css yo'q, hammasi shu yerda ─── */
+html, body, div, span, h1, h2, h3, p, a, button, input, textarea, table,
+thead, tbody, tr, th, td, nav, header, main, footer, label, form {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  font: inherit !important;
+  color: inherit !important;
+  background: transparent !important;
+  text-decoration: none !important;
+  list-style: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+html { font-size: 16px; }
+
+body {
+  background: #0f0f13 !important;
+  color: #e8e6f0 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  min-height: 100vh !important;
+  -webkit-font-smoothing: antialiased !important;
+  line-height: 1.5 !important;
+}
+
+/* Sidebar layout */
+.admin-shell {
+  display: grid !important;
+  grid-template-columns: 240px 1fr !important;
+  grid-template-rows: auto 1fr !important;
+  min-height: 100vh !important;
+}
+
+/* ── TOPBAR ─── */
+.admin-topbar {
+  grid-column: 1 / -1 !important;
+  background: #16151c !important;
+  border-bottom: 1px solid #2a2835 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 28px !important;
+  height: 60px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+}
+
+.admin-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.admin-brand-logo {
+  width: 32px !important;
+  height: 32px !important;
+  background: linear-gradient(135deg, #7B2FF7, #FF3D7F) !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+}
+.admin-brand-name {
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  letter-spacing: -0.01em !important;
+}
+.admin-brand-badge {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: rgba(123,47,247,0.2) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(123,47,247,0.3) !important;
+  border-radius: 4px !important;
+  padding: 2px 7px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.admin-topbar-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+.admin-user-email {
+  font-size: 12.5px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  color: #7c7a8e !important;
+}
+.admin-back-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #7c7a8e !important;
+  text-decoration: none !important;
+  padding: 7px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid #2a2835 !important;
+  transition: all .15s !important;
+}
+.admin-back-btn:hover { color: #e8e6f0; border-color: #3d3a4e; background: #1e1d27; }
+.admin-logout-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #f87171 !important;
+  background: rgba(248,113,113,0.08) !important;
+  border: 1px solid rgba(248,113,113,0.2) !important;
+  border-radius: 8px !important;
+  padding: 7px 14px !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  transition: all .15s !important;
+}
+.admin-logout-btn:hover { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.35); }
+
+/* ── SIDEBAR ─── */
+.admin-sidebar {
+  background: #16151c !important;
+  border-right: 1px solid #2a2835 !important;
+  padding: 24px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.sidebar-section-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: #4a4860 !important;
+  padding: 0 8px !important;
+  margin: 8px 0 6px !important;
+}
+
+.sidebar-nav-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  border-radius: 9px !important;
+  border: none !important;
+  background: none !important;
+  color: #7c7a8e !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  text-align: left !important;
+  transition: all .15s !important;
+}
+.sidebar-nav-btn .nav-icon {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  background: #1e1d27 !important;
+  flex-shrink: 0 !important;
+  transition: all .15s !important;
+}
+.sidebar-nav-btn:hover { color: #e8e6f0; background: #1e1d27; }
+.sidebar-nav-btn:hover .nav-icon { background: #2a2835; }
+.sidebar-nav-btn.active { color: #c4b5fd; background: rgba(123,47,247,0.12); }
+.sidebar-nav-btn.active .nav-icon { background: rgba(123,47,247,0.2); }
+
+/* ── MAIN CONTENT ─── */
+.admin-main {
+  background: #0f0f13 !important;
+  overflow-y: auto !important;
+  padding: 32px 36px !important;
+}
+
+.admin-section { display: none; }
+.admin-section.active { display: block; }
+
+/* Page header */
+.page-header {
+  margin-bottom: 28px !important;
+  padding-bottom: 24px !important;
+  border-bottom: 1px solid #1e1d27 !important;
+}
+.page-header h1 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+.page-header p {
+  margin-top: 6px !important;
+  font-size: 13.5px !important;
+  color: #7c7a8e !important;
+  line-height: 1.6 !important;
+}
+
+/* ── CARD ─── */
+.acard {
+  background: #16151c !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 14px !important;
+  padding: 24px !important;
+  margin-bottom: 20px !important;
+}
+.acard-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  margin-bottom: 4px !important;
+}
+.acard-sub {
+  font-size: 12.5px !important;
+  color: #7c7a8e !important;
+  margin-bottom: 20px !important;
+  line-height: 1.55 !important;
+}
+
+/* ── FORM FIELDS ─── */
+.afield {
+  margin-bottom: 18px !important;
+}
+.afield label {
+  display: block !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+  color: #7c7a8e !important;
+  margin-bottom: 8px !important;
+}
+.afield input,
+.afield textarea {
+  width: 100% !important;
+  background: #0f0f13 !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 9px !important;
+  padding: 11px 14px !important;
+  font-size: 13.5px !important;
+  color: #e8e6f0 !important;
+  font-family: inherit !important;
+  transition: border-color .15s, box-shadow .15s !important;
+  outline: none !important;
+}
+.afield input:focus,
+.afield textarea:focus {
+  border-color: #7B2FF7 !important;
+  box-shadow: 0 0 0 3px rgba(123,47,247,0.15) !important;
+}
+.afield textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.afield-hint {
+  margin-top: 6px !important;
+  font-size: 11.5px !important;
+  color: #4a4860 !important;
+}
+
+/* Two-col form */
+.aform-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+}
+@media (max-width: 700px) { .aform-grid { grid-template-columns: 1fr; } }
+
+/* ── BUTTONS ─── */
+.abtn-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #7B2FF7 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 9px !important;
+  padding: 10px 20px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  transition: all .15s !important;
+}
+.abtn-primary:hover { background: #6920e0; }
+.abtn-primary:disabled { opacity: 0.55; cursor: default; }
+
+/* ── TOAST MESSAGES ─── */
+.atoast {
+  display: none !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  margin-top: 14px !important;
+}
+.atoast.show { display: flex; }
+.atoast.success {
+  background: rgba(23,214,124,0.1) !important;
+  border: 1px solid rgba(23,214,124,0.25) !important;
+  color: #4ade80 !important;
+}
+.atoast.error {
+  background: rgba(248,113,113,0.1) !important;
+  border: 1px solid rgba(248,113,113,0.25) !important;
+  color: #f87171 !important;
+}
+
+/* ── LOG TABLE ─── */
+.log-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 16px !important;
+  gap: 12px !important;
+}
+.log-count-badge {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background: #1e1d27 !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+  color: #7c7a8e !important;
+}
+
+.log-table-wrap {
+  border: 1px solid #2a2835 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: #16151c !important;
+}
+.log-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+.log-table thead {
+  background: #1e1d27 !important;
+}
+.log-table th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #4a4860 !important;
+  padding: 12px 16px !important;
+  text-align: left !important;
+}
+.log-table td {
+  font-size: 13px !important;
+  color: #b0adc4 !important;
+  padding: 12px 16px !important;
+  border-top: 1px solid #1e1d27 !important;
+}
+.log-table tbody tr { transition: background .1s; }
+.log-table tbody tr:hover { background: #1a1924; }
+
+.email-cell {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+  color: #e8e6f0 !important;
+}
+
+.log-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  border-radius: 5px !important;
+  padding: 3px 9px !important;
+  letter-spacing: 0.02em !important;
+}
+.log-badge.login  { background: rgba(23,214,124,0.12); color: #4ade80; }
+.log-badge.logout { background: rgba(248,113,113,0.12); color: #f87171; }
+.log-badge.register { background: rgba(123,47,247,0.12); color: #a78bfa; }
+
+.log-time {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11.5px !important;
+  color: #4a4860 !important;
+}
+
+.log-empty {
+  padding: 48px 24px !important;
+  text-align: center !important;
+  color: #4a4860 !important;
+  font-size: 13.5px !important;
+}
+
+/* ── USERS TABLE ─── */
+.users-search {
+  position: relative !important;
+  margin-bottom: 16px !important;
+}
+.users-search input {
+  width: 100% !important;
+  background: #0f0f13 !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 9px !important;
+  padding: 10px 14px 10px 38px !important;
+  font-size: 13.5px !important;
+  color: #e8e6f0 !important;
+  font-family: inherit !important;
+  outline: none !important;
+  transition: border-color .15s !important;
+}
+.users-search input:focus { border-color: #7B2FF7; }
+.users-search-icon {
+  position: absolute !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 14px !important;
+  color: #4a4860 !important;
+  pointer-events: none !important;
+}
+
+.users-table-wrap {
+  border: 1px solid #2a2835 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: #16151c !important;
+}
+.users-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+.users-table th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #4a4860 !important;
+  padding: 12px 16px !important;
+  text-align: left !important;
+  background: #1e1d27 !important;
+}
+.users-table td {
+  font-size: 13px !important;
+  padding: 12px 16px !important;
+  border-top: 1px solid #1e1d27 !important;
+}
+.users-table tbody tr:hover { background: #1a1924; }
+
+.user-email {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+  color: #e8e6f0 !important;
+}
+.user-admin-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  background: rgba(123,47,247,0.12) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(123,47,247,0.2) !important;
+  border-radius: 5px !important;
+  padding: 3px 9px !important;
+}
+
+.toggle-admin-btn {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  border-radius: 7px !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  transition: all .15s !important;
+  border: 1px solid transparent !important;
+}
+.toggle-admin-btn.give {
+  background: rgba(123,47,247,0.1) !important;
+  color: #a78bfa !important;
+  border-color: rgba(123,47,247,0.25) !important;
+}
+.toggle-admin-btn.give:hover { background: rgba(123,47,247,0.2); }
+.toggle-admin-btn.take {
+  background: rgba(248,113,113,0.08) !important;
+  color: #f87171 !important;
+  border-color: rgba(248,113,113,0.2) !important;
+}
+.toggle-admin-btn.take:hover { background: rgba(248,113,113,0.15); }
+.toggle-admin-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── ACCESS DENIED ─── */
+.access-denied-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 60px) !important;
+  padding: 32px !important;
+}
+.access-denied-box {
+  background: #16151c !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 18px !important;
+  padding: 48px !important;
+  text-align: center !important;
+  max-width: 400px !important;
+}
+.access-denied-icon {
+  font-size: 48px !important;
+  margin-bottom: 20px !important;
+}
+.access-denied-box h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+}
+.access-denied-box p {
+  font-size: 13.5px !important;
+  color: #7c7a8e !important;
+  margin-bottom: 24px !important;
+  line-height: 1.6 !important;
+}
+.abtn-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #1e1d27 !important;
+  color: #e8e6f0 !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 9px !important;
+  padding: 10px 20px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all .15s !important;
+}
+.abtn-secondary:hover { background: #2a2835; border-color: #3d3a4e; }
+
+/* Loading skeleton */
+.skel {
+  background: linear-gradient(90deg, #1e1d27 25%, #2a2835 50%, #1e1d27 75%) !important;
+  background-size: 200% 100% !important;
+  animation: skel-shimmer 1.5s infinite !important;
+  border-radius: 6px !important;
+}
+@keyframes skel-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.spinner {
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px solid rgba(255,255,255,0.15) !important;
+  border-top-color: #fff !important;
+  border-radius: 50% !important;
+  animation: spin .6s linear infinite !important;
+  display: inline-block !important;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 800px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-sidebar {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    padding: 10px 12px !important;
+    border-right: none !important;
+    border-bottom: 1px solid #2a2835 !important;
+  }
+  .sidebar-section-label { display: none; }
+  .admin-main { padding: 20px 16px; }
+}
+</style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="topbar">
-    <div class="brand">Lug'at<span class="dot">.</span></div>
-    <div class="userchip">
-      <a href="dashboard.html" class="chip-link">← Darajalar</a>
-      <span id="userLabel">—</span>
-      <button onclick="logout()">Chiqish</button>
+<div class="admin-shell" id="adminShell" style="display:none">
+
+  <!-- TOPBAR -->
+  <header class="admin-topbar">
+    <div class="admin-brand">
+      <div class="admin-brand-logo">📚</div>
+      <span class="admin-brand-name">Lug'at</span>
+      <span class="admin-brand-badge">Admin</span>
+    </div>
+    <div class="admin-topbar-right">
+      <span class="admin-user-email" id="userLabel">—</span>
+      <a href="dashboard.html" class="admin-back-btn">← Darajalar</a>
+      <button class="admin-logout-btn" onclick="logout()">Chiqish</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-section-label">Boshqaruv</div>
+    <button class="sidebar-nav-btn active" data-tab="settings">
+      <span class="nav-icon">✏️</span>
+      Sayt sozlamalari
+    </button>
+    <button class="sidebar-nav-btn" data-tab="log">
+      <span class="nav-icon">📋</span>
+      Faollik jurnali
+    </button>
+    <button class="sidebar-nav-btn" data-tab="users">
+      <span class="nav-icon">👥</span>
+      Foydalanuvchilar
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="admin-main" id="adminMain">
+
+    <!-- SETTINGS TAB -->
+    <div class="admin-section active" id="secSettings">
+      <div class="page-header">
+        <h1>Sayt sozlamalari</h1>
+        <p>Matnlarni o'zgartiring — foydalanuvchilar saytni yangilaganda darhol yangi matnni ko'radi.</p>
+      </div>
+
+      <div id="settingsContent">
+        <!-- JS orqali yuklanadi -->
+        <div class="acard">
+          <div class="skel" style="height:16px; width:120px; margin-bottom:8px"></div>
+          <div class="skel" style="height:12px; width:260px; margin-bottom:20px"></div>
+          <div class="skel" style="height:42px; margin-bottom:14px"></div>
+          <div class="skel" style="height:42px; margin-bottom:14px"></div>
+          <div class="skel" style="height:80px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG TAB -->
+    <div class="admin-section" id="secLog">
+      <div class="page-header">
+        <h1>Faollik jurnali</h1>
+        <p>Foydalanuvchilarning kirish, chiqish va ro'yxatdan o'tish tarixi.</p>
+      </div>
+      <div id="logContent">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div class="admin-section" id="secUsers">
+      <div class="page-header">
+        <h1>Foydalanuvchilar</h1>
+        <p>Admin huquqlarini boshqaring — huquq berishni yoki olib tashlashni shu yerdan bajaring.</p>
+      </div>
+      <div id="usersContent">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Access denied (admin bo'lmasa) -->
+<div id="deniedRoot" style="display:none">
+  <header class="admin-topbar" style="display:flex">
+    <div class="admin-brand">
+      <div class="admin-brand-logo">📚</div>
+      <span class="admin-brand-name">Lug'at</span>
+    </div>
+    <div class="admin-topbar-right">
+      <button class="admin-logout-btn" onclick="logout()">Chiqish</button>
+    </div>
+  </header>
+  <div class="access-denied-wrap">
+    <div class="access-denied-box">
+      <div class="access-denied-icon">🔒</div>
+      <h2>Kirish taqiqlangan</h2>
+      <p>Bu sahifa faqat administratorlar uchun mo'ljallangan. Sizda admin huquqi mavjud emas.</p>
+      <a href="dashboard.html" class="abtn-secondary">← Darajalarga qaytish</a>
     </div>
   </div>
-
-  <div class="dash" id="adminRoot">
-    <!-- JS orqali to'ldiriladi -->
-  </div>
-
-  <footer class="site-foot">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
 </div>
 
 <script src="js/app.js"></script>
 <script>
 let user = null;
-const root = document.getElementById('adminRoot');
 
 (async () => {
   user = await requireAuth();
-  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  if (!user) return;
   document.getElementById('userLabel').textContent = user;
 
   if (!isAdmin()) {
-    root.innerHTML = `
-      <div class="admin-denied">
-        <div class="emoji">🔒</div>
-        <h2>Sizda admin huquqi yo'q</h2>
-        <p>Bu sahifa faqat administratorlar uchun.</p>
-        <div class="btns" style="display:flex;justify-content:center;margin-top:18px">
-          <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
-        </div>
-      </div>`;
+    document.getElementById('deniedRoot').style.display = 'block';
     return;
   }
 
-  renderAdmin();
-})();
+  document.getElementById('adminShell').style.display = 'grid';
 
-function renderAdmin() {
-  root.innerHTML = `
-    <div class="dash-head">
-      <h1>🛠 Admin panel</h1>
-      <p>Sayt matnlarini tahrirlang, foydalanuvchilar faolligini kuzating va admin huquqlarini boshqaring.</p>
-    </div>
-
-    <div class="admin-tabs">
-      <button type="button" class="admin-tab active" data-tab="settings">📝 Sayt sozlamalari</button>
-      <button type="button" class="admin-tab" data-tab="log">📋 Faollik jurnali</button>
-      <button type="button" class="admin-tab" data-tab="users">👥 Foydalanuvchilar</button>
-    </div>
-
-    <div class="admin-section active" id="secSettings"></div>
-    <div class="admin-section" id="secLog"></div>
-    <div class="admin-section" id="secUsers"></div>
-  `;
-
-  document.querySelectorAll('.admin-tab').forEach(btn => {
+  // Tab navigation
+  document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
       const map = { settings: 'secSettings', log: 'secLog', users: 'secUsers' };
@@ -86,114 +727,125 @@ function renderAdmin() {
   renderSettingsTab();
   renderLogTab();
   renderUsersTab();
-}
+})();
 
-// ── Sayt sozlamalari ─────────────────────────────────────────────
+// ── SETTINGS TAB ─────────────────────────────────────
 async function renderSettingsTab() {
-  const box = document.getElementById('secSettings');
-  box.innerHTML = `<div class="admin-panel-box"><p class="sub">Yuklanmoqda...</p></div>`;
-
+  const box = document.getElementById('settingsContent');
   const s = await loadSiteSettings();
 
   box.innerHTML = `
-    <div class="admin-panel-box">
-      <h3>Bosh sahifa matnlari</h3>
-      <p class="sub">O'zgartirilgan matnlar saqlangach, bosh sahifani yangilagan har bir kishi darhol yangi matnni ko'radi.</p>
+    <div class="acard">
+      <div class="acard-title">Bosh sahifa</div>
+      <div class="acard-sub">Sarlavha, tavsif va bosh sahifa matni</div>
+      <div class="afield">
+        <label>Sarlavha <span style="font-weight:400;text-transform:none;letter-spacing:0">(vurg'u uchun *matn* ichiga oling)</span></label>
+        <input type="text" id="fHeroTitle" value="${escapeAttr(s.heroTitle)}" placeholder="Sarlavha matni..."/>
+        <div class="afield-hint">Masalan: Kuniga bir nechta so'z, *ortga qaytmang*.</div>
+      </div>
+      <div class="afield">
+        <label>Tavsif matni</label>
+        <textarea id="fHeroDescription" rows="3">${escapeHtmlGlobal(s.heroDescription)}</textarea>
+      </div>
+      <div class="afield">
+        <label>Footer matni</label>
+        <input type="text" id="fFooterText" value="${escapeAttr(s.footerText)}"/>
+      </div>
+    </div>
 
-      <form id="settingsForm">
-        <div class="field">
-          <label for="fHeroTitle">Sarlavha (vurg'u uchun *matn* ichiga oling)</label>
-          <input type="text" id="fHeroTitle" value="${escapeAttr(s.heroTitle)}"/>
-          <div class="field-hint">Masalan: Kuniga bir nechta so'z, *ortga qaytmang*.</div>
-        </div>
-        <div class="field">
-          <label for="fHeroDescription">Sarlavha ostidagi tavsif</label>
-          <textarea id="fHeroDescription">${escapeHtmlGlobal(s.heroDescription)}</textarea>
-        </div>
-        <div class="field">
-          <label for="fFooterText">Footer matni</label>
-          <input type="text" id="fFooterText" value="${escapeAttr(s.footerText)}"/>
-        </div>
-        <div class="field">
-          <label for="fLoginSubtitle">"Kirish" oynasi ostki matni</label>
+    <div class="acard">
+      <div class="acard-title">Autentifikatsiya oynalari</div>
+      <div class="acard-sub">Kirish va ro'yxatdan o'tish formalaridagi matnlar</div>
+      <div class="aform-grid">
+        <div class="afield">
+          <label>Kirish oynasi matni</label>
           <input type="text" id="fLoginSubtitle" value="${escapeAttr(s.loginSubtitle)}"/>
         </div>
-        <div class="field">
-          <label for="fRegisterSubtitle">"Ro'yxatdan o'tish" oynasi ostki matni</label>
+        <div class="afield">
+          <label>Ro'yxat oynasi matni</label>
           <input type="text" id="fRegisterSubtitle" value="${escapeAttr(s.registerSubtitle)}"/>
         </div>
-        <div class="field">
-          <label for="fAuthNote">Auth blokidagi eslatma matni</label>
-          <textarea id="fAuthNote">${escapeHtmlGlobal(s.authNote)}</textarea>
-        </div>
-        <div class="form-success" id="settingsSuccess"></div>
-        <div class="form-error" id="settingsError"></div>
-        <button type="submit" class="btn-primary" id="settingsSubmit">Saqlash</button>
-      </form>
+      </div>
+      <div class="afield">
+        <label>Auth blok eslatmasi</label>
+        <textarea id="fAuthNote" rows="2">${escapeHtmlGlobal(s.authNote)}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px">
+      <button class="abtn-primary" id="settingsSaveBtn" onclick="saveSettings()">
+        Saqlash
+      </button>
+      <div class="atoast success" id="settingsOk">✓ Muvaffaqiyatli saqlandi</div>
+      <div class="atoast error" id="settingsErr"></div>
     </div>
   `;
-
-  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('settingsSubmit');
-    const errBox = document.getElementById('settingsError');
-    const okBox = document.getElementById('settingsSuccess');
-    errBox.classList.remove('show');
-    okBox.classList.remove('show');
-    btn.disabled = true;
-    btn.textContent = 'Saqlanmoqda...';
-    try {
-      await saveSiteSettings({
-        heroTitle: document.getElementById('fHeroTitle').value.trim(),
-        heroDescription: document.getElementById('fHeroDescription').value.trim(),
-        footerText: document.getElementById('fFooterText').value.trim(),
-        loginSubtitle: document.getElementById('fLoginSubtitle').value.trim(),
-        registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
-        authNote: document.getElementById('fAuthNote').value.trim(),
-      });
-      okBox.textContent = "Saqlandi ✓";
-      okBox.classList.add('show');
-    } catch (err) {
-      errBox.textContent = "Saqlashda xatolik: " + (err.message || err.code || '');
-      errBox.classList.add('show');
-    }
-    btn.disabled = false;
-    btn.textContent = 'Saqlash';
-  });
 }
 
-// ── Faollik jurnali ──────────────────────────────────────────────
-async function renderLogTab() {
-  const box = document.getElementById('secLog');
-  box.innerHTML = `<div class="log-empty">Yuklanmoqda...</div>`;
+async function saveSettings() {
+  const btn = document.getElementById('settingsSaveBtn');
+  const ok = document.getElementById('settingsOk');
+  const err = document.getElementById('settingsErr');
+  ok.classList.remove('show');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saqlanmoqda...';
+  try {
+    await saveSiteSettings({
+      heroTitle: document.getElementById('fHeroTitle').value.trim(),
+      heroDescription: document.getElementById('fHeroDescription').value.trim(),
+      footerText: document.getElementById('fFooterText').value.trim(),
+      loginSubtitle: document.getElementById('fLoginSubtitle').value.trim(),
+      registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
+      authNote: document.getElementById('fAuthNote').value.trim(),
+    });
+    ok.classList.add('show');
+    setTimeout(() => ok.classList.remove('show'), 3000);
+  } catch (e) {
+    err.textContent = '✕ ' + (e.message || e.code || 'Xatolik yuz berdi');
+    err.classList.add('show');
+  }
+  btn.disabled = false;
+  btn.innerHTML = 'Saqlash';
+}
 
+// ── LOG TAB ───────────────────────────────────────────
+async function renderLogTab() {
+  const box = document.getElementById('logContent');
   let entries = [];
   try {
     entries = await fetchActivityLog(200);
-  } catch (err) {
-    box.innerHTML = `<div class="log-empty">Jurnalni yuklab bo'lmadi: ${escapeHtmlGlobal(err.message || String(err))}</div>`;
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">Jurnalni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
     return;
   }
 
-  if (entries.length === 0) {
+  if (!entries.length) {
     box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hali hech qanday faollik qayd etilmagan.</div></div>`;
     return;
   }
 
-  const typeLabels = { login: 'Kirdi', logout: 'Chiqdi', register: "Ro'yxatdan o'tdi" };
+  const labels = { login: '↗ Kirdi', logout: '↙ Chiqdi', register: '✦ Ro\'yxat' };
 
   box.innerHTML = `
+    <div class="log-toolbar">
+      <span class="log-count-badge">${entries.length} ta yozuv</span>
+    </div>
     <div class="log-table-wrap">
       <table class="log-table">
         <thead>
-          <tr><th>Email</th><th>Amal</th><th>Vaqt</th></tr>
+          <tr>
+            <th>Email</th>
+            <th>Amal</th>
+            <th>Vaqt</th>
+          </tr>
         </thead>
         <tbody>
           ${entries.map(e => `
             <tr>
-              <td>${escapeHtmlGlobal(e.email || e.uid || '—')}</td>
-              <td><span class="log-badge ${e.type}">${typeLabels[e.type] || e.type}</span></td>
-              <td>${formatLogTime(e.timestamp)}</td>
+              <td class="email-cell">${escapeHtmlGlobal(e.email || e.uid || '—')}</td>
+              <td><span class="log-badge ${e.type}">${labels[e.type] || e.type}</span></td>
+              <td class="log-time">${formatLogTime(e.timestamp)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -205,20 +857,20 @@ async function renderLogTab() {
 function formatLogTime(ts) {
   if (!ts || typeof ts.toDate !== 'function') return '—';
   const d = ts.toDate();
-  return d.toLocaleString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleString('uz-UZ', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  });
 }
 
-// ── Foydalanuvchilar / Adminlar ──────────────────────────────────
+// ── USERS TAB ────────────────────────────────────────
 async function renderUsersTab() {
-  const box = document.getElementById('secUsers');
-  box.innerHTML = `<div class="admin-panel-box"><p class="sub">Yuklanmoqda...</p></div>`;
-
-  let users = [];
-  let adminUids = [];
+  const box = document.getElementById('usersContent');
+  let users = [], adminUids = [];
   try {
     [users, adminUids] = await Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids()]);
-  } catch (err) {
-    box.innerHTML = `<div class="admin-panel-box"><p class="sub">Ro'yxatni yuklab bo'lmadi: ${escapeHtmlGlobal(err.message || String(err))}</p></div>`;
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">Ro'yxatni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
     return;
   }
 
@@ -226,44 +878,73 @@ async function renderUsersTab() {
   users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
 
   box.innerHTML = `
-    <div class="admin-panel-box users-table-wrap">
-      <h3>Foydalanuvchilar (${users.length})</h3>
-      <p class="sub">Kimga admin huquqi berishni yoki kimdan olib tashlashni shu yerdan boshqaring.</p>
-      <div id="usersList">
-        ${users.map(u => `
-          <div class="admin-toggle-row">
-            <span class="ue">${escapeHtmlGlobal(u.email || u.id)}</span>
-            <button class="admin-toggle-btn ${adminSet.has(u.id) ? 'is-admin' : ''}" data-uid="${u.id}" data-admin="${adminSet.has(u.id)}">
-              ${adminSet.has(u.id) ? '✓ Admin' : 'Admin qilish'}
-            </button>
-          </div>
-        `).join('')}
-      </div>
+    <div class="users-search">
+      <span class="users-search-icon">🔍</span>
+      <input type="text" id="userSearch" placeholder="Email bo'yicha qidiring..." oninput="filterUsers(this.value)"/>
+    </div>
+    <div class="users-table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Holat</th>
+            <th>Amal</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          ${users.map(u => `
+            <tr data-email="${escapeAttr(u.email || u.id)}">
+              <td class="user-email">${escapeHtmlGlobal(u.email || u.id)}</td>
+              <td>
+                ${adminSet.has(u.id)
+                  ? '<span class="user-admin-badge">⚡ Admin</span>'
+                  : '<span style="color:#4a4860;font-size:12px">—</span>'}
+              </td>
+              <td>
+                <button
+                  class="toggle-admin-btn ${adminSet.has(u.id) ? 'take' : 'give'}"
+                  data-uid="${u.id}"
+                  data-admin="${adminSet.has(u.id)}"
+                  onclick="toggleAdmin(this)">
+                  ${adminSet.has(u.id) ? 'Huquqni olish' : 'Admin qilish'}
+                </button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     </div>
   `;
+}
 
-  document.querySelectorAll('.admin-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const uid = btn.dataset.uid;
-      const currentlyAdmin = btn.dataset.admin === 'true';
-      if (_currentUser && uid === _currentUser.uid) {
-        alert("O'zingizdan admin huquqini shu yerdan olib tashlay olmaysiz.");
-        return;
-      }
-      btn.disabled = true;
-      try {
-        await setUserAdminFlag(uid, !currentlyAdmin);
-        renderUsersTab();
-      } catch (err) {
-        alert("Xatolik: " + (err.message || err.code || ''));
-        btn.disabled = false;
-      }
-    });
+function filterUsers(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#usersTableBody tr').forEach(row => {
+    const email = (row.dataset.email || '').toLowerCase();
+    row.style.display = email.includes(q) ? '' : 'none';
   });
 }
 
+async function toggleAdmin(btn) {
+  const uid = btn.dataset.uid;
+  const isCurrentlyAdmin = btn.dataset.admin === 'true';
+  if (_currentUser && uid === _currentUser.uid) {
+    alert("O'zingizdan admin huquqini shu yerdan olib tashlay olmaysiz.");
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    await setUserAdminFlag(uid, !isCurrentlyAdmin);
+    renderUsersTab();
+  } catch (e) {
+    alert('Xatolik: ' + (e.message || e.code || ''));
+    btn.disabled = false;
+  }
+}
+
 function escapeAttr(str) {
-  return escapeHtmlGlobal(str).replace(/"/g, '&quot;');
+  return escapeHtmlGlobal(str || '').replace(/"/g, '&quot;');
 }
 </script>
 </body>

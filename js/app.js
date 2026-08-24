@@ -22,6 +22,7 @@ const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
 
 let _currentUser = null;      // Firebase Auth foydalanuvchi obyekti
 let _userDataCache = null;    // { progress, activity, flags }
+let _isAdminCache = null;     // null = hali tekshirilmagan, true/false = ma'lum
 let _authReadyPromise = null;
 let _persistTimer = null;
 
@@ -33,8 +34,11 @@ function authReady() {
         if (user) {
           try { await loadUserData(user.uid); }
           catch (e) { console.error("Ma'lumotlarni yuklashda xatolik:", e); _userDataCache = emptyUserData(); }
+          try { await checkIsAdminStatus(user.uid); }
+          catch (e) { console.error('Admin holatini tekshirishda xatolik:', e); _isAdminCache = false; }
         } else {
           _userDataCache = null;
+          _isAdminCache = null;
         }
         resolve(user);
       });
@@ -49,9 +53,14 @@ async function requireAuth() {
   return user.email || user.uid;
 }
 
-function logout() {
+async function logout() {
   clearTimeout(_persistTimer);
-  auth.signOut().then(() => { location.href = 'index.html'; });
+  try { await flushPersist(); } catch (e) { /* e'tiborsiz */ }
+  if (_currentUser) {
+    try { await logActivity(_currentUser.uid, _currentUser.email, 'logout'); }
+    catch (e) { console.error('Jurnalga yozishda xatolik:', e); }
+  }
+  try { await auth.signOut(); } finally { location.href = 'index.html'; }
 }
 
 // ── Ro'yxatdan o'tish / kirish / parolni tiklash ────────────────────
@@ -59,12 +68,14 @@ async function registerUser(email, password) {
   const cred = await auth.createUserWithEmailAndPassword(email, password);
   _currentUser = cred.user; // loadUserData yangi hujjat yaratganda email shu yerdan olinadi
   await loadUserData(cred.user.uid);
+  logActivity(cred.user.uid, cred.user.email, 'register').catch(e => console.error('Jurnalga yozishda xatolik:', e));
   return cred.user;
 }
 async function loginUser(email, password) {
   const cred = await auth.signInWithEmailAndPassword(email, password);
   _currentUser = cred.user;
   await loadUserData(cred.user.uid);
+  logActivity(cred.user.uid, cred.user.email, 'login').catch(e => console.error('Jurnalga yozishda xatolik:', e));
   return cred.user;
 }
 async function sendPasswordReset(email) {
@@ -128,6 +139,30 @@ async function loadUserData(uid) {
   }
 }
 
+// ── Admin holati ──────────────────────────────────────────────────
+// Admin huquqi foydalanuvchining o'z hujjatida EMAS, balki alohida
+// `admins/{uid}` kolleksiyasida saqlanadi — chunki foydalanuvchi o'z
+// hujjatini o'zi yoza oladi (progressni saqlash uchun kerak), agar
+// admin belgisi ham o'sha yerda bo'lsa, har kim o'zini admin qilib
+// qo'yishi mumkin bo'lardi. `admins` kolleksiyasiga yozishga esa
+// faqat mavjud adminlarga ruxsat berilgan (Firestore qoidalari).
+async function checkIsAdminStatus(uid) {
+  if (!uid) { _isAdminCache = false; return false; }
+  try {
+    const snap = await db.collection('admins').doc(uid).get();
+    _isAdminCache = snap.exists;
+  } catch (e) {
+    console.error('Admin holatini tekshirishda xatolik:', e);
+    _isAdminCache = false;
+  }
+  return _isAdminCache;
+}
+
+// Joriy foydalanuvchi admin bo'lsa true qaytaradi (kesh yuklangandan keyin ishlaydi)
+function isAdmin() {
+  return _isAdminCache === true;
+}
+
 // Fonda, biroz kechiktirib Firestore'ga yozadi (ketma-ket ko'p yozishlarni birlashtiradi)
 function persistUserData() {
   if (!_currentUser || !_userDataCache) return;
@@ -146,6 +181,92 @@ async function flushPersist() {
   } catch (e) { console.error('Saqlashda xatolik:', e); }
 }
 window.addEventListener('beforeunload', () => { if (_persistTimer) flushPersist(); });
+
+// ── Sayt sozlamalari (bosh sahifa matnlari, admin tahrirlaydi) ─────
+const DEFAULT_SITE_SETTINGS = {
+  heroTitle: "Kuniga bir nechta so'z, *ortga qaytmang*.",
+  heroDescription: "Beginner'dan Upper-Intermediate'gacha bosqichma-bosqich inglizcha so'z boyligingizni oshiring. Bir marta o'rgangan so'zingiz qayta chiqmaydi — faqat yangilari bilan davom etasiz.",
+  footerText: "So'z boyligingiz — bulutda xavfsiz saqlanadi.",
+  loginSubtitle: "Email va parolingiz bilan kiring.",
+  registerSubtitle: "Progressingiz bulutda saqlanadi — istalgan qurilmadan kirishingiz mumkin.",
+  authNote: "Ma'lumotlaringiz Firebase bulutida xavfsiz saqlanadi — istalgan qurilmadan kirib, davom ettirishingiz mumkin.",
+};
+
+function siteSettingsDocRef() { return db.collection('settings').doc('site'); }
+
+async function loadSiteSettings() {
+  try {
+    const snap = await siteSettingsDocRef().get();
+    const data = snap.exists ? snap.data() : {};
+    return { ...DEFAULT_SITE_SETTINGS, ...data };
+  } catch (e) {
+    console.error("Sayt sozlamalarini o'qishda xatolik:", e);
+    return { ...DEFAULT_SITE_SETTINGS };
+  }
+}
+
+// Faqat admin chaqirishi kerak — Firestore qoidalari ham buni talab qiladi
+async function saveSiteSettings(newSettings) {
+  const payload = {};
+  Object.keys(DEFAULT_SITE_SETTINGS).forEach(key => {
+    if (typeof newSettings[key] === 'string') payload[key] = newSettings[key];
+  });
+  payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+  await siteSettingsDocRef().set(payload, { merge: true });
+}
+
+// "*so'z*" ko'rinishidagi bo'lakni <em>so'z</em>'ga aylantiradi (oldin HTML ekranlanadi)
+function renderEmphasis(str) {
+  const escaped = escapeHtmlGlobal(str);
+  return escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+function escapeHtmlGlobal(str) {
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+
+// ── Faollik jurnali (kim qachon kirdi/chiqdi/ro'yxatdan o'tdi) ──────
+async function logActivity(uid, email, type) {
+  if (!uid) return;
+  await db.collection('activityLog').add({
+    uid,
+    email: email || '',
+    type, // 'login' | 'logout' | 'register'
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// Faqat admin chaqirishi kerak — Firestore qoidalari o'qishni faqat adminga ruxsat beradi
+async function fetchActivityLog(limitCount) {
+  const n = limitCount || 200;
+  const snap = await db.collection('activityLog').orderBy('timestamp', 'desc').limit(n).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Faqat admin chaqirishi kerak — barcha foydalanuvchilar ro'yxati
+async function fetchAllUsersAdmin() {
+  const snap = await db.collection('users').get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Faqat admin chaqirishi kerak — hozirda admin bo'lgan barcha UID'lar ro'yxati
+async function fetchAllAdminUids() {
+  const snap = await db.collection('admins').get();
+  return snap.docs.map(d => d.id);
+}
+
+// Faqat admin chaqirishi kerak — boshqa foydalanuvchiga admin huquqini berish/olish
+async function setUserAdminFlag(uid, value) {
+  if (value) {
+    await db.collection('admins').doc(uid).set({
+      grantedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      grantedBy: _currentUser ? _currentUser.uid : null,
+    });
+  } else {
+    await db.collection('admins').doc(uid).delete();
+  }
+}
 
 // ── Progress (keshdan sinxron o'qiladi) ─────────────────────────────
 function getProgress(_user) { return _userDataCache.progress; }

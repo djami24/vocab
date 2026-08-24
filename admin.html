@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Admin panel | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">← Darajalar</a>
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash" id="adminRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+let user = null;
+const root = document.getElementById('adminRoot');
+
+(async () => {
+  user = await requireAuth();
+  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  document.getElementById('userLabel').textContent = user;
+
+  if (!isAdmin()) {
+    root.innerHTML = `
+      <div class="admin-denied">
+        <div class="emoji">🔒</div>
+        <h2>Sizda admin huquqi yo'q</h2>
+        <p>Bu sahifa faqat administratorlar uchun.</p>
+        <div class="btns" style="display:flex;justify-content:center;margin-top:18px">
+          <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  renderAdmin();
+})();
+
+function renderAdmin() {
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>🛠 Admin panel</h1>
+      <p>Sayt matnlarini tahrirlang, foydalanuvchilar faolligini kuzating va admin huquqlarini boshqaring.</p>
+    </div>
+
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-tab="settings">📝 Sayt sozlamalari</button>
+      <button type="button" class="admin-tab" data-tab="log">📋 Faollik jurnali</button>
+      <button type="button" class="admin-tab" data-tab="users">👥 Foydalanuvchilar</button>
+    </div>
+
+    <div class="admin-section active" id="secSettings"></div>
+    <div class="admin-section" id="secLog"></div>
+    <div class="admin-section" id="secUsers"></div>
+  `;
+
+  document.querySelectorAll('.admin-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      const map = { settings: 'secSettings', log: 'secLog', users: 'secUsers' };
+      document.getElementById(map[btn.dataset.tab]).classList.add('active');
+    });
+  });
+
+  renderSettingsTab();
+  renderLogTab();
+  renderUsersTab();
+}
+
+// ── Sayt sozlamalari ─────────────────────────────────────────────
+async function renderSettingsTab() {
+  const box = document.getElementById('secSettings');
+  box.innerHTML = `<div class="admin-panel-box"><p class="sub">Yuklanmoqda...</p></div>`;
+
+  const s = await loadSiteSettings();
+
+  box.innerHTML = `
+    <div class="admin-panel-box">
+      <h3>Bosh sahifa matnlari</h3>
+      <p class="sub">O'zgartirilgan matnlar saqlangach, bosh sahifani yangilagan har bir kishi darhol yangi matnni ko'radi.</p>
+
+      <form id="settingsForm">
+        <div class="field">
+          <label for="fHeroTitle">Sarlavha (vurg'u uchun *matn* ichiga oling)</label>
+          <input type="text" id="fHeroTitle" value="${escapeAttr(s.heroTitle)}"/>
+          <div class="field-hint">Masalan: Kuniga bir nechta so'z, *ortga qaytmang*.</div>
+        </div>
+        <div class="field">
+          <label for="fHeroDescription">Sarlavha ostidagi tavsif</label>
+          <textarea id="fHeroDescription">${escapeHtmlGlobal(s.heroDescription)}</textarea>
+        </div>
+        <div class="field">
+          <label for="fFooterText">Footer matni</label>
+          <input type="text" id="fFooterText" value="${escapeAttr(s.footerText)}"/>
+        </div>
+        <div class="field">
+          <label for="fLoginSubtitle">"Kirish" oynasi ostki matni</label>
+          <input type="text" id="fLoginSubtitle" value="${escapeAttr(s.loginSubtitle)}"/>
+        </div>
+        <div class="field">
+          <label for="fRegisterSubtitle">"Ro'yxatdan o'tish" oynasi ostki matni</label>
+          <input type="text" id="fRegisterSubtitle" value="${escapeAttr(s.registerSubtitle)}"/>
+        </div>
+        <div class="field">
+          <label for="fAuthNote">Auth blokidagi eslatma matni</label>
+          <textarea id="fAuthNote">${escapeHtmlGlobal(s.authNote)}</textarea>
+        </div>
+        <div class="form-success" id="settingsSuccess"></div>
+        <div class="form-error" id="settingsError"></div>
+        <button type="submit" class="btn-primary" id="settingsSubmit">Saqlash</button>
+      </form>
+    </div>
+  `;
+
+  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('settingsSubmit');
+    const errBox = document.getElementById('settingsError');
+    const okBox = document.getElementById('settingsSuccess');
+    errBox.classList.remove('show');
+    okBox.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Saqlanmoqda...';
+    try {
+      await saveSiteSettings({
+        heroTitle: document.getElementById('fHeroTitle').value.trim(),
+        heroDescription: document.getElementById('fHeroDescription').value.trim(),
+        footerText: document.getElementById('fFooterText').value.trim(),
+        loginSubtitle: document.getElementById('fLoginSubtitle').value.trim(),
+        registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
+        authNote: document.getElementById('fAuthNote').value.trim(),
+      });
+      okBox.textContent = "Saqlandi ✓";
+      okBox.classList.add('show');
+    } catch (err) {
+      errBox.textContent = "Saqlashda xatolik: " + (err.message || err.code || '');
+      errBox.classList.add('show');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Saqlash';
+  });
+}
+
+// ── Faollik jurnali ──────────────────────────────────────────────
+async function renderLogTab() {
+  const box = document.getElementById('secLog');
+  box.innerHTML = `<div class="log-empty">Yuklanmoqda...</div>`;
+
+  let entries = [];
+  try {
+    entries = await fetchActivityLog(200);
+  } catch (err) {
+    box.innerHTML = `<div class="log-empty">Jurnalni yuklab bo'lmadi: ${escapeHtmlGlobal(err.message || String(err))}</div>`;
+    return;
+  }
+
+  if (entries.length === 0) {
+    box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hali hech qanday faollik qayd etilmagan.</div></div>`;
+    return;
+  }
+
+  const typeLabels = { login: 'Kirdi', logout: 'Chiqdi', register: "Ro'yxatdan o'tdi" };
+
+  box.innerHTML = `
+    <div class="log-table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr><th>Email</th><th>Amal</th><th>Vaqt</th></tr>
+        </thead>
+        <tbody>
+          ${entries.map(e => `
+            <tr>
+              <td>${escapeHtmlGlobal(e.email || e.uid || '—')}</td>
+              <td><span class="log-badge ${e.type}">${typeLabels[e.type] || e.type}</span></td>
+              <td>${formatLogTime(e.timestamp)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function formatLogTime(ts) {
+  if (!ts || typeof ts.toDate !== 'function') return '—';
+  const d = ts.toDate();
+  return d.toLocaleString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Foydalanuvchilar / Adminlar ──────────────────────────────────
+async function renderUsersTab() {
+  const box = document.getElementById('secUsers');
+  box.innerHTML = `<div class="admin-panel-box"><p class="sub">Yuklanmoqda...</p></div>`;
+
+  let users = [];
+  let adminUids = [];
+  try {
+    [users, adminUids] = await Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids()]);
+  } catch (err) {
+    box.innerHTML = `<div class="admin-panel-box"><p class="sub">Ro'yxatni yuklab bo'lmadi: ${escapeHtmlGlobal(err.message || String(err))}</p></div>`;
+    return;
+  }
+
+  const adminSet = new Set(adminUids);
+  users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+
+  box.innerHTML = `
+    <div class="admin-panel-box users-table-wrap">
+      <h3>Foydalanuvchilar (${users.length})</h3>
+      <p class="sub">Kimga admin huquqi berishni yoki kimdan olib tashlashni shu yerdan boshqaring.</p>
+      <div id="usersList">
+        ${users.map(u => `
+          <div class="admin-toggle-row">
+            <span class="ue">${escapeHtmlGlobal(u.email || u.id)}</span>
+            <button class="admin-toggle-btn ${adminSet.has(u.id) ? 'is-admin' : ''}" data-uid="${u.id}" data-admin="${adminSet.has(u.id)}">
+              ${adminSet.has(u.id) ? '✓ Admin' : 'Admin qilish'}
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.admin-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const uid = btn.dataset.uid;
+      const currentlyAdmin = btn.dataset.admin === 'true';
+      if (_currentUser && uid === _currentUser.uid) {
+        alert("O'zingizdan admin huquqini shu yerdan olib tashlay olmaysiz.");
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await setUserAdminFlag(uid, !currentlyAdmin);
+        renderUsersTab();
+      } catch (err) {
+        alert("Xatolik: " + (err.message || err.code || ''));
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+function escapeAttr(str) {
+  return escapeHtmlGlobal(str).replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

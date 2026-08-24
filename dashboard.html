@@ -18,6 +18,7 @@
     <div class="userchip">
       <a href="games.html" class="chip-link">🎮 O'yinlar</a>
       <a href="stats.html" class="chip-link">📊 Statistika</a>
+      <a href="admin.html" class="chip-link" id="adminLink" style="display:none">🛠 Admin panel</a>
       <span id="userLabel">—</span>
       <button id="logoutBtn">Chiqish</button>
     </div>
@@ -57,6 +58,7 @@
     if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
     document.getElementById('userLabel').textContent = user;
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    if (isAdmin()) document.getElementById('adminLink').style.display = '';
     renderLevels();
     wireSearch();
     wireBackup();

@@ -240,7 +240,7 @@ window.addEventListener('beforeunload', () => { if (_persistTimer) flushPersist(
 
 // ── Sayt sozlamalari (bosh sahifa matnlari, admin tahrirlaydi) ─────
 const DEFAULT_SITE_SETTINGS = {
-  heroTitle: "Kuniga bir nechta so'z, *salom. 📚 Inglizcha so'zlarni o'rganing💰 mukofot yuting!*",
+  heroTitle: "Kuniga bir nechta so'z, *Inglizcha so'zlarni o'rganing💰 mukofot yuting!*",
   heroDescription: "Beginner'dan Upper-Intermediate'gacha bosqichma-bosqich inglizcha so'z boyligingizni oshiring. Bir marta o'rgangan so'zingiz qayta chiqmaydi — faqat yangilari bilan davom etasiz.",
   footerText: "So'z boyligingiz — bulutda xavfsiz saqlanadi.",
   loginSubtitle: "Email va parolingiz bilan kiring.",

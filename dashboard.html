@@ -47,6 +47,11 @@
         <input type="file" id="importFile" accept="application/json" style="display:none"/>
       </label>
     </div>
+
+    <div class="fb-card" id="fbCard">
+      <h3>💬 Sayt haqida fikringizni qoldiring</h3>
+      <p class="fb-sub">Yuklanmoqda...</p>
+    </div>
   </div>
 
   <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
@@ -64,7 +69,78 @@
     renderLevels();
     wireSearch();
     wireBackup();
+    renderFeedbackCard();
   })();
+
+  // ── "Sayt haqida fikringizni qoldiring" kartasi ──────────────────
+  async function renderFeedbackCard() {
+    const card = document.getElementById('fbCard');
+    let mine = null;
+    try {
+      mine = await fetchMyTestimonial(_currentUser.uid);
+    } catch (e) {
+      card.innerHTML = `
+        <h3>💬 Sayt haqida fikringizni qoldiring</h3>
+        <p class="fb-sub">Yuklab bo'lmadi: ${escapeHtml(e.message || String(e))}</p>`;
+      return;
+    }
+
+    if (mine) {
+      card.innerHTML = `
+        <h3>💬 Sayt haqida fikringiz</h3>
+        <div class="fb-thanks">
+          <div class="emoji">🙏</div>
+          <div class="fb-thanks-text">Rahmat, <b>${escapeHtml(mine.name)}</b>! Fikringiz bosh sahifada ko'rinadi:<br/>"${escapeHtml(mine.text)}"</div>
+        </div>`;
+      return;
+    }
+
+    card.innerHTML = `
+      <h3>💬 Sayt haqida fikringizni qoldiring</h3>
+      <p class="fb-sub">Fikringiz bosh sahifada boshqa talabalarga ko'rinadi. Faqat bir marta qoldirish mumkin.</p>
+      <div class="fb-field">
+        <label>Ismingiz</label>
+        <input type="text" id="fbName" maxlength="60" value="${escapeAttrDash(_userNameCache || '')}" placeholder="Ismingiz"/>
+      </div>
+      <div class="fb-field">
+        <label>Fikringiz</label>
+        <textarea id="fbText" maxlength="500" placeholder="Sayt haqida fikringizni yozing..."></textarea>
+      </div>
+      <div class="fb-submit-row">
+        <button class="btn-primary" style="margin-top:0" id="fbSubmitBtn" onclick="submitFeedback()">Yuborish</button>
+        <span class="fb-err" id="fbErr"></span>
+      </div>`;
+  }
+
+  async function submitFeedback() {
+    const btn = document.getElementById('fbSubmitBtn');
+    const err = document.getElementById('fbErr');
+    const name = document.getElementById('fbName').value.trim();
+    const text = document.getElementById('fbText').value.trim();
+    err.classList.remove('show');
+
+    if (!name || !text) {
+      err.textContent = 'Ism va fikr maydonlarining ikkalasini ham to\'ldiring.';
+      err.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Yuborilmoqda...';
+    try {
+      await submitTestimonial(_currentUser.uid, name, text);
+      renderFeedbackCard();
+    } catch (e) {
+      err.textContent = 'Xatolik: ' + (e.message || e.code || 'noma\'lum xatolik');
+      err.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Yuborish';
+    }
+  }
+
+  function escapeAttrDash(str) {
+    return escapeHtml(str).replace(/"/g, '&quot;');
+  }
 
   async function renderLevels() {
     const grid = document.getElementById('levelsGrid');

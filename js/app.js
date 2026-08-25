@@ -914,11 +914,16 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 function speakWord(text) {
   if (!('speechSynthesis' in window) || !text) return;
   try {
+    // Android/Chrome'da ba'zan speechSynthesis "pauza" holatida qolib
+    // ketadi va shundan keyingi speak() chaqiruvlari sababsiz jim
+    // o'tadi — resume() shu holatni oldindan tozalaydi.
+    speechSynthesis.resume();
     speechSynthesis.cancel(); // oldingi o'qishni to'xtatib, yangisini boshlaydi
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
     if (_enVoice) utter.voice = _enVoice;
     utter.rate = 0.9;
+    utter.onerror = (ev) => console.error("Talaffuzda xatolik (speechSynthesis):", ev.error || ev);
     speechSynthesis.speak(utter);
   } catch (e) { console.error("Ovozda o'qishda xatolik:", e); }
 }

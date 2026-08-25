@@ -37,6 +37,11 @@ function authReady() {
           catch (e) { console.error("Ma'lumotlarni yuklashda xatolik:", e); _userDataCache = emptyUserData(); }
           try { await checkIsAdminStatus(user.uid); }
           catch (e) { console.error('Admin holatini tekshirishda xatolik:', e); _isAdminCache = false; }
+          // Reyting yozuvini har safar (istalgan sahifa ochilganda) yangilab
+          // qo'yamiz — shunda faqat login/ro'yxatdan o'tishda emas, balki
+          // avvaldan tizimga kirgan (sessiyasi saqlanib qolgan) talabalar
+          // ham sahifani ochishning o'zidayoq reytingda ko'rina boshlaydi.
+          syncLeaderboardEntry().catch(e => console.error('Reytingni yangilashda xatolik:', e));
         } else {
           _userDataCache = null;
           _userNameCache = '';

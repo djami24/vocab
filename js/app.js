@@ -22,6 +22,7 @@ const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
 
 let _currentUser = null;      // Firebase Auth foydalanuvchi obyekti
 let _userDataCache = null;    // { progress, activity, flags }
+let _userNameCache = '';      // Foydalanuvchining ismi (agar ro'yxatdan o'tishda kiritilgan bo'lsa)
 let _isAdminCache = null;     // null = hali tekshirilmagan, true/false = ma'lum
 let _authReadyPromise = null;
 let _persistTimer = null;
@@ -38,6 +39,7 @@ function authReady() {
           catch (e) { console.error('Admin holatini tekshirishda xatolik:', e); _isAdminCache = false; }
         } else {
           _userDataCache = null;
+          _userNameCache = '';
           _isAdminCache = null;
         }
         resolve(user);
@@ -69,6 +71,7 @@ async function registerUser(email, password, name) {
   _currentUser = cred.user; // loadUserData yangi hujjat yaratganda email shu yerdan olinadi
   await loadUserData(cred.user.uid, name);
   logActivity(cred.user.uid, cred.user.email, 'register').catch(e => console.error('Jurnalga yozishda xatolik:', e));
+  syncLeaderboardEntry().catch(e => console.error('Reytingni yangilashda xatolik:', e));
   return cred.user;
 }
 async function loginUser(email, password) {
@@ -76,6 +79,7 @@ async function loginUser(email, password) {
   _currentUser = cred.user;
   await loadUserData(cred.user.uid);
   logActivity(cred.user.uid, cred.user.email, 'login').catch(e => console.error('Jurnalga yozishda xatolik:', e));
+  syncLeaderboardEntry().catch(e => console.error('Reytingni yangilashda xatolik:', e));
   return cred.user;
 }
 async function sendPasswordReset(email) {
@@ -127,8 +131,10 @@ async function loadUserData(uid, name) {
   const snap = await ref.get();
   if (snap.exists) {
     _userDataCache = normalizeUserData(snap.data());
+    _userNameCache = (snap.data() && snap.data().name) || '';
   } else {
     _userDataCache = emptyUserData();
+    _userNameCache = name || '';
     await ref.set({
       email: _currentUser ? _currentUser.email : '',
       name: name || '',
@@ -180,6 +186,9 @@ async function flushPersist() {
       flags: _userDataCache.flags,
     }, { merge: true });
   } catch (e) { console.error('Saqlashda xatolik:', e); }
+  // Progress saqlangach, reyting yozuvini ham fonda yangilab qo'yamiz
+  // (xato bo'lsa ham asosiy saqlashga ta'sir qilmasin — shuning uchun alohida catch)
+  syncLeaderboardEntry().catch(e => console.error('Reytingni yangilashda xatolik:', e));
 }
 window.addEventListener('beforeunload', () => { if (_persistTimer) flushPersist(); });
 
@@ -524,6 +533,52 @@ async function loadLevelWords(levelId) {
 async function loadAllWords() {
   const all = await Promise.all(LEVELS.map(l => loadLevelWords(l.id).catch(() => [])));
   return LEVELS.map((l, i) => ({ level: l, words: all[i] }));
+}
+
+// ── Reyting (leaderboard) ───────────────────────────────────────────
+// Email hech qachon reyting hujjatiga yozilmaydi — faqat ism (yoki ism
+// kiritilmagan bo'lsa, emaildan olingan xavfsiz taxallus) va sonlar.
+function publicDisplayName(name, email) {
+  if (name && name.trim()) return name.trim();
+  const local = (email || '').split('@')[0] || 'Talaba';
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+function leaderboardDocRef(uid) { return db.collection('leaderboard').doc(uid); }
+
+// Joriy foydalanuvchining progressidan reyting yozuvini hisoblab, yozadi.
+// flushPersist() har safar progress saqlanganda avtomatik chaqiradi.
+async function syncLeaderboardEntry() {
+  if (!_currentUser || !_userDataCache) return;
+  const levelData = await loadAllWords();
+  const progress = _userDataCache.progress;
+  let totalLearned = 0, totalWords = 0;
+  const perLevel = {};
+  levelData.forEach(({ level, words }) => {
+    const learnedArr = Array.isArray(progress[level.id]) ? progress[level.id] : [];
+    const learned = learnedArr.filter(w => words.some(x => x.en.toLowerCase() === w)).length;
+    totalLearned += learned;
+    totalWords += words.length;
+    perLevel[level.id] = learned;
+  });
+  const streak = getStreak();
+
+  await leaderboardDocRef(_currentUser.uid).set({
+    name: publicDisplayName(_userNameCache, _currentUser.email),
+    totalLearned,
+    totalWords,
+    pct: totalWords ? Math.round((totalLearned / totalWords) * 100) : 0,
+    perLevel,
+    streakCurrent: streak.current,
+    streakLongest: streak.longest,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+
+// Reyting sahifasi uchun — hamma tizimga kirgan foydalanuvchilarga ochiq
+async function fetchLeaderboard() {
+  const snap = await db.collection('leaderboard').orderBy('totalLearned', 'desc').limit(200).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 function shuffle(arr) {

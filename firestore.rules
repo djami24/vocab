@@ -7,13 +7,34 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Pul mukofoti maydonlari (earnings): bitta yozishda lifetimeEarned,
+    // cashWithdrawn va tuitionWithdrawn hech qachon PASAYMASLIGI kerak —
+    // bu klient tomonidan tasodifan yoki qasddan "chiqarilgan pul"
+    // tarixini yashirib qo'yishning oldini oladi. DIQQAT: bu — faqat
+    // qo'shimcha himoya qatlami; bu loyihada backend (Cloud Functions)
+    // yo'qligi sababli, balansni o'zi yuqoriga "soxta" oshirishning
+    // oldini bu qoidalar bilan to'liq olib bo'lmaydi (buning uchun
+    // so'z qo'shish/pul chiqarish amallari server tomonida
+    // tasdiqlanishi kerak bo'lardi).
+    function earningsOk() {
+      return !('earnings' in request.resource.data) ||
+        !('earnings' in resource.data) ||
+        (
+          request.resource.data.earnings.lifetimeEarned >= resource.data.earnings.lifetimeEarned &&
+          request.resource.data.earnings.cashWithdrawn >= resource.data.earnings.cashWithdrawn &&
+          request.resource.data.earnings.tuitionWithdrawn >= resource.data.earnings.tuitionWithdrawn
+        );
+    }
+
     // Har bir foydalanuvchi FAQAT o'z hujjatini yoza oladi (progress,
-    // faollik, bayroqlar). O'qishni esa o'zi VA istalgan admin amalga
-    // oshira oladi (Admin panelidagi "Foydalanuvchilar" ro'yxati uchun).
+    // faollik, bayroqlar, pul mukofoti). O'qishni esa o'zi VA istalgan
+    // admin amalga oshira oladi (Admin panelidagi "Foydalanuvchilar" va
+    // "Pul mukofoti" ro'yxatlari uchun).
     match /users/{userId} {
       allow read: if request.auth != null &&
         (request.auth.uid == userId || isAdmin());
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId && earningsOk();
     }
 
     // Admin ro'yxati: har kim faqat OʻZINING holatini oʻqiy oladi
@@ -46,13 +67,14 @@ service cloud.firestore {
     }
 
     // Reyting (leaderboard): har bir foydalanuvchi FAQAT o'zining
-    // xulosa hujjatini (ism + o'rgangan so'zlar soni) yoza oladi —
-    // boshqa birovning natijasini o'zgartira olmaydi. O'qish barcha
-    // tizimga kirgan foydalanuvchilarga ochiq — chunki bu reyting
-    // sahifasida hammaga ko'rinishi kerak. Bu yerda email yoki boshqa
-    // shaxsiy ma'lumot SAQLANMAYDI — faqat ism va son.
+    // xulosa hujjatini (ism, o'rgangan so'zlar soni, joriy daraja,
+    // yutuqlar soni) yoza oladi — boshqa birovning natijasini
+    // o'zgartira olmaydi. O'qish HAMMAGA ochiq (tizimga kirmagan
+    // mehmonlarga ham) — chunki qisqa reyting bosh sahifada ko'rinadi.
+    // Bu yerda email yoki boshqa shaxsiy ma'lumot SAQLANMAYDI — faqat
+    // ism va sonlar.
     match /leaderboard/{uid} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
   }

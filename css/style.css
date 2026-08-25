@@ -1696,6 +1696,118 @@ footer.site-foot {
   .lb-num2 { font-size: 18px; }
 }
 
+/* ── Bosh sahifadagi "Talabalar fikri" (testimonials) bo'limi ───── */
+.home-tm { margin-top: 64px; }
+.home-tm-head {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 8px;
+}
+.home-tm-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 32px);
+  margin: 0 0 6px;
+}
+.home-tm-head p {
+  color: var(--text-on-ink-muted);
+  font-size: 14px;
+  margin: 0;
+}
+.tm-grid {
+  max-width: 900px;
+  margin: 22px auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.tm-card {
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tm-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tm-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--bg-b), var(--bg-a));
+  color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid rgba(255,255,255,0.35);
+}
+.tm-name { font-weight: 700; font-size: 14px; color: #fff; }
+.tm-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-on-ink-muted);
+}
+.tm-text::before { content: '\201C'; }
+.tm-text::after { content: '\201D'; }
+
+/* ── Dashboard: "Fikringizni qoldiring" karta ────────────────────── */
+.fb-card {
+  margin-top: 28px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 22px 24px;
+}
+.fb-card h3 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  margin: 0 0 4px;
+}
+.fb-card p.fb-sub {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+.fb-field { margin-bottom: 12px; }
+.fb-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.fb-field input,
+.fb-field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(27,16,53,0.18);
+  border-radius: 10px;
+  background: var(--paper-dim);
+  color: var(--text-on-paper);
+}
+.fb-field textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+.fb-field input:focus,
+.fb-field textarea:focus { outline: none; border-color: var(--bg-b); }
+.fb-submit-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fb-err { color: var(--stamp-dark); font-size: 12.5px; display: none; }
+.fb-err.show { display: block; }
+.fb-thanks {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--paper-dim);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.fb-thanks .emoji { font-size: 22px; line-height: 1; }
+.fb-thanks .fb-thanks-text { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
+.fb-thanks .fb-thanks-text b { color: var(--text-on-paper); }
+
 /* ── WALLET (Pul mukofoti) ──────────────────────────────────────── */
 .wallet-hero {
   margin-top: 26px;

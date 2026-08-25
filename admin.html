@@ -1238,7 +1238,7 @@ async function renderUsersTab() {
   box.innerHTML = `
     <div class="users-search">
       <span class="users-search-icon">🔍</span>
-      <input type="text" id="userSearch" placeholder="Email bo'yicha qidiring..." oninput="filterUsers(this.value)"/>
+      <input type="text" id="userSearch" placeholder="Ism yoki email bo'yicha qidiring..." oninput="filterUsers(this.value)"/>
     </div>
     <div class="users-table-wrap">
       <table class="users-table">
@@ -1251,8 +1251,10 @@ async function renderUsersTab() {
         </thead>
         <tbody id="usersTableBody">
           ${users.map(u => `
-            <tr data-email="${escapeAttr(u.email || u.id)}">
-              <td class="user-email">${escapeHtmlGlobal(u.email || u.id)}</td>
+            <tr data-email="${escapeAttr((u.name || '') + ' ' + (u.email || u.id))}">
+              <td class="user-email">
+                ${u.name ? `${escapeHtmlGlobal(u.name)}<br/><span style="color:#4a4860;font-size:11px">${escapeHtmlGlobal(u.email || u.id)}</span>` : escapeHtmlGlobal(u.email || u.id)}
+              </td>
               <td>
                 ${adminSet.has(u.id)
                   ? '<span class="user-admin-badge">⚡ Admin</span>'
@@ -1346,14 +1348,14 @@ async function renderStudentsTab() {
     <div class="students-toolbar">
       <div class="students-search-wrap">
         <span class="students-search-icon">🔍</span>
-        <input type="text" id="studentSearch" placeholder="Email bo'yicha qidiring..." oninput="renderStudentsList()"/>
+        <input type="text" id="studentSearch" placeholder="Ism yoki email bo'yicha qidiring..." oninput="renderStudentsList()"/>
       </div>
       <select class="sort-select" id="studentSort" onchange="renderStudentsList()">
         <option value="learned_desc">Ko'p o'rgangan ↓</option>
         <option value="learned_asc">Kam o'rgangan ↑</option>
         <option value="streak_desc">Seriya (uzun) ↓</option>
         <option value="recent">So'nggi faol</option>
-        <option value="email">Email (A-Z)</option>
+        <option value="email">Ism / Email (A-Z)</option>
       </select>
     </div>
     <div id="studentsList"></div>
@@ -1414,6 +1416,7 @@ function computeStudentStats(userDoc, levelData) {
 
   return {
     id: userDoc.id,
+    name: (userDoc.name && userDoc.name.trim()) ? userDoc.name.trim() : '',
     email: userDoc.email || userDoc.id,
     totalLearned,
     totalWords,
@@ -1433,14 +1436,16 @@ function renderStudentsList() {
   const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
   const sortVal = document.getElementById('studentSort')?.value || 'learned_desc';
 
-  let list = _studentsCache.filter(s => s.email.toLowerCase().includes(q));
+  let list = _studentsCache.filter(s =>
+    s.email.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+  );
 
   list = list.slice().sort((a, b) => {
     switch (sortVal) {
       case 'learned_asc': return a.totalLearned - b.totalLearned;
       case 'streak_desc': return b.streakCurrent - a.streakCurrent;
       case 'recent': return (b.lastActiveDate || '').localeCompare(a.lastActiveDate || '');
-      case 'email': return a.email.localeCompare(b.email);
+      case 'email': return (a.name || a.email).localeCompare(b.name || b.email);
       case 'learned_desc':
       default: return b.totalLearned - a.totalLearned;
     }
@@ -1454,10 +1459,10 @@ function renderStudentsList() {
   listBox.innerHTML = list.map(s => `
     <div class="student-card" id="scard-${s.id}" onclick="toggleStudentCard('${s.id}')">
       <div class="student-header">
-        <div class="student-avatar">${escapeHtmlGlobal((s.email[0] || '?').toUpperCase())}</div>
+        <div class="student-avatar">${escapeHtmlGlobal(((s.name || s.email)[0] || '?').toUpperCase())}</div>
         <div class="student-info">
-          <div class="student-email">${escapeHtmlGlobal(s.email)}</div>
-          <div class="student-meta">${s.lastActiveDate ? `So'nggi faollik: ${escapeHtmlGlobal(s.lastActiveDate)}` : 'Hali faollik yo\'q'}</div>
+          <div class="student-email">${escapeHtmlGlobal(s.name || s.email)}</div>
+          <div class="student-meta">${s.name ? escapeHtmlGlobal(s.email) + ' · ' : ''}${s.lastActiveDate ? `So'nggi faollik: ${escapeHtmlGlobal(s.lastActiveDate)}` : 'Hali faollik yo\'q'}</div>
         </div>
         <div class="student-summary">
           <div class="stat-pill">

@@ -73,57 +73,7 @@ async function render() {
   }
 
   const myUid = _currentUser ? _currentUser.uid : null;
-  const top3 = entries.slice(0, 3);
-  const rest = entries.slice(3);
-
-  const medalClass = ['gold', 'silver', 'bronze'];
-  const medalIcon = ['🥇', '🥈', '🥉'];
-
-  const podiumHtml = top3.length ? `
-    <div class="lb-podium">
-      ${top3.map((e, i) => `
-        <div class="lb-podium-card ${medalClass[i]}">
-          <div class="lb-medal">${medalIcon[i]}</div>
-          <div class="lb-podium-avatar">${escapeHtml((e.name || '?')[0].toUpperCase())}</div>
-          <div class="lb-podium-name">${escapeHtml(e.name || 'Talaba')}${e.id === myUid ? ' <span class="me-tag" style="display:inline-block;margin-top:2px">Siz</span>' : ''}</div>
-          <div class="lb-podium-num">${e.totalLearned || 0}</div>
-          <div class="lb-podium-lbl">so'z o'rgangan</div>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
-
-  const listHtml = `
-    <div class="lb-list">
-      ${rest.map((e, i) => {
-        const rank = i + 4;
-        const isMe = e.id === myUid;
-        return `
-          <div class="lb-row ${isMe ? 'is-me' : ''}">
-            <div class="lb-rank">#${rank}</div>
-            <div class="lb-avatar">${escapeHtml((e.name || '?')[0].toUpperCase())}</div>
-            <div class="lb-info">
-              <div class="lb-name">${escapeHtml(e.name || 'Talaba')}${isMe ? '<span class="me-tag">Siz</span>' : ''}</div>
-              <div class="lb-meta">🔥 ${e.streakCurrent || 0} kunlik seriya</div>
-              <div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${e.pct || 0}%"></div></div>
-            </div>
-            <div class="lb-nums">
-              <div class="lb-num-box">
-                <div class="lb-num-val">${e.totalLearned || 0}</div>
-                <div class="lb-num-lbl">so'z</div>
-              </div>
-              <div class="lb-num-box">
-                <div class="lb-num-val">${e.pct || 0}%</div>
-                <div class="lb-num-lbl">progress</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-
-  root.innerHTML = podiumHtml + listHtml;
+  root.innerHTML = renderLeaderboardList2(entries, myUid);
 }
 
 function escapeHtml(str) { return escapeHtmlGlobal(str); }

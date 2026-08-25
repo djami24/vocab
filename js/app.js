@@ -598,6 +598,42 @@ async function fetchTopLeaderboard(n) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+// Reyting yozuvlarini YAGONA RO'YXAT ko'rinishida (podiumsiz) HTML'ga
+// aylantiradi — top-3 uchun medal (lb-medal2), qolganlar uchun oddiy
+// raqam (lb-rank2). index.html (bosh sahifa) va leaderboard.html
+// (to'liq Reyting sahifasi) shu bitta funksiyadan foydalanadi, shunda
+// ikkala joyda reyting bir xil ko'rinishda chiqadi.
+function renderLeaderboardList2(entries, myUid) {
+  const medalClass = ['gold', 'silver', 'bronze'];
+  return `
+    <div class="lb-list2">
+      ${entries.map((e, i) => {
+        const rank = i + 1;
+        const isMe = !!myUid && e.id === myUid;
+        const rowClass = 'lb-row2' + (rank === 1 ? ' lb-row2-top' : '') + (isMe ? ' is-me' : '');
+        const rankHtml = i < 3
+          ? `<div class="lb-medal2 ${medalClass[i]}"><div class="ribbon"></div><div class="disc">${rank}</div></div>`
+          : `<div class="lb-rank2">${rank}</div>`;
+        return `
+          <div class="${rowClass}">
+            ${rankHtml}
+            <div class="lb-avatar2">${escapeHtmlGlobal((e.name || '?')[0].toUpperCase())}</div>
+            <div class="lb-info2">
+              <div class="lb-name2">${escapeHtmlGlobal(e.name || 'Talaba')}${isMe ? ' <span class="me-tag">Siz</span>' : ''}</div>
+              <div class="lb-meta2">${escapeHtmlGlobal(e.currentLevelName || 'Beginner')} · 🏅 ${e.badgeCount || 0}</div>
+            </div>
+            <div class="lb-divider2"></div>
+            <div class="lb-nums2">
+              <div class="lb-num2">${e.totalLearned || 0}</div>
+              <div class="lb-lbl2">so'z</div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

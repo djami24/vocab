@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Hamyon | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">← Darajalar</a>
+      <a href="stats.html" class="chip-link">📊 Statistika</a>
+      <a href="leaderboard.html" class="chip-link">🏆 Reyting</a>
+      <a href="admin.html" class="chip-link" id="adminLink" style="display:none">🛠 Admin panel</a>
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="dash-head">
+      <h1>💰 Hamyoningiz</h1>
+      <p>Har bir yangi o'rgangan so'zingiz uchun ma'lum summa yig'iladi. To'plangan balansni naqd oling yoki o'quv markazi to'loviga o'tkazing.</p>
+    </div>
+
+    <div class="wallet-hero">
+      <div class="wallet-hero-lbl">Hozirgi balansingiz</div>
+      <div class="wallet-hero-sum" id="balanceSum">—</div>
+      <div class="wallet-hero-sub" id="eligNote">Yuklanmoqda...</div>
+      <div class="wallet-elig-bar-track"><div class="wallet-elig-bar-fill" id="eligBarFill" style="width:0%"></div></div>
+      <div class="wallet-elig-txt" id="eligTxt"></div>
+      <div class="wallet-hero-btnrow">
+        <button class="btn-withdraw" id="withdrawBtn" disabled>💸 Pulni chiqarish</button>
+      </div>
+    </div>
+
+    <div class="wallet-stats-row" id="walletStatsRow"></div>
+
+    <div class="panel">
+      <h2 class="panel-title">📜 Chiqarishlar tarixi</h2>
+      <div id="historyBox"><div class="wallet-empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <footer class="site-foot">3 kun ketma-ket profilga kirmasangiz, yig'ilgan balans 0'ga tushadi — davom eting!</footer>
+</div>
+
+<div id="modalRoot"></div>
+
+<script src="js/app.js"></script>
+<script>
+  let user = null;
+  let _tuitionTotal = 400000;
+
+  (async () => {
+    user = await requireAuth();
+    if (!user) return;
+    document.getElementById('userLabel').textContent = user;
+    if (isAdmin()) document.getElementById('adminLink').style.display = '';
+    document.querySelector('.dash-head p').innerHTML =
+      `Har bir yangi o'rgangan so'zingiz uchun <b>${EARNING_PER_WORD} so'm</b> yig'iladi. To'plangan summani naqd oling yoki o'quv markazi to'loviga o'tkazing.`;
+
+    const settings = await loadSiteSettings();
+    _tuitionTotal = Number(settings.tuitionTotal) || 400000;
+
+    document.getElementById('withdrawBtn').addEventListener('click', openWithdrawModal);
+    await render();
+  })();
+
+  async function render() {
+    const elig = await getWithdrawEligibility(user);
+    const earnings = getEarnings(user);
+
+    document.getElementById('balanceSum').textContent = formatSom(earnings.balance);
+
+    const pct = Math.min(100, Math.round((elig.totalLearned / elig.needed) * 100));
+    document.getElementById('eligBarFill').style.width = pct + '%';
+
+    if (elig.totalLearned < elig.needed) {
+      document.getElementById('eligNote').textContent =
+        `Pul chiqarish uchun kamida ${elig.needed.toLocaleString('en-US')} ta so'z o'rganishingiz kerak.`;
+      document.getElementById('eligTxt').textContent =
+        `${elig.totalLearned.toLocaleString('en-US')} / ${elig.needed.toLocaleString('en-US')} so'z o'rganildi`;
+    } else if (earnings.balance <= 0) {
+      document.getElementById('eligNote').textContent =
+        `So'z o'rganish shartini bajardingiz — endi balansingiz to'lguncha o'rganishda davom eting.`;
+      document.getElementById('eligTxt').textContent =
+        `${elig.totalLearned.toLocaleString('en-US')} / ${elig.needed.toLocaleString('en-US')} so'z o'rganildi ✓`;
+    } else {
+      document.getElementById('eligNote').textContent =
+        `Balansingizni chiqarib olishga tayyorsiz! 3 kun ketma-ket kirmasangiz, balans 0'ga tushib qolishini unutmang.`;
+      document.getElementById('eligTxt').textContent =
+        `${elig.totalLearned.toLocaleString('en-US')} / ${elig.needed.toLocaleString('en-US')} so'z o'rganildi ✓`;
+    }
+
+    document.getElementById('withdrawBtn').disabled = !elig.eligible;
+    document.getElementById('withdrawBtn').title = elig.eligible ? '' :
+      (earnings.balance <= 0 ? "Hozircha chiqarish uchun mablag' yo'q" : `Kamida ${elig.needed} ta so'z o'rganishingiz kerak`);
+
+    const remaining = tuitionRemaining(_tuitionTotal, earnings.tuitionWithdrawn);
+    document.getElementById('walletStatsRow').innerHTML = `
+      <div class="stat-pill">
+        <span class="sp-num">${formatSom(earnings.lifetimeEarned)}</span>
+        <span class="sp-lbl">Jami umrbod yig'ilgan</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num">${formatSom(earnings.cashWithdrawn)}</span>
+        <span class="sp-lbl">Naqd olingan</span>
+      </div>
+      <div class="stat-pill">
+        <span class="sp-num">${formatSom(earnings.tuitionWithdrawn)}</span>
+        <span class="sp-lbl">Markaz to'loviga o'tkazilgan</span>
+      </div>
+      <div class="stat-pill stat-pill--streak">
+        <span class="sp-num">${formatSom(remaining)}</span>
+        <span class="sp-lbl">Markazga to'lash qoldi (${formatSom(_tuitionTotal)}dan)</span>
+      </div>
+    `;
+
+    renderHistory(earnings.history || []);
+  }
+
+  function renderHistory(history) {
+    const box = document.getElementById('historyBox');
+    if (!history.length) {
+      box.innerHTML = `<div class="wallet-empty">Hali hech qanday chiqarish bo'lmagan.</div>`;
+      return;
+    }
+    const rows = history.slice().reverse().map(h => {
+      const tagClass = h.type === 'cash' ? 'cash' : h.type === 'tuition' ? 'tuition' : 'reset';
+      const tagText = h.type === 'cash' ? 'Naqd' : h.type === 'tuition' ? 'Markaz to\u2019lovi' : 'Nofaollik';
+      const desc = h.type === 'cash' ? 'Naqd pul sifatida chiqarildi'
+        : h.type === 'tuition' ? "O'quv markazi to'loviga o'tkazildi"
+        : '3 kun kirmaganingiz uchun balans nolga tushdi';
+      const amtClass = h.type === 'reset' ? 'neg' : 'pos';
+      const amtSign = h.type === 'reset' ? '−' : '+';
+      return `
+        <div class="wallet-hist-item">
+          <span class="wallet-hist-tag ${tagClass}">${tagText}</span>
+          <div class="wallet-hist-mid">
+            <div>${desc}</div>
+            <div class="wallet-hist-date">${escapeHtml(h.date || '')}</div>
+          </div>
+          <div class="wallet-hist-amt ${amtClass}">${amtSign}${formatSom(h.amount)}</div>
+        </div>
+      `;
+    }).join('');
+    box.innerHTML = rows;
+  }
+
+  function formatSom(n) {
+    return Math.round(n || 0).toLocaleString('en-US') + " so'm";
+  }
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ── Chiqarish oynasi (modal) ──────────────────────────────────
+  function openWithdrawModal() {
+    const earnings = getEarnings(user);
+    const remaining = tuitionRemaining(_tuitionTotal, earnings.tuitionWithdrawn);
+    const root = document.getElementById('modalRoot');
+    root.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+          <div class="modal-title">Pulni qanday chiqarasiz?</div>
+          <div class="modal-sub">Balansingiz: <b>${formatSom(earnings.balance)}</b>. Bir turini tanlang — chiqargandan so'ng balans 0'dan qayta hisoblana boshlaydi.</div>
+          <div class="modal-choice-row">
+            <button class="modal-choice" onclick="confirmWithdraw('cash')">
+              <span class="modal-choice-icon">💵</span>
+              <span>
+                <div class="modal-choice-title">Naqd qilib chiqarish</div>
+                <div class="modal-choice-desc">So'rovingiz admin panelga tushadi — administrator siz bilan bog'lanib, naqd pulni topshiradi.</div>
+              </span>
+            </button>
+            <button class="modal-choice" onclick="confirmWithdraw('tuition')">
+              <span class="modal-choice-icon">🎓</span>
+              <span>
+                <div class="modal-choice-title">O'quv markazi to'loviga o'tkazish</div>
+                <div class="modal-choice-desc">Summa markaz to'lovingizdan (${formatSom(_tuitionTotal)}) ayiriladi. Hozirgi qoldiq: ${formatSom(remaining)}.</div>
+              </span>
+            </button>
+          </div>
+          <div class="modal-close-row"><button class="modal-close-btn" onclick="closeModal()">Bekor qilish</button></div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function confirmWithdraw(type) {
+    const btns = document.querySelectorAll('.modal-choice');
+    btns.forEach(b => b.disabled = true);
+    try {
+      const amount = await withdrawEarnings(user, type);
+      await render();
+      showResultModal(type, amount);
+    } catch (e) {
+      alert(e.message || "Xatolik yuz berdi.");
+      closeModal();
+    }
+  }
+
+  function showResultModal(type, amount) {
+    const earnings = getEarnings(user);
+    const root = document.getElementById('modalRoot');
+    let note;
+    if (type === 'cash') {
+      note = `Administrator so'rovingizni admin paneldagi "Pul mukofoti" bo'limida ko'radi va naqd pulni sizga topshiradi.`;
+    } else {
+      const remaining = tuitionRemaining(_tuitionTotal, earnings.tuitionWithdrawn);
+      note = `Siz hozir markazga <b>${formatSom(remaining)}</b> to'lov qilishingiz kerak (${formatSom(_tuitionTotal)} to'liq tulovdan).`;
+    }
+    root.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+          <div class="modal-result-icon">${type === 'cash' ? '💵' : '🎓'}</div>
+          <div class="modal-title" style="text-align:center">Muvaffaqiyatli chiqarildi!</div>
+          <div class="modal-result-sum">${formatSom(amount)}</div>
+          <div class="modal-result-note">${note}</div>
+          <div class="modal-close-row" style="text-align:center; margin-top:18px">
+            <button class="btn-primary" style="margin-top:0; width:auto; padding:10px 24px" onclick="closeModal()">Tushunarli</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function closeModal() {
+    document.getElementById('modalRoot').innerHTML = '';
+  }
+</script>
+</body>
+</html>

@@ -515,6 +515,12 @@ async function backfillEarningsIfNeeded(_user) {
   const flags = getFlags();
   if (flags.earningsMigrated) return;
   const stats = await collectStats(_user);
+  const progress = getProgress();
+  const hasRawProgress = LEVELS.some(l => Array.isArray(progress[l.id]) && progress[l.id].length > 0);
+  // Agar foydalanuvchida progress bor-u, lekin so'z ro'yxatlari (data/*.json)
+  // hali yuklanmagani sababli stats.totalWords 0 chiqsa — bu hisoblash
+  // ishonchli emas. Bayroqni belgilamasdan, keyingi safar qayta urinamiz.
+  if (hasRawProgress && stats.totalWords === 0) return;
   if (stats.totalLearned > 0) {
     const amount = stats.totalLearned * EARNING_PER_WORD;
     const earnings = getEarnings();

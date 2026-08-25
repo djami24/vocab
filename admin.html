@@ -848,6 +848,130 @@ body {
 }
 .student-card.expanded .student-details { display: block !important; }
 
+/* ── LOG TAB: jonli belgi, onlayn bo'limi, sana filtri ─── */
+.log-live-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  font-size: 11.5px !important;
+  color: #4ade80 !important;
+  font-weight: 600 !important;
+  background: rgba(74,222,128,0.08) !important;
+  border: 1px solid rgba(74,222,128,0.25) !important;
+  border-radius: 20px !important;
+  padding: 5px 12px !important;
+  margin-bottom: 16px !important;
+}
+.log-live-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #4ade80 !important;
+  flex-shrink: 0 !important;
+  animation: logLivePulse 1.6s ease-in-out infinite !important;
+}
+@keyframes logLivePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(74,222,128,0); }
+}
+
+.log-online-section {
+  background: #16151c !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 14px !important;
+  padding: 18px 20px !important;
+  margin-bottom: 18px !important;
+}
+.log-online-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #e8e6f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 4px !important;
+}
+.log-online-count {
+  background: rgba(74,222,128,0.15) !important;
+  color: #4ade80 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  border-radius: 20px !important;
+  padding: 1px 9px !important;
+}
+.log-online-empty {
+  font-size: 12px !important;
+  color: #4a4860 !important;
+  margin-top: 8px !important;
+}
+.log-online-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+}
+.log-online-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #0f0f13 !important;
+  border: 1px solid #1e3a2a !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+}
+.log-online-info { flex: 1 !important; min-width: 0 !important; }
+.log-online-email {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11.5px !important;
+  color: #e8e6f0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.log-online-time {
+  font-size: 10.5px !important;
+  color: #4ade80 !important;
+  margin-top: 2px !important;
+}
+.log-online-elapsed {
+  font-size: 10px !important;
+  color: #4a4860 !important;
+  margin-top: 1px !important;
+}
+.log-online-note {
+  font-size: 10.5px !important;
+  color: #4a4860 !important;
+  margin-top: 12px !important;
+  font-style: italic !important;
+}
+
+.log-date-range {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.log-date-range input[type="date"] {
+  background: #0f0f13 !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 9px !important;
+  padding: 8px 10px !important;
+  font-size: 12.5px !important;
+  color: #e8e6f0 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  outline: none !important;
+  color-scheme: dark !important;
+}
+.log-date-range input[type="date"]:focus { border-color: #7B2FF7 !important; }
+.log-date-sep { color: #4a4860 !important; font-size: 12px !important; }
+.log-date-clear-btn { padding: 8px 12px !important; font-size: 12px !important; }
+
+@media (max-width: 720px) {
+  .log-date-range { width: 100% !important; }
+  .log-date-range input[type="date"] { flex: 1 !important; min-width: 0 !important; }
+  .log-online-grid { grid-template-columns: 1fr !important; }
+}
+
 .levels-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
@@ -1480,20 +1604,31 @@ async function saveSettings() {
   btn.innerHTML = 'Saqlash';
 }
 
-// ── LOG TAB ───────────────────────────────────────────
-let _logUsersCache = null; // talaba bo'yicha guruhlangan faollik (qidiruv/saralash uchun keshlanadi)
+// ── LOG TAB (real vaqtda yangilanadi) ──────────────────
+let _logUsersCache = null;   // talaba bo'yicha guruhlangan faollik (sana filtri qo'llanilgan)
+let _logRawEntries = [];     // eng so'nggi xom yozuvlar (filtersiz) — onSnapshot orqali yangilanadi
+let _logUnsub = null;        // onSnapshot tinglovchisini to'xtatish funksiyasi
+let _logOnlineTicker = null; // "necha vaqtdan beri onlayn" matnini yangilab turuvchi taymer
+let _logShellBuilt = false;  // toolbar/konteyner HTML'i bir marta quriladi, keyin faqat ichi yangilanadi
+
+function stopLogWatch() {
+  if (_logUnsub) { _logUnsub(); _logUnsub = null; }
+  if (_logOnlineTicker) { clearInterval(_logOnlineTicker); _logOnlineTicker = null; }
+}
 
 async function renderLogTab() {
   const box = document.getElementById('logContent');
-  let entries = [];
-  try {
-    const withTimeout = (p, ms) => Promise.race([
-      p,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (15s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
-    ]);
-    entries = await withTimeout(fetchActivityLog(1000), 15000);
-  } catch (e) {
-    console.error('renderLogTab xatoligi:', e);
+  stopLogWatch();
+  _logShellBuilt = false;
+  box.innerHTML = `<div class="log-empty"><span class="spinner"></span></div>`;
+
+  _logUnsub = watchActivityLog(1000, (entries) => {
+    _logRawEntries = entries;
+    if (!_logShellBuilt) { buildLogShell(); _logShellBuilt = true; }
+    renderLogOnlineSection();
+    renderLogUsersList();
+  }, (e) => {
+    _logShellBuilt = false;
     box.innerHTML = `
       <div class="log-table-wrap">
         <div class="log-empty">
@@ -1504,21 +1639,27 @@ async function renderLogTab() {
           <button class="abtn-primary" onclick="renderLogTab()">Qayta urinish</button>
         </div>
       </div>`;
-    return;
-  }
+  });
+}
 
-  if (!entries.length) {
-    box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hali hech qanday faollik qayd etilmagan.</div></div>`;
-    return;
-  }
-
-  _logUsersCache = groupActivityByUser(entries);
-
+// Toolbar (qidiruv, sana filtri, saralash), onlayn bo'lim va ro'yxat
+// konteynerlarini BIR MARTA quradi — har yangilanishda butun HTML qayta
+// yozilmasin, aks holda foydalanuvchi qidiruv/filtr yozayotganda buziladi.
+function buildLogShell() {
+  const box = document.getElementById('logContent');
   box.innerHTML = `
+    <div class="log-live-badge"><span class="log-live-dot"></span> Jonli yangilanish yoqilgan</div>
+    <div id="logOnlineWrap"></div>
     <div class="students-toolbar">
       <div class="students-search-wrap">
         <span class="students-search-icon">🔍</span>
         <input type="text" id="logUserSearch" placeholder="Ism yoki email bo'yicha qidiring..." oninput="renderLogUsersList()"/>
+      </div>
+      <div class="log-date-range">
+        <input type="date" id="logDateFrom" onchange="renderLogUsersList()" title="Boshlanish sanasi"/>
+        <span class="log-date-sep">—</span>
+        <input type="date" id="logDateTo" onchange="renderLogUsersList()" title="Tugash sanasi"/>
+        <button class="abtn-secondary log-date-clear-btn" onclick="clearLogDateFilter()">Tozalash</button>
       </div>
       <select class="sort-select" id="logUserSort" onchange="renderLogUsersList()">
         <option value="recent">So'nggi faol</option>
@@ -1530,8 +1671,86 @@ async function renderLogTab() {
     </div>
     <div id="logUsersList"></div>
   `;
+}
 
+function clearLogDateFilter() {
+  const from = document.getElementById('logDateFrom');
+  const to = document.getElementById('logDateTo');
+  if (from) from.value = '';
+  if (to) to.value = '';
   renderLogUsersList();
+}
+
+// Xom yozuvlarni tanlangan sana oralig'i (kun boshidan kun oxirigacha) bo'yicha filtrlaydi
+function filterEntriesByDate(entries, fromStr, toStr) {
+  if (!fromStr && !toStr) return entries;
+  const fromMs = fromStr ? new Date(fromStr + 'T00:00:00').getTime() : null;
+  const toMs = toStr ? new Date(toStr + 'T23:59:59.999').getTime() : null;
+  return entries.filter(e => {
+    const ms = tsMillis(e.timestamp);
+    if (ms == null) return false;
+    if (fromMs != null && ms < fromMs) return false;
+    if (toMs != null && ms > toMs) return false;
+    return true;
+  });
+}
+
+// "Hozir onlayn" — chiqish (logout) qayd etilmagan, ya'ni ochiq sessiyasi
+// bor foydalanuvchilar. Sana filtridan mustaqil — doim TO'LIQ jurnal
+// asosida hisoblanadi, chunki bu "hozirgi holat"ni ko'rsatadi.
+function renderLogOnlineSection() {
+  const wrap = document.getElementById('logOnlineWrap');
+  if (!wrap) return;
+
+  const allUsers = groupActivityByUser(_logRawEntries);
+  const online = allUsers
+    .filter(u => u.sessions.length && u.sessions[0].loginAt && u.sessions[0].logoutAt == null)
+    .sort((a, b) => (tsMillis(b.sessions[0].loginAt) || 0) - (tsMillis(a.sessions[0].loginAt) || 0));
+
+  if (!online.length) {
+    wrap.innerHTML = `
+      <div class="log-online-section">
+        <div class="log-online-title">🟢 Hozir onlayn <span class="log-online-count">0</span></div>
+        <div class="log-online-empty">Hozircha ochiq sessiya yo'q.</div>
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="log-online-section">
+      <div class="log-online-title">🟢 Hozir onlayn <span class="log-online-count">${online.length}</span></div>
+      <div class="log-online-grid">
+        ${online.map(u => {
+          const loginMs = tsMillis(u.sessions[0].loginAt) || 0;
+          return `
+          <div class="log-online-card">
+            <div class="student-avatar" style="width:32px;height:32px;font-size:13px;">${escapeHtmlGlobal((u.email[0] || '?').toUpperCase())}</div>
+            <div class="log-online-info">
+              <div class="log-online-email">${escapeHtmlGlobal(u.email)}</div>
+              <div class="log-online-time">Kirgan: ${formatLogTime(u.sessions[0].loginAt)}</div>
+              <div class="log-online-elapsed" data-login-ms="${loginMs}">${formatElapsedSince(loginMs)}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="log-online-note">* "Chiqish" bosilmasdan tab yopilsa, foydalanuvchi haqiqatda chiqqan bo'lsa ham shu ro'yxatda qolishi mumkin.</div>
+    </div>`;
+
+  if (!_logOnlineTicker) {
+    _logOnlineTicker = setInterval(() => {
+      document.querySelectorAll('.log-online-elapsed').forEach(el => {
+        const ms = Number(el.dataset.loginMs);
+        if (ms) el.textContent = formatElapsedSince(ms);
+      });
+    }, 30000);
+  }
+}
+
+function formatElapsedSince(loginMs) {
+  if (!loginMs) return '';
+  const diff = Date.now() - loginMs;
+  if (diff < 60000) return "hozirgina kirdi";
+  return formatDuration(diff) + " davomida onlayn";
 }
 
 // Firestore Timestamp obyektidan millisekund oladi (bo'lmasa null)
@@ -1610,7 +1829,17 @@ function groupActivityByUser(entries) {
 
 function renderLogUsersList() {
   const listBox = document.getElementById('logUsersList');
-  if (!listBox || !_logUsersCache) return;
+  if (!listBox) return;
+
+  if (!_logRawEntries.length) {
+    listBox.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hali hech qanday faollik qayd etilmagan.</div></div>`;
+    return;
+  }
+
+  const fromStr = document.getElementById('logDateFrom')?.value || '';
+  const toStr = document.getElementById('logDateTo')?.value || '';
+  const filteredEntries = filterEntriesByDate(_logRawEntries, fromStr, toStr);
+  _logUsersCache = groupActivityByUser(filteredEntries);
 
   const q = (document.getElementById('logUserSearch')?.value || '').toLowerCase();
   const sortVal = document.getElementById('logUserSort')?.value || 'recent';
@@ -1629,7 +1858,7 @@ function renderLogUsersList() {
   });
 
   if (!list.length) {
-    listBox.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Qidiruvga mos talaba topilmadi.</div></div>`;
+    listBox.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Qidiruv yoki sana filtriga mos talaba topilmadi.</div></div>`;
     return;
   }
 

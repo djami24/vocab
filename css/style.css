@@ -2199,3 +2199,53 @@ footer.site-foot {
 .duel-banner.win { background: var(--sage); color: #08331d; }
 .duel-banner.lose { background: var(--stamp); color: #fff; }
 .duel-banner.draw { background: var(--mustard); color: #3a2a00; }
+
+/* ── "powered by Djami" belgisi — barcha sahifalarda pastda,
+   scroll qilinganda ham joyidan siljimaydi (position: fixed),
+   "Djami" so'zi esa yengil oqib turuvchi (gradient flow)
+   effektga ega. js/app.js orqali barcha sahifalarga avtomatik
+   qo'shiladi. ── */
+.djami-powered-badge {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(27, 16, 53, 0.12);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  line-height: 1;
+}
+.djami-powered-badge strong {
+  font-style: normal;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--bg-a), var(--bg-b), var(--bg-c), var(--bg-a));
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: djami-flow 5s linear infinite;
+}
+@keyframes djami-flow {
+  0%   { background-position: 0% center; }
+  100% { background-position: 300% center; }
+}
+@media (max-width: 480px) {
+  .djami-powered-badge {
+    font-size: 11px;
+    padding: 6px 12px;
+    left: 10px;
+    bottom: 10px;
+  }
+}

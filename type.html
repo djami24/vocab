@@ -121,7 +121,10 @@ function renderQuestion() {
 
     <div class="quiz-card">
       <div class="eyebrow">O'zbekcha tarjimasini yozing</div>
-      <div class="quiz-word">${escapeHtml(item.en)}</div>
+      <div class="word-audio-row">
+        <div class="quiz-word">${escapeHtml(item.en)}</div>
+        ${speakBtnHtml(item.en)}
+      </div>
       ${item.ipa ? `<div class="ipa">/${escapeHtml(item.ipa)}/</div>` : ''}
       <form class="type-form" id="typeForm" autocomplete="off">
         <input type="text" id="typeInput" placeholder="Tarjimani shu yerga yozing..." autofocus/>
@@ -137,8 +140,16 @@ function renderQuestion() {
   input.focus();
 }
 
+// Foydalanuvchi javobini solishtirish uchun normallashtirish. Turli
+// klaviaturalar (ayniqsa telefondagi "o'zbekcha" tugmalar tartibi)
+// apostrof o'rniga har xil belgi chiqaradi — oddiy tik apostrof (')
+// dan tashqari, burama qo'shtirnoqlar (' ' `) va o'zbekcha lotin
+// alifbosida ishlatiladigan maxsus belgilar (ʻ — teskari vergul,
+// ʼ — modifikator apostrof) ham bo'lishi mumkin. Ularning barchasini
+// bitta oddiy apostrofga keltiramiz, aks holda "og'ir" kabi to'g'ri
+// javoblar xato deb hisoblanib qolishi mumkin edi.
 function normalize(str) {
-  return str.trim().toLowerCase().replace(/['’‘`]/g, "'").replace(/\s+/g, ' ');
+  return str.trim().toLowerCase().replace(/['’‘`ʻʼʹʾʿ]/g, "'").replace(/\s+/g, ' ');
 }
 
 function checkAnswer() {

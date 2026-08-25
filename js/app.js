@@ -513,7 +513,17 @@ function addEarning(_user, amount) {
 // tartibda (markLearned ichida) hisoblanadi.
 async function backfillEarningsIfNeeded(_user) {
   const flags = getFlags();
-  if (flags.earningsMigrated) return;
+  const earnings = getEarnings();
+  // "Migratsiya bajarilgan" deb hisoblanishi uchun kamida bitta haqiqiy
+  // hodisa (pul yig'ilgan yoki chiqarilgan) bo'lishi kerak — aks holda
+  // (masalan, oldingi urinishda vaqtinchalik xato tufayli bayroq
+  // noto'g'ri o'rnatilib qolgan bo'lsa) qayta urinib ko'ramiz. Bu
+  // xavfsiz: lifetimeEarned/cashWithdrawn/tuitionWithdrawn hech qachon
+  // kamaymaydi, shuning uchun bir marta haqiqiy mukofot qo'shilgach, bu
+  // shart doim rost bo'lib qoladi va qayta hisoblanmaydi.
+  const alreadyReal = earnings.lifetimeEarned > 0 || earnings.cashWithdrawn > 0 || earnings.tuitionWithdrawn > 0;
+  if (flags.earningsMigrated && alreadyReal) return;
+
   const stats = await collectStats(_user);
   const progress = getProgress();
   const hasRawProgress = LEVELS.some(l => Array.isArray(progress[l.id]) && progress[l.id].length > 0);
@@ -523,7 +533,6 @@ async function backfillEarningsIfNeeded(_user) {
   if (hasRawProgress && stats.totalWords === 0) return;
   if (stats.totalLearned > 0) {
     const amount = stats.totalLearned * EARNING_PER_WORD;
-    const earnings = getEarnings();
     earnings.balance += amount;
     earnings.lifetimeEarned += amount;
     saveEarnings(_user, earnings);

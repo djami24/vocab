@@ -50,6 +50,16 @@
     </div>
   </section>
 
+  <section class="home-tm" id="homeTm">
+    <div class="home-tm-head">
+      <h2>💬 Talabalar fikri</h2>
+      <p>Sayt haqida talabalarimiz nima deydi.</p>
+    </div>
+    <div class="tm-grid" id="homeTmRoot">
+      <div class="empty-state"><div class="emoji">💬</div><p>Yuklanmoqda...</p></div>
+    </div>
+  </section>
+
   <footer class="site-foot" id="footerText">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
 </div>
 
@@ -92,6 +102,37 @@
     }
 
     root.innerHTML = renderLeaderboardList2(entries, null);
+  })();
+
+  // ── Bosh sahifadagi "Talabalar fikri" (testimonials) ────────────
+  (async () => {
+    const root = document.getElementById('homeTmRoot');
+    let entries = [];
+    try {
+      entries = await fetchTestimonials(30);
+    } catch (e) {
+      root.innerHTML = `
+        <div class="empty-state">
+          <div class="emoji">⚠️</div>
+          <p>Fikrlarni yuklab bo'lmadi.<br/><span style="font-size:12px;opacity:.8">${escapeHtmlGlobal(e.message || String(e))}</span></p>
+        </div>`;
+      return;
+    }
+
+    if (!entries.length) {
+      root.innerHTML = `<div class="empty-state"><div class="emoji">🌱</div><p>Hali hech kim fikr qoldirmagan — birinchi bo'ling!</p></div>`;
+      return;
+    }
+
+    root.innerHTML = entries.map(t => `
+      <div class="tm-card">
+        <div class="tm-card-head">
+          <div class="tm-avatar">${escapeHtmlGlobal((t.name || '?')[0].toUpperCase())}</div>
+          <div class="tm-name">${escapeHtmlGlobal(t.name || 'Talaba')}</div>
+        </div>
+        <div class="tm-text">${escapeHtmlGlobal(t.text || '')}</div>
+      </div>
+    `).join('');
   })();
 
   // Auth formlar login.html ga ko'chirilgan

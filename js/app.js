@@ -334,6 +334,20 @@ async function fetchActivityLog(limitCount) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+// Faqat admin chaqirishi kerak — jurnalni REAL VAQTDA kuzatish (onSnapshot).
+// activityLog kolleksiyasida yangi yozuv paydo bo'lgan zahoti (masalan,
+// kimdir tizimga kirsa yoki chiqsa) callback yangilangan to'liq ro'yxat
+// bilan qayta chaqiriladi — sahifani yangilash shart emas.
+// Qaytarilgan funksiyani chaqirib, tinglashni to'xtatish mumkin.
+function watchActivityLog(limitCount, callback, onError) {
+  const n = limitCount || 1000;
+  return db.collection('activityLog').orderBy('timestamp', 'desc').limit(n)
+    .onSnapshot(
+      snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      err => { console.error('Jurnalni kuzatishda xatolik:', err); if (onError) onError(err); }
+    );
+}
+
 // Faqat admin chaqirishi kerak — barcha foydalanuvchilar ro'yxati
 async function fetchAllUsersAdmin() {
   const snap = await db.collection('users').get();

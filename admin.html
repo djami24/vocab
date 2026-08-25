@@ -662,6 +662,47 @@ body {
 .toggle-admin-btn.take:hover { background: rgba(248,113,113,0.15); }
 .toggle-admin-btn:disabled { opacity: 0.4; cursor: default; }
 
+.user-reg-date, .user-last-login {
+  font-size: 12px !important;
+  color: #a9a7ba !important;
+}
+.user-reg-date.empty, .user-last-login.empty { color: #4a4860 !important; }
+.user-login-toggle-btn {
+  background: transparent !important;
+  border: 1px solid #2a2835 !important;
+  color: #a78bfa !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  border-radius: 7px !important;
+  padding: 5px 11px !important;
+  cursor: pointer !important;
+  transition: all .15s !important;
+  white-space: nowrap !important;
+}
+.user-login-toggle-btn:hover { background: rgba(123,47,247,0.1) !important; border-color: rgba(123,47,247,0.3) !important; }
+.user-login-details-row td {
+  background: #0f0f13 !important;
+  padding: 14px 16px !important;
+}
+.user-login-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px 10px !important;
+  max-height: 160px !important;
+  overflow-y: auto !important;
+}
+.user-login-list-item {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  color: #c4b5fd !important;
+  background: #16151c !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+}
+.user-login-empty { font-size: 12px !important; color: #4a4860 !important; }
+
 /* ── ACCESS DENIED ─── */
 .access-denied-wrap {
   display: flex !important;
@@ -1927,14 +1968,14 @@ function formatLogTime(ts) {
 // ── USERS TAB ────────────────────────────────────────
 async function renderUsersTab() {
   const box = document.getElementById('usersContent');
-  let users = [], adminUids = [];
+  let users = [], adminUids = [], logEntries = [];
   try {
     const withTimeout = (p, ms) => Promise.race([
       p,
       new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (15s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
     ]);
-    [users, adminUids] = await withTimeout(
-      Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids()]),
+    [users, adminUids, logEntries] = await withTimeout(
+      Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids(), fetchActivityLog(3000)]),
       15000
     );
   } catch (e) {
@@ -1960,6 +2001,12 @@ async function renderUsersTab() {
   const adminSet = new Set(adminUids);
   users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
 
+  // Har bir foydalanuvchi uchun ro'yxatdan o'tgan sana va barcha kirish
+  // vaqtlarini activityLog'dan hisoblab olamiz (Faollik jurnali bo'limidagi
+  // bilan bir xil guruhlash mantig'i orqali).
+  const logByUid = {};
+  groupActivityByUser(logEntries).forEach(u => { logByUid[u.uid] = u; });
+
   box.innerHTML = `
     <div class="users-search">
       <span class="users-search-icon">🔍</span>
@@ -1970,15 +2017,30 @@ async function renderUsersTab() {
         <thead>
           <tr>
             <th>Email</th>
+            <th>Ro'yxatdan o'tgan</th>
+            <th>So'nggi kirish</th>
+            <th>Kirish tarixi</th>
             <th>Holat</th>
             <th>Amal</th>
           </tr>
         </thead>
         <tbody id="usersTableBody">
-          ${users.map(u => `
+          ${users.map((u, idx) => {
+            const log = logByUid[u.id];
+            const sessions = log ? log.sessions : [];
+            const regTxt = log && log.registeredAt ? formatLogTime(log.registeredAt) : null;
+            const lastLoginTxt = sessions.length ? formatLogTime(sessions[0].loginAt) : null;
+            return `
             <tr data-email="${escapeAttr((u.name || '') + ' ' + (u.email || u.id))}">
               <td class="user-email">
                 ${u.name ? `${escapeHtmlGlobal(u.name)}<br/><span style="color:#4a4860;font-size:11px">${escapeHtmlGlobal(u.email || u.id)}</span>` : escapeHtmlGlobal(u.email || u.id)}
+              </td>
+              <td class="user-reg-date ${regTxt ? '' : 'empty'}">${regTxt || 'Noma\u02bclum'}</td>
+              <td class="user-last-login ${lastLoginTxt ? '' : 'empty'}">${lastLoginTxt || 'Hali kirmagan'}</td>
+              <td>
+                ${sessions.length
+                  ? `<button class="user-login-toggle-btn" onclick="toggleUserLoginHistory(${idx})">Ko'rish (${sessions.length})</button>`
+                  : `<span class="user-login-empty">—</span>`}
               </td>
               <td>
                 ${adminSet.has(u.id)
@@ -1995,11 +2057,27 @@ async function renderUsersTab() {
                 </button>
               </td>
             </tr>
-          `).join('')}
+            <tr class="user-login-details-row" id="udet-${idx}" style="display:none">
+              <td colspan="6">
+                ${sessions.length ? `
+                  <div class="user-login-list">
+                    ${sessions.map(s => `<span class="user-login-list-item">${formatLogTime(s.loginAt)}</span>`).join('')}
+                  </div>
+                ` : `<div class="user-login-empty">Kirish qayd etilmagan.</div>`}
+              </td>
+            </tr>
+          `;
+          }).join('')}
         </tbody>
       </table>
     </div>
   `;
+}
+
+function toggleUserLoginHistory(idx) {
+  const row = document.getElementById('udet-' + idx);
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? '' : 'none';
 }
 
 function filterUsers(query) {

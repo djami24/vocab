@@ -1071,6 +1071,34 @@ footer.site-foot {
   font-size: 13px;
   color: var(--stamp-dark);
 }
+
+/* ── So'zni ovozda eshitish tugmasi (🔊) ─────────────────────────── */
+.word-audio-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.speak-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(27,16,53,0.15);
+  background: rgba(123,47,247,0.08);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s, transform .1s;
+}
+.speak-btn:hover { background: rgba(123,47,247,0.16); }
+.speak-btn:active { transform: scale(0.9); }
+.face.back .speak-btn { display: none; } /* faqat inglizcha tomonda kerak */
+
 .quiz-options {
   margin-top: 26px;
   display: flex;

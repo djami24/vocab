@@ -278,6 +278,32 @@ button { font-family: inherit; }
   width: 100%;
   color: var(--text-on-paper);
 }
+
+/* ── Bosh sahifa CTA tugmalari ────────────────────────────────── */
+.auth-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 380px;
+  width: 100%;
+}
+.btn-cta-outline {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: rgba(255,255,255,0.12);
+  border: 2.5px solid rgba(255,255,255,0.7);
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: var(--font-body);
+  color: #fff;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.18);
+}
+.btn-cta-outline:hover { background: rgba(255,255,255,0.22); border-color: #fff; }
 .auth-box h2 {
   font-family: var(--font-display);
   font-size: 22px;

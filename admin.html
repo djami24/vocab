@@ -365,6 +365,74 @@ body {
   color: #4a4860 !important;
 }
 
+/* Maydon sarlavhasi + yoqish/o'chirish tumbleri qatori */
+.afield-label-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+}
+.afield-label-row label { margin-bottom: 0 !important; }
+.afield.is-disabled input,
+.afield.is-disabled textarea { opacity: 0.45 !important; }
+
+.atoggle-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+.atoggle-wrap .atoggle-txt {
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  color: #7c7a8e !important;
+}
+.atoggle-wrap.on .atoggle-txt { color: #17D67C !important; }
+.atoggle {
+  position: relative !important;
+  width: 34px !important;
+  height: 19px !important;
+  flex-shrink: 0 !important;
+}
+.atoggle input {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+}
+.atoggle-slider {
+  position: absolute !important;
+  inset: 0 !important;
+  background: #2a2835 !important;
+  border: 1px solid #3a3850 !important;
+  border-radius: 999px !important;
+  transition: background .15s !important;
+}
+.atoggle-slider::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 13px !important;
+  height: 13px !important;
+  left: 2px !important;
+  top: 2px !important;
+  background: #7c7a8e !important;
+  border-radius: 50% !important;
+  transition: transform .15s, background .15s !important;
+}
+.atoggle input:checked + .atoggle-slider {
+  background: rgba(23,214,124,0.25) !important;
+  border-color: #17D67C !important;
+}
+.atoggle input:checked + .atoggle-slider::before {
+  transform: translateX(15px) !important;
+  background: #17D67C !important;
+}
+
 /* Two-col form */
 .aform-grid {
   display: grid !important;
@@ -1267,42 +1335,85 @@ async function removeTestimonial(uid) {
 async function renderSettingsTab() {
   const box = document.getElementById('settingsContent');
   const s = await loadSiteSettings();
+  const raw = s._raw || {};
+  const enabledMap = s._enabled || {};
+  // Har bir maydon uchun forma boshlang'ich holati: agar avval hech
+  // qanday belgi saqlanmagan bo'lsa-yu, matn saqlangan bo'lsa — moslik
+  // uchun "yoqilgan" deb ko'rsatamiz (loadSiteSettings bilan bir xil mantiq).
+  const isOn = (key) => key in enabledMap
+    ? !!enabledMap[key]
+    : (typeof raw[key] === 'string' && raw[key].trim() !== '');
+  // Formada har doim admin oldin kiritgan matn ko'rsatiladi (o'chirilgan
+  // bo'lsa ham) — shunda qayta yoqganda matn yo'qolmaydi.
+  const rawOr = (key) => (typeof raw[key] === 'string' ? raw[key] : '');
+
+  const toggle = (key) => `
+    <label class="atoggle-wrap ${isOn(key) ? 'on' : ''}" id="fToggleWrap_${key}">
+      <span class="atoggle-txt">${isOn(key) ? 'Yoqilgan' : "O'chirilgan"}</span>
+      <span class="atoggle">
+        <input type="checkbox" id="fEnable_${key}" ${isOn(key) ? 'checked' : ''} onchange="onSettingsToggle('${key}')"/>
+        <span class="atoggle-slider"></span>
+      </span>
+    </label>`;
 
   box.innerHTML = `
     <div class="acard">
       <div class="acard-title">Bosh sahifa</div>
-      <div class="acard-sub">Sarlavha, tavsif va bosh sahifa matni</div>
-      <div class="afield">
-        <label>Sarlavha <span style="font-weight:400;text-transform:none;letter-spacing:0">(vurg'u uchun *matn* ichiga oling)</span></label>
-        <input type="text" id="fHeroTitle" value="${escapeAttr(s.heroTitle)}" placeholder="Sarlavha matni..."/>
-        <div class="afield-hint">Masalan: Kuniga bir nechta so'z, *ortga qaytmang*.</div>
+      <div class="acard-sub">Har bir matnni alohida yoqing yoki o'chiring — o'chirilgan matn o'rniga saytning standart matni ko'rinadi.</div>
+
+      <div class="afield ${isOn('heroTitle') ? '' : 'is-disabled'}" id="fWrap_heroTitle">
+        <div class="afield-label-row">
+          <label>Sarlavha <span style="font-weight:400;text-transform:none;letter-spacing:0">(vurg'u uchun *matn* ichiga oling)</span></label>
+          ${toggle('heroTitle')}
+        </div>
+        <input type="text" id="fHeroTitle" value="${escapeAttr(rawOr('heroTitle'))}" placeholder="Sarlavha matni..."/>
+        <div class="afield-hint">Standart: ${escapeHtmlGlobal(DEFAULT_SITE_SETTINGS.heroTitle)}</div>
       </div>
-      <div class="afield">
-        <label>Tavsif matni</label>
-        <textarea id="fHeroDescription" rows="3">${escapeHtmlGlobal(s.heroDescription)}</textarea>
+
+      <div class="afield ${isOn('heroDescription') ? '' : 'is-disabled'}" id="fWrap_heroDescription">
+        <div class="afield-label-row">
+          <label>Tavsif matni</label>
+          ${toggle('heroDescription')}
+        </div>
+        <textarea id="fHeroDescription" rows="3">${escapeHtmlGlobal(rawOr('heroDescription'))}</textarea>
+        <div class="afield-hint">Standart: ${escapeHtmlGlobal(DEFAULT_SITE_SETTINGS.heroDescription)}</div>
       </div>
-      <div class="afield">
-        <label>Footer matni</label>
-        <input type="text" id="fFooterText" value="${escapeAttr(s.footerText)}"/>
+
+      <div class="afield ${isOn('footerText') ? '' : 'is-disabled'}" id="fWrap_footerText">
+        <div class="afield-label-row">
+          <label>Footer matni</label>
+          ${toggle('footerText')}
+        </div>
+        <input type="text" id="fFooterText" value="${escapeAttr(rawOr('footerText'))}"/>
+        <div class="afield-hint">Standart: ${escapeHtmlGlobal(DEFAULT_SITE_SETTINGS.footerText)}</div>
       </div>
     </div>
 
     <div class="acard">
       <div class="acard-title">Autentifikatsiya oynalari</div>
-      <div class="acard-sub">Kirish va ro'yxatdan o'tish formalaridagi matnlar</div>
+      <div class="acard-sub">Kirish va ro'yxatdan o'tish formalaridagi matnlar — har birini alohida yoqing/o'chiring.</div>
       <div class="aform-grid">
-        <div class="afield">
-          <label>Kirish oynasi matni</label>
-          <input type="text" id="fLoginSubtitle" value="${escapeAttr(s.loginSubtitle)}"/>
+        <div class="afield ${isOn('loginSubtitle') ? '' : 'is-disabled'}" id="fWrap_loginSubtitle">
+          <div class="afield-label-row">
+            <label>Kirish oynasi matni</label>
+            ${toggle('loginSubtitle')}
+          </div>
+          <input type="text" id="fLoginSubtitle" value="${escapeAttr(rawOr('loginSubtitle'))}"/>
         </div>
-        <div class="afield">
-          <label>Ro'yxat oynasi matni</label>
-          <input type="text" id="fRegisterSubtitle" value="${escapeAttr(s.registerSubtitle)}"/>
+        <div class="afield ${isOn('registerSubtitle') ? '' : 'is-disabled'}" id="fWrap_registerSubtitle">
+          <div class="afield-label-row">
+            <label>Ro'yxat oynasi matni</label>
+            ${toggle('registerSubtitle')}
+          </div>
+          <input type="text" id="fRegisterSubtitle" value="${escapeAttr(rawOr('registerSubtitle'))}"/>
         </div>
       </div>
-      <div class="afield">
-        <label>Auth blok eslatmasi</label>
-        <textarea id="fAuthNote" rows="2">${escapeHtmlGlobal(s.authNote)}</textarea>
+      <div class="afield ${isOn('authNote') ? '' : 'is-disabled'}" id="fWrap_authNote">
+        <div class="afield-label-row">
+          <label>Auth blok eslatmasi</label>
+          ${toggle('authNote')}
+        </div>
+        <textarea id="fAuthNote" rows="2">${escapeHtmlGlobal(rawOr('authNote'))}</textarea>
       </div>
     </div>
 
@@ -1326,6 +1437,17 @@ async function renderSettingsTab() {
   `;
 }
 
+function onSettingsToggle(key) {
+  const on = document.getElementById('fEnable_' + key).checked;
+  const wrap = document.getElementById('fWrap_' + key);
+  const toggleWrap = document.getElementById('fToggleWrap_' + key);
+  if (wrap) wrap.classList.toggle('is-disabled', !on);
+  if (toggleWrap) {
+    toggleWrap.classList.toggle('on', on);
+    toggleWrap.querySelector('.atoggle-txt').textContent = on ? 'Yoqilgan' : "O'chirilgan";
+  }
+}
+
 async function saveSettings() {
   const btn = document.getElementById('settingsSaveBtn');
   const ok = document.getElementById('settingsOk');
@@ -1335,6 +1457,10 @@ async function saveSettings() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saqlanmoqda...';
   try {
+    const enabledMap = {};
+    TOGGLEABLE_SETTINGS_FIELDS.forEach(key => {
+      enabledMap[key] = document.getElementById('fEnable_' + key).checked;
+    });
     await saveSiteSettings({
       heroTitle: document.getElementById('fHeroTitle').value.trim(),
       heroDescription: document.getElementById('fHeroDescription').value.trim(),
@@ -1343,7 +1469,7 @@ async function saveSettings() {
       registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
       authNote: document.getElementById('fAuthNote').value.trim(),
       tuitionTotal: String(Math.max(0, Number(document.getElementById('fTuitionTotal').value) || 0)),
-    });
+    }, enabledMap);
     ok.classList.add('show');
     setTimeout(() => ok.classList.remove('show'), 3000);
   } catch (e) {

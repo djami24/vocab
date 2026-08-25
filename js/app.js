@@ -909,78 +909,66 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   speechSynthesis.onvoiceschanged = () => { _enVoice = _pickEnglishVoice(); };
 }
 
-// ── Fallback: haqiqiy audio fayl orqali talaffuz ────────────────
-// Android'dagi Telegram ichki brauzeri (WebView) speechSynthesis'ni
-// UMUMAN qo'llab-quvvatlamaydi — 'speechSynthesis' in window true
-// bo'lishi mumkin, lekin speak() chaqirilganda hech qanday xato
-// bermay, jimgina hech narsa qilmaydi. Shu sababli faqat "mavjudmi"
-// deb tekshirish yetarli emas — haqiqatan ishlayotganini vaqt
-// bo'yicha tekshirish kerak (onstart hodisasi kutiladi).
+// ── Talaffuz: oldindan tayyorlangan statik audio fayllar ────────
+// Har bir so'z uchun mp3 fayl `data/audio/en/<soz>.mp3` yo'lida
+// oldindan generatsiya qilinadi (qarang: scripts/generate_audio.py)
+// va sayt bilan birga hostga yuklanadi. Bu yondashuv Telegram'ning
+// Android WebView'idagi asosiy muammoni butunlay chetlab o'tadi:
+// runtime'da hech qanday tashqi TTS so'rovi kerak emas — WebView
+// ichida oddiy statik <audio> fayl har doim ishlaydi.
 //
-// Ishlamasa — Google Translate'ning ovozli tarjima audio endpoint'i
-// orqali haqiqiy mp3 oqimi olib kelinadi va <audio> bilan ijro
-// etiladi. Bu so'rovni FOYDALANUVCHINING qurilmasi yuboradi (WebView
-// ichida ham oddiy tarmoq so'rovlari va <audio> ijrosi ishlaydi —
-// faqat TTS dvigateli yo'q), shuning uchun bu yerda ishlaydi.
-const _audioCache = new Map(); // so'z -> HTMLAudioElement (qayta yuklamaslik uchun)
+// Agar biror so'z uchun fayl topilmasa (masalan hali generatsiya
+// qilinmagan yangi so'z), brauzerning o'z speechSynthesis'iga
+// (mavjud bo'lsa) qaytamiz — bu faqat vaqtinchalik zaxira yo'l.
+const _audioCache = new Map(); // so'z -> HTMLAudioElement
 
-function _fallbackSpeak(text) {
-  const key = text.toLowerCase().trim();
-  let audio = _audioCache.get(key);
-  if (!audio) {
-    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=' + encodeURIComponent(text);
-    audio = new Audio(url);
-    _audioCache.set(key, audio);
-  }
-  audio.currentTime = 0;
-  audio.play().catch((e) => console.error("Fallback audio ijro etilmadi:", e));
+function _slugifyWord(word) {
+  return word.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'word';
 }
 
-// So'zni (odatda inglizcha) ovozda o'qiydi. Avval brauzerning o'z
-// speechSynthesis'ini sinaydi; agar u belgilangan vaqt ichida
-// haqiqatan gapira boshlamasa (yoki umuman qo'llab-quvvatlanmasa),
-// audio-fayl asosidagi fallback'ga o'tadi.
-function speakWord(text) {
-  if (!text) return;
-
-  if (!('speechSynthesis' in window)) {
-    _fallbackSpeak(text);
-    return;
+function _speakViaFile(text) {
+  const key = _slugifyWord(text);
+  let audio = _audioCache.get(key);
+  if (!audio) {
+    audio = new Audio('data/audio/en/' + key + '.mp3');
+    _audioCache.set(key, audio);
   }
+  let usedFallback = false;
+  audio.onerror = () => {
+    // Fayl topilmadi / hali generatsiya qilinmagan — brauzer ovoziga o'tamiz
+    if (!usedFallback) {
+      usedFallback = true;
+      _speakViaBrowser(text);
+    }
+  };
+  audio.currentTime = 0;
+  audio.play().catch(() => {
+    if (!usedFallback) {
+      usedFallback = true;
+      _speakViaBrowser(text);
+    }
+  });
+}
 
+// Zaxira yo'l: brauzerning o'z speechSynthesis'i (mp3 fayl topilmasa ishlatiladi)
+function _speakViaBrowser(text) {
+  if (!('speechSynthesis' in window)) return;
   try {
-    // Android/Chrome'da ba'zan speechSynthesis "pauza" holatida qolib
-    // ketadi va shundan keyingi speak() chaqiruvlari sababsiz jim
-    // o'tadi — resume() shu holatni oldindan tozalaydi.
     speechSynthesis.resume();
-    speechSynthesis.cancel(); // oldingi o'qishni to'xtatib, yangisini boshlaydi
-
+    speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
     if (_enVoice) utter.voice = _enVoice;
     utter.rate = 0.9;
-
-    let started = false;
-    utter.onstart = () => { started = true; };
-    utter.onerror = (ev) => {
-      console.error("Talaffuzda xatolik (speechSynthesis):", ev.error || ev);
-      if (!started) _fallbackSpeak(text);
-    };
-
+    utter.onerror = (ev) => console.error("Talaffuzda xatolik (speechSynthesis):", ev.error || ev);
     speechSynthesis.speak(utter);
+  } catch (e) { console.error("Ovozda o'qishda xatolik:", e); }
+}
 
-    // WebView'da speak() na xato, na onstart bermay "jim" o'tirib
-    // qoladi — shu holatni ushlab, fallback'ga o'tamiz.
-    setTimeout(() => {
-      if (!started) {
-        try { speechSynthesis.cancel(); } catch (e) {}
-        _fallbackSpeak(text);
-      }
-    }, 400);
-  } catch (e) {
-    console.error("Ovozda o'qishda xatolik:", e);
-    _fallbackSpeak(text);
-  }
+// So'zni ovozda o'qiydi — avval statik mp3 fayl, topilmasa brauzer ovozi.
+function speakWord(text) {
+  if (!text) return;
+  _speakViaFile(text);
 }
 
 // "🔊" tugmasi uchun umumiy HTML — so'z data-word atributida (HTML

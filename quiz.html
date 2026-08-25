@@ -127,7 +127,10 @@ function renderQuestion() {
 
     <div class="quiz-card">
       <div class="eyebrow">Bu so'zning tarjimasi qaysi?</div>
-      <div class="quiz-word">${escapeHtml(q.item.en)}</div>
+      <div class="word-audio-row">
+        <div class="quiz-word">${escapeHtml(q.item.en)}</div>
+        ${speakBtnHtml(q.item.en)}
+      </div>
       ${q.item.ipa ? `<div class="ipa">/${escapeHtml(q.item.ipa)}/</div>` : ''}
       <div class="quiz-options" id="quizOptions">
         ${q.options.map((opt, i) => `<button class="quiz-opt" data-opt="${escapeHtml(opt)}" onclick="handleAnswer(this)">${escapeHtml(opt)}</button>`).join('')}

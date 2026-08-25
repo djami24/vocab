@@ -28,16 +28,24 @@
 }
 .login-brand .dot { color: var(--mustard, #f5a623); }
 .login-back {
-  font-size: 13px;
-  color: rgba(255,255,255,0.65);
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
   margin-bottom: 20px;
   align-self: flex-start;
-  max-width: 380px;
+  max-width: 420px;
   width: 100%;
+  background: var(--stamp, #FF3D7F);
+  color: #fff;
+  border: 2.5px solid var(--ink, #1b1035);
+  border-radius: 12px;
+  padding: 12px 18px;
+  box-shadow: 3px 3px 0 var(--ink, #1b1035);
+  transition: background .15s, box-shadow .1s, transform .1s;
 }
-.login-back:hover { color: #fff; }
+.login-back:hover { background: var(--stamp-dark, #E01F63); }
+.login-back:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
 </style>
 </head>
 <body>

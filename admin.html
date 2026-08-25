@@ -1304,6 +1304,214 @@ async function toggleAdmin(btn) {
 function escapeAttr(str) {
   return escapeHtmlGlobal(str || '').replace(/"/g, '&quot;');
 }
+
+// ── STUDENTS TAB ──────────────────────────────────────
+let _studentsCache = null; // hisoblangan talabalar ro'yxati (qidiruv/saralash uchun keshlanadi)
+
+async function renderStudentsTab() {
+  const box = document.getElementById('studentsContent');
+  try {
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (20s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
+    ]);
+
+    const [users, levelData] = await withTimeout(
+      Promise.all([fetchAllUsersAdmin(), loadAllWords()]),
+      20000
+    );
+
+    _studentsCache = users.map(u => computeStudentStats(u, levelData));
+  } catch (e) {
+    console.error('renderStudentsTab xatoligi:', e);
+    box.innerHTML = `
+      <div class="log-table-wrap">
+        <div class="log-empty">
+          ⚠ Talabalar statistikasini yuklab bo'lmadi.<br/>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">
+            ${escapeHtmlGlobal(e.message || e.code || String(e))}
+          </span><br/><br/>
+          <button class="abtn-primary" onclick="renderStudentsTab()">Qayta urinish</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!_studentsCache.length) {
+    box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hozircha talabalar topilmadi.</div></div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="students-toolbar">
+      <div class="students-search-wrap">
+        <span class="students-search-icon">🔍</span>
+        <input type="text" id="studentSearch" placeholder="Email bo'yicha qidiring..." oninput="renderStudentsList()"/>
+      </div>
+      <select class="sort-select" id="studentSort" onchange="renderStudentsList()">
+        <option value="learned_desc">Ko'p o'rgangan ↓</option>
+        <option value="learned_asc">Kam o'rgangan ↑</option>
+        <option value="streak_desc">Seriya (uzun) ↓</option>
+        <option value="recent">So'nggi faol</option>
+        <option value="email">Email (A-Z)</option>
+      </select>
+    </div>
+    <div id="studentsList"></div>
+  `;
+
+  renderStudentsList();
+}
+
+function computeStudentStats(userDoc, levelData) {
+  const progress = (userDoc.progress && typeof userDoc.progress === 'object') ? userDoc.progress : {};
+  const activity = (userDoc.activity && typeof userDoc.activity === 'object') ? userDoc.activity : {};
+
+  let totalLearned = 0, totalWords = 0;
+  const perLevel = levelData.map(({ level, words }) => {
+    const learnedArr = Array.isArray(progress[level.id]) ? progress[level.id] : [];
+    const learned = learnedArr.filter(w => words.some(x => x.en.toLowerCase() === w)).length;
+    const total = words.length;
+    const isDone = total > 0 && learned >= total;
+    totalLearned += learned;
+    totalWords += total;
+    return { level, learned, total, isDone };
+  });
+
+  // Streak hisoblash (getStreak funksiyasi bilan bir xil mantiq, lekin arbitrary activity uchun)
+  let d = new Date();
+  let key = d.toISOString().slice(0, 10);
+  if (!activity[key]) d.setDate(d.getDate() - 1);
+  let currentStreak = 0;
+  let cursor = new Date(d);
+  while (activity[cursor.toISOString().slice(0, 10)]) {
+    currentStreak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  const dates = Object.keys(activity).sort();
+  let longest = 0, run = 0, prev = null;
+  for (const ds of dates) {
+    if (prev) {
+      const diffDays = Math.round((new Date(ds) - new Date(prev)) / 86400000);
+      run = diffDays === 1 ? run + 1 : 1;
+    } else {
+      run = 1;
+    }
+    longest = Math.max(longest, run);
+    prev = ds;
+  }
+
+  const lastActiveDate = dates.length ? dates[dates.length - 1] : null;
+
+  // So'nggi 30 kunlik faollik nuqtalari
+  const last30 = [];
+  const today = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const dd = new Date(today);
+    dd.setDate(today.getDate() - i);
+    const k = dd.toISOString().slice(0, 10);
+    last30.push({ date: k, count: activity[k] || 0 });
+  }
+
+  return {
+    id: userDoc.id,
+    email: userDoc.email || userDoc.id,
+    totalLearned,
+    totalWords,
+    pct: totalWords ? Math.round((totalLearned / totalWords) * 100) : 0,
+    perLevel,
+    streakCurrent: currentStreak,
+    streakLongest: longest,
+    lastActiveDate,
+    last30,
+  };
+}
+
+function renderStudentsList() {
+  const listBox = document.getElementById('studentsList');
+  if (!listBox || !_studentsCache) return;
+
+  const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+  const sortVal = document.getElementById('studentSort')?.value || 'learned_desc';
+
+  let list = _studentsCache.filter(s => s.email.toLowerCase().includes(q));
+
+  list = list.slice().sort((a, b) => {
+    switch (sortVal) {
+      case 'learned_asc': return a.totalLearned - b.totalLearned;
+      case 'streak_desc': return b.streakCurrent - a.streakCurrent;
+      case 'recent': return (b.lastActiveDate || '').localeCompare(a.lastActiveDate || '');
+      case 'email': return a.email.localeCompare(b.email);
+      case 'learned_desc':
+      default: return b.totalLearned - a.totalLearned;
+    }
+  });
+
+  if (!list.length) {
+    listBox.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Qidiruvga mos talaba topilmadi.</div></div>`;
+    return;
+  }
+
+  listBox.innerHTML = list.map(s => `
+    <div class="student-card" id="scard-${s.id}" onclick="toggleStudentCard('${s.id}')">
+      <div class="student-header">
+        <div class="student-avatar">${escapeHtmlGlobal((s.email[0] || '?').toUpperCase())}</div>
+        <div class="student-info">
+          <div class="student-email">${escapeHtmlGlobal(s.email)}</div>
+          <div class="student-meta">${s.lastActiveDate ? `So'nggi faollik: ${escapeHtmlGlobal(s.lastActiveDate)}` : 'Hali faollik yo\'q'}</div>
+        </div>
+        <div class="student-summary">
+          <div class="stat-pill">
+            <span class="stat-pill-val">${s.totalLearned}</span>
+            <span class="stat-pill-lbl">So'z</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-val">${s.pct}%</span>
+            <span class="stat-pill-lbl">Progress</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-val">🔥${s.streakCurrent}</span>
+            <span class="stat-pill-lbl">Seriya</span>
+          </div>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="student-details">
+        <div class="levels-grid">
+          ${s.perLevel.map(pl => {
+            const pct = pl.total ? Math.round((pl.learned / pl.total) * 100) : 0;
+            return `
+              <div class="level-stat-box">
+                <div class="level-stat-name">${escapeHtmlGlobal(pl.level.name)}</div>
+                <div class="level-progress-bar">
+                  <div class="level-progress-fill ${pl.isDone ? 'done' : ''}" style="width:${pct}%"></div>
+                </div>
+                <div class="level-stat-nums">
+                  <span><b>${pl.learned}</b> / ${pl.total}</span>
+                  <span>${pct}%</span>
+                </div>
+                ${pl.isDone ? '<div class="level-done-badge">✓ Tugallangan</div>' : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="activity-section-title">Faollik — so'nggi 30 kun (uzun seriya: ${s.streakLongest} kun)</div>
+        <div class="activity-dots">
+          ${s.last30.map(d => `
+            <div class="activity-dot ${d.count > 3 ? 'hot' : d.count > 0 ? 'active' : ''}">
+              <span class="activity-dot-date">${escapeHtmlGlobal(d.date)}: ${d.count} so'z</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleStudentCard(id) {
+  const card = document.getElementById('scard-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
 </script>
 </body>
 </html>

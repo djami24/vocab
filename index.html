@@ -92,6 +92,16 @@
     </div>
   </div>
 
+  <section class="home-lb" id="homeLb">
+    <div class="home-lb-head">
+      <h2>🏆 Reyting</h2>
+      <p>Eng ko'p so'z o'rgangan 30 nafar talaba — jonli reyting.</p>
+    </div>
+    <div class="home-lb-wrap" id="homeLbRoot">
+      <div class="empty-state"><div class="emoji">🏆</div><p>Yuklanmoqda...</p></div>
+    </div>
+  </section>
+
   <footer class="site-foot" id="footerText">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
 </div>
 
@@ -112,6 +122,72 @@
   auth.onAuthStateChanged((user) => {
     if (user) location.href = 'dashboard.html';
   });
+
+  // ── Bosh sahifadagi qisqa reyting (eng yaxshi 30 ta talaba) ─────
+  (async () => {
+    const root = document.getElementById('homeLbRoot');
+    let entries = [];
+    try {
+      entries = await fetchTopLeaderboard(30);
+    } catch (e) {
+      root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Reytingni yuklab bo'lmadi.</p></div>`;
+      return;
+    }
+
+    if (!entries.length) {
+      root.innerHTML = `<div class="empty-state"><div class="emoji">🌱</div><p>Hali hech kim so'z o'rganmagan — birinchi bo'ling!</p></div>`;
+      return;
+    }
+
+    const top3 = entries.slice(0, 3);
+    const rest = entries.slice(3, 30);
+    const medalClass = ['gold', 'silver', 'bronze'];
+    const medalIcon = ['🥇', '🥈', '🥉'];
+
+    const podiumHtml = top3.length ? `
+      <div class="lb-podium">
+        ${top3.map((e, i) => `
+          <div class="lb-podium-card ${medalClass[i]}">
+            <div class="lb-medal">${medalIcon[i]}</div>
+            <div class="lb-podium-avatar">${escapeHtmlGlobal((e.name || '?')[0].toUpperCase())}</div>
+            <div class="lb-podium-name">${escapeHtmlGlobal(e.name || 'Talaba')}</div>
+            <div class="lb-podium-num">${e.totalLearned || 0}</div>
+            <div class="lb-podium-lbl">so'z · ${escapeHtmlGlobal(e.currentLevelName || 'Beginner')} · 🏅 ${e.badgeCount || 0}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+
+    const listHtml = rest.length ? `
+      <div class="lb-list">
+        ${rest.map((e, i) => {
+          const rank = i + 4;
+          return `
+            <div class="lb-row">
+              <div class="lb-rank">#${rank}</div>
+              <div class="lb-avatar">${escapeHtmlGlobal((e.name || '?')[0].toUpperCase())}</div>
+              <div class="lb-info">
+                <div class="lb-name">${escapeHtmlGlobal(e.name || 'Talaba')}</div>
+                <div class="lb-meta">🎯 ${escapeHtmlGlobal(e.currentLevelName || 'Beginner')}</div>
+              </div>
+              <div class="lb-nums">
+                <div class="lb-num-box">
+                  <div class="lb-num-val">${e.totalLearned || 0}</div>
+                  <div class="lb-num-lbl">so'z</div>
+                </div>
+                <div class="lb-num-box">
+                  <div class="lb-num-val">${e.badgeCount || 0}</div>
+                  <div class="lb-num-lbl">yutuq</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    ` : '';
+
+    root.innerHTML = podiumHtml + listHtml;
+  })();
 
   // ── Tablarni almashtirish ──────────────────────────────────────
   const tabLogin = document.getElementById('tabLogin');

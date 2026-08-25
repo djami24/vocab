@@ -338,6 +338,24 @@ button { font-family: inherit; }
   outline: none;
   border-color: var(--stamp);
 }
+
+/* ── Parolni ko'rsatish/yashirish (maymuncha) ────────────────────── */
+.field-pw-wrap { position: relative; }
+.field-pw-wrap input { padding-right: 46px; }
+.pw-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.pw-toggle-btn:hover { background: rgba(27,16,53,0.06); }
 .btn-primary {
   margin-top: 22px;
   width: 100%;
@@ -1556,6 +1574,7 @@ footer.site-foot {
 /* ── Bosh sahifadagi qisqa reyting bo'limi ("home-lb") ─────────── */
 .home-lb {
   margin-top: 64px;
+  padding: 0 clamp(14px, 5vw, 24px);
 }
 .home-lb-head {
   text-align: center;
@@ -1697,7 +1716,7 @@ footer.site-foot {
 }
 
 /* ── Bosh sahifadagi "Talabalar fikri" (testimonials) bo'limi ───── */
-.home-tm { margin-top: 64px; }
+.home-tm { margin-top: 64px; padding: 0 clamp(14px, 5vw, 24px); }
 .home-tm-head {
   text-align: center;
   max-width: 560px;

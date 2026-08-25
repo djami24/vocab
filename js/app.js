@@ -64,10 +64,10 @@ async function logout() {
 }
 
 // ── Ro'yxatdan o'tish / kirish / parolni tiklash ────────────────────
-async function registerUser(email, password) {
+async function registerUser(email, password, name) {
   const cred = await auth.createUserWithEmailAndPassword(email, password);
   _currentUser = cred.user; // loadUserData yangi hujjat yaratganda email shu yerdan olinadi
-  await loadUserData(cred.user.uid);
+  await loadUserData(cred.user.uid, name);
   logActivity(cred.user.uid, cred.user.email, 'register').catch(e => console.error('Jurnalga yozishda xatolik:', e));
   return cred.user;
 }
@@ -122,7 +122,7 @@ function normalizeUserData(data) {
   return out;
 }
 
-async function loadUserData(uid) {
+async function loadUserData(uid, name) {
   const ref = userDocRef(uid);
   const snap = await ref.get();
   if (snap.exists) {
@@ -131,6 +131,7 @@ async function loadUserData(uid) {
     _userDataCache = emptyUserData();
     await ref.set({
       email: _currentUser ? _currentUser.email : '',
+      name: name || '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       progress: _userDataCache.progress,
       activity: _userDataCache.activity,

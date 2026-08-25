@@ -249,25 +249,58 @@ const DEFAULT_SITE_SETTINGS = {
   tuitionTotal: "400000", // o'quv markazi to'liq tuloviga (so'mda) — pul mukofoti shundan ayiriladi
 };
 
+// Ushbu matn maydonlari admin panelida yoqilishi/o'chirilishi mumkin —
+// o'chirilgan bo'lsa, saytda YUQORIDAGI standart (default) matn ko'rinadi,
+// yoqilgan bo'lsa, admin kiritgan maxsus matn ko'rinadi. `tuitionTotal`
+// funksional sozlama bo'lgani uchun bu ro'yxatda yo'q — u doim faol.
+const TOGGLEABLE_SETTINGS_FIELDS = [
+  'heroTitle', 'heroDescription', 'footerText',
+  'loginSubtitle', 'registerSubtitle', 'authNote',
+];
+
 function siteSettingsDocRef() { return db.collection('settings').doc('site'); }
 
 async function loadSiteSettings() {
   try {
     const snap = await siteSettingsDocRef().get();
     const data = snap.exists ? snap.data() : {};
-    return { ...DEFAULT_SITE_SETTINGS, ...data };
+    const enabledMap = (data && typeof data.enabled === 'object' && data.enabled) || {};
+    const out = { ...DEFAULT_SITE_SETTINGS };
+
+    TOGGLEABLE_SETTINGS_FIELDS.forEach(key => {
+      // Eski (enabled belgisi saqlanmagan) sozlamalar bilan moslik uchun:
+      // agar `enabled` xaritasida bu maydon haqida aniq belgi bo'lmasa,
+      // lekin qiymat avval saqlangan bo'lsa — faol deb hisoblanadi.
+      const isEnabled = key in enabledMap
+        ? !!enabledMap[key]
+        : (typeof data[key] === 'string' && data[key].trim() !== '');
+      if (isEnabled && typeof data[key] === 'string' && data[key].trim() !== '') {
+        out[key] = data[key];
+      }
+    });
+
+    if (typeof data.tuitionTotal === 'string') out.tuitionTotal = data.tuitionTotal;
+    out._raw = data;      // admin panelida forma qiymatlarini to'ldirish uchun (o'chirilgan bo'lsa ham matnni yo'qotmaslik)
+    out._enabled = enabledMap;
+    return out;
   } catch (e) {
     console.error("Sayt sozlamalarini o'qishda xatolik:", e);
-    return { ...DEFAULT_SITE_SETTINGS };
+    return { ...DEFAULT_SITE_SETTINGS, _raw: {}, _enabled: {} };
   }
 }
 
-// Faqat admin chaqirishi kerak — Firestore qoidalari ham buni talab qiladi
-async function saveSiteSettings(newSettings) {
+// Faqat admin chaqirishi kerak — Firestore qoidalari ham buni talab qiladi.
+// `enabledMap` — { heroTitle: true/false, ... } — har bir matn maydoni
+// yoqilganmi-yo'qmi.
+async function saveSiteSettings(newSettings, enabledMap) {
   const payload = {};
   Object.keys(DEFAULT_SITE_SETTINGS).forEach(key => {
     if (typeof newSettings[key] === 'string') payload[key] = newSettings[key];
   });
+  if (enabledMap && typeof enabledMap === 'object') {
+    payload.enabled = {};
+    TOGGLEABLE_SETTINGS_FIELDS.forEach(key => { payload.enabled[key] = !!enabledMap[key]; });
+  }
   payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
   await siteSettingsDocRef().set(payload, { merge: true });
 }

@@ -9,6 +9,109 @@
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<style>
+/* ── Tezlik nazorati ogohlantirishlari ── */
+.speed-warning-bar {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(255, 160, 0, 0.18);
+  border: 2px solid var(--mustard, #f5a623);
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  animation: warnPulse 0.4s ease;
+}
+.speed-warning-bar.danger {
+  background: rgba(220, 50, 50, 0.18);
+  border-color: #e55;
+  animation: warnPulse 0.3s ease;
+}
+@keyframes warnPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.speed-warning-icon { font-size: 24px; flex-shrink: 0; }
+.speed-warning-text { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.4; }
+.speed-warning-text span { display: block; font-weight: 400; font-size: 12px; opacity: 0.8; }
+
+/* ── Qayta boshlash ekrani ── */
+.reset-box {
+  background: var(--paper, #fff);
+  color: var(--text-on-paper, #1b1035);
+  border-radius: var(--radius, 16px);
+  border: 3px solid #e55;
+  box-shadow: var(--shadow-card, 4px 4px 0 #1b1035);
+  max-width: 420px;
+  width: 100%;
+  padding: 34px 28px;
+  text-align: center;
+}
+.reset-box .emoji { font-size: 44px; }
+.reset-box h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 12px;
+  color: #cc2222;
+}
+.reset-box p { margin-top: 8px; font-size: 14px; color: var(--text-muted, #555); }
+
+/* ── Mini-test ekrani ── */
+.minitest-header {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.minitest-header .test-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+.minitest-score-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.minitest-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
+  transition: background 0.2s, border-color 0.2s;
+}
+.minitest-dot.correct { background: #17D67C; border-color: #17D67C; }
+.minitest-dot.wrong   { background: #e55; border-color: #e55; }
+
+.test-result-box {
+  background: var(--paper, #fff);
+  border: 3px solid var(--ink, #1b1035);
+  border-radius: var(--radius, 16px);
+  box-shadow: var(--shadow-card, 4px 4px 0 #1b1035);
+  max-width: 420px;
+  width: 100%;
+  padding: 34px 28px;
+  text-align: center;
+  color: var(--text-on-paper, #1b1035);
+}
+.test-result-box .emoji { font-size: 44px; }
+.test-result-box h2 { font-size: 22px; font-weight: 800; margin-top: 12px; }
+.test-result-box p { margin-top: 8px; font-size: 14px; color: var(--text-muted, #555); }
+.test-score-badge {
+  font-size: 40px;
+  font-weight: 900;
+  margin: 16px 0 4px;
+}
+.test-score-badge.pass { color: #17D67C; }
+.test-score-badge.fail { color: #e55; }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -25,30 +128,59 @@
     <!-- JS orqali to'ldiriladi -->
   </div>
 
-  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+  <footer class="site-foot">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
 </div>
 
 <script src="js/app.js"></script>
 <script>
+// ─────────────────────────────────────────────
+// SOZLAMALAR
+// ─────────────────────────────────────────────
+const SPEED_WARN_THRESHOLD_MS  = 1800;  // shundan tez bosilsa ogohlantirish (ms)
+const SPEED_WARN_COUNT          = 2;    // nechta ketma-ket tez bosishda birinchi ogohlantirish
+const SPEED_RESET_COUNT         = 3;    // nechta ketma-ket tez bosishda qaytarish
+const MINITEST_PASS_COUNT       = 8;    // 10 dan nechta to'g'ri bo'lsa o'tadi
+const MINITEST_WORD_COUNT       = 10;   // har necha so'zdan bir test
+
+// ─────────────────────────────────────────────
+// HOLAT O'ZGARUVCHILARI
+// ─────────────────────────────────────────────
 let user = null;
-const params = new URLSearchParams(location.search);
-const levelId = params.get('level');
-const modeParam = params.get('mode'); // 'later' | 'review' | null
-const laterMode = modeParam === 'later';
+const params    = new URLSearchParams(location.search);
+const levelId   = params.get('level');
+const modeParam = params.get('mode');
+const laterMode  = modeParam === 'later';
 const reviewMode = modeParam === 'review';
 const level = LEVELS.find(l => l.id === levelId);
-const root = document.getElementById('studyRoot');
+const root  = document.getElementById('studyRoot');
 
 let queue = [];
-let idx = 0;
+let allLevelWords = [];   // to'liq daraja so'zlari (test uchun kerak)
+let idx   = 0;
 let flipped = false;
-let learnedThisSession = 0;
-let laterThisSession = 0;
+let learnedThisSession  = 0;
+let laterThisSession    = 0;
 let reviewedThisSession = 0;
 
+// Tezlik nazorati
+let lastLearnedTime   = 0;   // oxirgi "O'rgandim" tugmasi bosilgan vaqt (ms)
+let fastClickStreak   = 0;   // ketma-ket tez bosilar soni
+let warnShown         = false; // birinchi ogohlantirish ko'rsatildimi
+
+// Mini-test holati
+let inMiniTest       = false;
+let minitestWords    = [];   // so'nggi 10 ta o'rganilgan so'z
+let minitestIdx      = 0;
+let minitestCorrect  = 0;
+let minitestResults  = [];   // true/false massiv (har savol uchun)
+let learnedBatch     = [];   // hozirgi 10'lik uchun yig'iladigan so'zlar
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
 (async () => {
   user = await requireAuth();
-  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  if (!user) return;
   document.getElementById('userLabel').textContent = user;
   if (!level) {
     root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="dashboard.html" style="color:var(--mustard)">Darajalarga qaytish</a></p></div>`;
@@ -70,7 +202,9 @@ async function init() {
     root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
     return;
   }
-  const progress = getProgress(user);
+  allLevelWords = words;
+
+  const progress   = getProgress(user);
   const learnedSet = new Set(progress[levelId]);
   let remaining;
 
@@ -78,7 +212,7 @@ async function init() {
     const laterSet = new Set(progress.later[levelId]);
     remaining = words.filter(w => laterSet.has(w.en.toLowerCase()) && !learnedSet.has(w.en.toLowerCase()));
     if (remaining.length === 0) {
-      renderEmptyMode('🗂️', 'Keyinroq ro\'yxati bo\'sh', 'Ushbu darajada "Keyinroq" tugmasi bilan o\'tkazib yuborilgan so\'z yo\'q.');
+      renderEmptyMode('🗂️', "Keyinroq ro'yxati bo'sh", "Ushbu darajada \"Keyinroq\" tugmasi bilan o'tkazib yuborilgan so'z yo'q.");
       return;
     }
     queue = shuffle(remaining).slice(0, SESSION_SIZE);
@@ -86,26 +220,32 @@ async function init() {
     const dueWords = new Set(getDueReviewWords(user, levelId));
     remaining = words.filter(w => dueWords.has(w.en.toLowerCase()));
     if (remaining.length === 0) {
-      renderEmptyMode('✅', 'Hozircha takrorlash yo\'q', 'Bu darajada bugun takrorlash muddati kelgan so\'z yo\'q. Keyinroq qaytib keling.');
+      renderEmptyMode('✅', "Hozircha takrorlash yo'q", "Bu darajada bugun takrorlash muddati kelgan so'z yo'q. Keyinroq qaytib keling.");
       return;
     }
     queue = shuffle(remaining).slice(0, REVIEW_SESSION_SIZE);
   } else {
     remaining = words.filter(w => !learnedSet.has(w.en.toLowerCase()));
-    if (remaining.length === 0) {
-      renderLevelComplete(words.length);
-      return;
-    }
+    if (remaining.length === 0) { renderLevelComplete(words.length); return; }
     queue = shuffle(remaining).slice(0, SESSION_SIZE);
   }
 
   idx = 0;
-  learnedThisSession = 0;
-  laterThisSession = 0;
+  learnedThisSession  = 0;
+  laterThisSession    = 0;
   reviewedThisSession = 0;
+  learnedBatch        = [];
+  lastLearnedTime     = 0;
+  fastClickStreak     = 0;
+  warnShown           = false;
+  inMiniTest          = false;
+
   renderCard();
 }
 
+// ─────────────────────────────────────────────
+// KARTALAR
+// ─────────────────────────────────────────────
 function renderLocked() {
   const levelIdx = LEVELS.findIndex(l => l.id === levelId);
   const prevLevel = LEVELS[levelIdx - 1];
@@ -138,7 +278,7 @@ function renderLevelComplete(total) {
     <div class="complete-box">
       <div class="emoji">🏆</div>
       <h2>${level.name} to'plami tugallandi!</h2>
-      <p>Siz ushbu darajadagi barcha ${total} ta so'zni o'rgandingiz. Boshqa darajani tanlang yoki keyinroq qo'shiladigan yangi so'zlarni kuting.</p>
+      <p>Siz ushbu darajadagi barcha ${total} ta so'zni o'rgandingiz.</p>
       <div class="btns">
         <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
       </div>
@@ -160,7 +300,7 @@ function renderSessionComplete() {
     return;
   }
   const laterLine = laterThisSession > 0
-    ? `<b>${laterThisSession}</b> ta so'z "Keyinroq" ro'yxatiga qo'shildi — ularni Darajalar sahifasidan alohida o'rganishingiz mumkin.`
+    ? `<b>${laterThisSession}</b> ta so'z "Keyinroq" ro'yxatiga qo'shildi.`
     : '';
   root.innerHTML = `
     <div class="complete-box">
@@ -185,11 +325,24 @@ function renderCard() {
     ? `<button class="btn-skip" onclick="handleForgot()">Unutdim ↺</button>
        <button class="btn-learned" onclick="handleRemembered()">Esladim ✓</button>`
     : `<button class="btn-skip" onclick="handleSkip()">Keyinroq ↻</button>
-       <button class="btn-learned" onclick="handleLearned()">O'rgandim ✓</button>`;
+       <button class="btn-learned" id="learnBtn" onclick="handleLearned()">O'rgandim ✓</button>`;
 
   const kbdHint = reviewMode
     ? `<kbd>Space</kbd> flip · <kbd>→</kbd> esladim · <kbd>←</kbd> unutdim`
     : `<kbd>Space</kbd> flip · <kbd>→</kbd> o'rgandim · <kbd>←</kbd> keyinroq`;
+
+  // Ogohlantirish satri
+  let warnHtml = '';
+  if (!reviewMode && fastClickStreak >= SPEED_WARN_COUNT && fastClickStreak < SPEED_RESET_COUNT) {
+    warnHtml = `
+      <div class="speed-warning-bar">
+        <div class="speed-warning-icon">⚡</div>
+        <div class="speed-warning-text">
+          Juda tez bosyapsiz!
+          <span>So'zlarni diqqat bilan o'qing, tarjimasini ko'ring, keyin "O'rgandim" tugmasini bosing.</span>
+        </div>
+      </div>`;
+  }
 
   root.innerHTML = `
     <div class="study-head">
@@ -197,7 +350,7 @@ function renderCard() {
       <span class="counter">${modeLabel}${level.name} · ${idx + 1} / ${queue.length}</span>
     </div>
     <div class="session-track"><div class="session-fill" style="width:${(idx / queue.length) * 100}%"></div></div>
-
+    ${warnHtml}
     <div class="flash-stage">
       <div class="flashcard" id="flashcard">
         <div class="face front">
@@ -210,20 +363,17 @@ function renderCard() {
         <div class="face back">
           <div class="eyebrow">O'zbekcha</div>
           <div class="word">${escapeHtml(item.uz)}</div>
-          ${item.example ? `<div class="example">“${escapeHtml(item.example)}”</div>` : ''}
+          ${item.example ? `<div class="example">"${escapeHtml(item.example)}"</div>` : ''}
         </div>
       </div>
     </div>
-
     <div class="actions">
       ${actionsHtml}
     </div>
-
     <div class="kbd-hint">${kbdHint}</div>
   `;
 
-  const card = document.getElementById('flashcard');
-  card.addEventListener('click', toggleFlip);
+  document.getElementById('flashcard').addEventListener('click', toggleFlip);
 }
 
 function toggleFlip() {
@@ -231,13 +381,96 @@ function toggleFlip() {
   document.getElementById('flashcard').classList.toggle('flipped', flipped);
 }
 
+// ─────────────────────────────────────────────
+// TEZLIK NAZORATI
+// ─────────────────────────────────────────────
+function checkSpeedAndProceed(onProceed) {
+  const now = Date.now();
+  const elapsed = now - lastLearnedTime;
+  lastLearnedTime = now;
+
+  // Birinchi bosishda vaqt o'lchash boshlangan bo'lmaydi — o'tkazib yuboramiz
+  if (elapsed > 0 && elapsed < SPEED_WARN_THRESHOLD_MS) {
+    fastClickStreak++;
+  } else {
+    fastClickStreak = 0;
+    warnShown = false;
+  }
+
+  // 3 (yoki undan ko'p) ketma-ket tez bosish → qayta boshlash
+  if (fastClickStreak >= SPEED_RESET_COUNT) {
+    renderSpeedReset();
+    return;
+  }
+
+  onProceed();
+}
+
+function renderSpeedReset() {
+  fastClickStreak = 0;
+  warnShown = false;
+
+  // O'rganildi deb belgilangan so'zlarni progress dan o'chirib, qaytadan o'rgantiramiz
+  const learnedInSession = queue.slice(0, idx).map(w => w.en);
+  if (learnedInSession.length > 0) {
+    const progress = getProgress(user);
+    learnedInSession.forEach(en => {
+      const key = en.toLowerCase();
+      const i = progress[levelId].indexOf(key);
+      if (i !== -1) progress[levelId].splice(i, 1);
+    });
+    saveProgress(user, progress);
+  }
+
+  root.innerHTML = `
+    <div class="reset-box">
+      <div class="emoji">🚨</div>
+      <h2>Juda tez o'tkazib yubordingiz!</h2>
+      <p>So'zlarni haqiqatan o'rganmadingiz — shuning uchun bu sessiya <b>qaytadan boshlanadi</b>.</p>
+      <p style="margin-top:12px; font-size:13px; color:#c00;">So'zni fliplab tarjimasini ko'ring, eslab qoling, keyin O'rgandim tugmasini bosing.</p>
+      <div class="btns" style="margin-top:24px; display:flex; flex-direction:column; gap:10px">
+        <button class="btn-primary" style="margin-top:0; background:#e55; border-color:#c00" onclick="restartSession()">🔄 Qaytadan boshlash</button>
+        <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function restartSession() {
+  idx = 0;
+  learnedThisSession  = 0;
+  laterThisSession    = 0;
+  learnedBatch        = [];
+  fastClickStreak     = 0;
+  warnShown           = false;
+  lastLearnedTime     = 0;
+  inMiniTest          = false;
+  queue = shuffle(queue); // xuddi shu so'zlar, biroq aralashtirib
+  renderCard();
+}
+
+// ─────────────────────────────────────────────
+// TUGMALAR
+// ─────────────────────────────────────────────
 function handleLearned() {
-  const item = queue[idx];
-  markLearned(user, levelId, item.en);
-  learnedThisSession++;
-  const badge = document.getElementById('stampBadge');
-  badge.classList.add('play');
-  setTimeout(() => { idx++; renderCard(); }, 420);
+  checkSpeedAndProceed(() => {
+    const item = queue[idx];
+    markLearned(user, levelId, item.en);
+    learnedThisSession++;
+    learnedBatch.push(item);
+
+    const badge = document.getElementById('stampBadge');
+    if (badge) badge.classList.add('play');
+
+    setTimeout(() => {
+      idx++;
+      // Har MINITEST_WORD_COUNT ta so'z o'rganilganda → mini-test
+      if (!laterMode && !reviewMode && learnedBatch.length >= MINITEST_WORD_COUNT) {
+        startMiniTest();
+      } else {
+        renderCard();
+      }
+    }, 420);
+  });
 }
 
 function handleSkip() {
@@ -254,7 +487,7 @@ function handleRemembered() {
   reviewWord(user, levelId, item.en, true);
   reviewedThisSession++;
   const badge = document.getElementById('stampBadge');
-  badge.classList.add('play');
+  if (badge) badge.classList.add('play');
   setTimeout(() => { idx++; renderCard(); }, 420);
 }
 
@@ -266,17 +499,175 @@ function handleForgot() {
   renderCard();
 }
 
+// ─────────────────────────────────────────────
+// MINI-TEST (10 ta so'z o'rganilgandan keyin)
+// ─────────────────────────────────────────────
+function startMiniTest() {
+  inMiniTest      = true;
+  minitestWords   = learnedBatch.slice();  // so'nggi 10 ta so'z
+  learnedBatch    = [];                    // keyingi batch uchun bo'shatish
+  minitestIdx     = 0;
+  minitestCorrect = 0;
+  minitestResults = [];
+  renderMiniTestCard();
+}
+
+function renderMiniTestCard() {
+  if (minitestIdx >= minitestWords.length) {
+    renderMiniTestResult();
+    return;
+  }
+
+  const word = minitestWords[minitestIdx];
+  // To'rtta javob: 1 to'g'ri + 3 noto'g'ri (boshqa darajadan yoki allLevelWords dan)
+  const distractors = shuffle(
+    allLevelWords.filter(w => w.en.toLowerCase() !== word.en.toLowerCase())
+  ).slice(0, 3);
+  const options = shuffle([word, ...distractors]);
+
+  const dotsHtml = minitestWords.map((_, i) => {
+    let cls = 'minitest-dot';
+    if (i < minitestResults.length) cls += minitestResults[i] ? ' correct' : ' wrong';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="minitest-header">
+      <a href="dashboard.html" style="font-size:13px; color:rgba(255,255,255,0.7); text-decoration:none">← Darajalar</a>
+      <span class="test-label">🧪 Mini-test · ${minitestIdx + 1} / ${minitestWords.length}</span>
+    </div>
+    <div class="minitest-score-row">${dotsHtml}</div>
+    <div class="quiz-card">
+      <div class="eyebrow">O'zbekchasi nima?</div>
+      <div class="quiz-word">${escapeHtml(word.en)}</div>
+      ${word.ipa ? `<div class="ipa">/${escapeHtml(word.ipa)}/</div>` : ''}
+      <div class="quiz-options" id="quizOpts">
+        ${options.map((opt, i) => `
+          <button class="quiz-opt" id="qopt${i}" onclick="handleMiniTestAnswer(${i}, '${escapeHtml(opt.en)}', '${escapeHtml(word.en)}')">
+            ${escapeHtml(opt.uz)}
+          </button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="quizFb"></div>
+    </div>
+  `;
+}
+
+function handleMiniTestAnswer(optIdx, chosenEn, correctEn) {
+  const isCorrect = chosenEn.toLowerCase() === correctEn.toLowerCase();
+  if (isCorrect) minitestCorrect++;
+  minitestResults.push(isCorrect);
+
+  // Barcha tugmalarni o'chirish va rang berish
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    const en = btn.getAttribute('data-en') || '';
+  });
+
+  // To'g'ri javobni yashil, noto'g'rini qizil qilish
+  opts[optIdx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) {
+    // To'g'ri javobni topib yashil qilamiz
+    opts.forEach(btn => {
+      // Har bir tugmadan matn bilan solishtirish
+      const word = minitestWords[minitestIdx];
+      if (btn.textContent.trim() === word.uz.trim()) {
+        btn.classList.add('correct');
+      }
+    });
+  }
+
+  const fb = document.getElementById('quizFb');
+  if (fb) fb.innerHTML = isCorrect
+    ? `<span class="ok">✓ To'g'ri!</span>`
+    : `<span class="bad">✗ Noto'g'ri — to'g'ri javob: <b>${escapeHtml(minitestWords[minitestIdx].uz)}</b></span>`;
+
+  setTimeout(() => {
+    minitestIdx++;
+    renderMiniTestCard();
+  }, 1100);
+}
+
+function renderMiniTestResult() {
+  inMiniTest = false;
+  const passed = minitestCorrect >= MINITEST_PASS_COUNT;
+
+  if (passed) {
+    // O'tdi — o'rganishni davom ettirish
+    root.innerHTML = `
+      <div class="test-result-box">
+        <div class="emoji">🎉</div>
+        <div class="test-score-badge pass">${minitestCorrect} / ${minitestWords.length}</div>
+        <h2>Test muvaffaqiyatli o'tildi!</h2>
+        <p>Zo'r! Siz so'zlarni yaxshi o'rganibsiz. Davom eting.</p>
+        <div class="btns" style="margin-top:24px; display:flex; flex-direction:column; gap:10px">
+          <button class="btn-primary" style="margin-top:0" onclick="continueAfterTest()">▶ Davom etish</button>
+          <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
+        </div>
+      </div>`;
+  } else {
+    // O'tmadi — o'rganilgan so'zlarni progressdan o'chirib, qaytadan o'rgating
+    const failedWords = minitestWords.map(w => w.en);
+    const progress = getProgress(user);
+    failedWords.forEach(en => {
+      const key = en.toLowerCase();
+      const i = progress[levelId].indexOf(key);
+      if (i !== -1) progress[levelId].splice(i, 1);
+    });
+    saveProgress(user, progress);
+    learnedThisSession -= minitestWords.length; // statistikani ham tuzatish
+
+    root.innerHTML = `
+      <div class="test-result-box" style="border-color:#e55">
+        <div class="emoji">😕</div>
+        <div class="test-score-badge fail">${minitestCorrect} / ${minitestWords.length}</div>
+        <h2>Test o'tilmadi</h2>
+        <p>O'tish uchun kamida <b>${MINITEST_PASS_COUNT} ta</b> to'g'ri javob kerak edi.<br>
+           Bu ${minitestWords.length} ta so'z <b>qaytadan o'rgantiriladi</b>.</p>
+        <div class="btns" style="margin-top:24px; display:flex; flex-direction:column; gap:10px">
+          <button class="btn-primary" style="margin-top:0; background:#e55; border-color:#c00" onclick="retryFailedWords()">🔄 Qaytadan o'rganish</button>
+          <a class="btn-secondary" href="dashboard.html">← Darajalarga qaytish</a>
+        </div>
+      </div>`;
+  }
+}
+
+function continueAfterTest() {
+  if (idx >= queue.length) {
+    renderSessionComplete();
+  } else {
+    renderCard();
+  }
+}
+
+function retryFailedWords() {
+  // Test o'tilmagan so'zlarni navbat boshiga qo'shish
+  const failedItems = minitestWords.slice();
+  queue = [...shuffle(failedItems), ...queue.slice(idx)];
+  idx = 0;
+  learnedBatch    = [];
+  fastClickStreak = 0;
+  warnShown       = false;
+  lastLearnedTime = 0;
+  renderCard();
+}
+
+// ─────────────────────────────────────────────
+// YORDAMCHI
+// ─────────────────────────────────────────────
 function escapeHtml(str) {
   const d = document.createElement('div');
-  d.textContent = str;
+  d.textContent = str || '';
   return d.innerHTML;
 }
 
 document.addEventListener('keydown', (e) => {
+  if (inMiniTest) return; // test paytida klaviatura ishlamaydi
   if (idx >= queue.length) return;
-  if (e.code === 'Space') { e.preventDefault(); toggleFlip(); }
+  if (e.code === 'Space')      { e.preventDefault(); toggleFlip(); }
   else if (e.code === 'ArrowRight') { reviewMode ? handleRemembered() : handleLearned(); }
-  else if (e.code === 'ArrowLeft') { reviewMode ? handleForgot() : handleSkip(); }
+  else if (e.code === 'ArrowLeft')  { reviewMode ? handleForgot()     : handleSkip();   }
 });
 </script>
 </body>

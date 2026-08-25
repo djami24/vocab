@@ -71,6 +71,10 @@
 
         <form id="registerForm">
           <div class="field">
+            <label for="registerName">Ismingiz</label>
+            <input type="text" id="registerName" placeholder="Ism Familiya" autocomplete="name" required/>
+          </div>
+          <div class="field">
             <label for="registerEmail">Email</label>
             <input type="email" id="registerEmail" placeholder="siz@misol.com" autocomplete="email" required/>
           </div>
@@ -179,13 +183,14 @@
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     registerError.classList.remove('show');
+    const name = document.getElementById('registerName').value.trim();
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
 
     registerSubmit.disabled = true;
     registerSubmit.textContent = "Yaratilmoqda...";
     try {
-      await registerUser(email, password);
+      await registerUser(email, password, name);
       location.href = 'dashboard.html';
     } catch (err) {
       registerError.textContent = authErrorMessage(err);

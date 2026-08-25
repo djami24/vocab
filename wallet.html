@@ -105,7 +105,11 @@
     document.getElementById('withdrawBtn').title = elig.eligible ? '' :
       (earnings.balance <= 0 ? "Hozircha chiqarish uchun mablag' yo'q" : `Kamida ${elig.needed} ta so'z o'rganishingiz kerak`);
 
-    const remaining = tuitionRemaining(_tuitionTotal, earnings.tuitionWithdrawn);
+    // Markazga to'lash qolgan summa — chiqarib OLINGAN summalar bilan
+    // birga, hozirgi (hali chiqarilmagan) balans ham hisobga olinadi —
+    // shunda talaba pul chiqarish tugmasini bosmasa ham, har bir
+    // yig'gan so'mi real vaqtda qoldiqdan ayrilib ko'rinib turadi.
+    const remaining = tuitionRemaining(_tuitionTotal, earnings.tuitionWithdrawn + earnings.balance);
     document.getElementById('walletStatsRow').innerHTML = `
       <div class="stat-pill">
         <span class="sp-num">${formatSom(earnings.lifetimeEarned)}</span>

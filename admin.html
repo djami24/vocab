@@ -1136,9 +1136,23 @@ async function renderLogTab() {
   const box = document.getElementById('logContent');
   let entries = [];
   try {
-    entries = await fetchActivityLog(200);
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (15s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
+    ]);
+    entries = await withTimeout(fetchActivityLog(200), 15000);
   } catch (e) {
-    box.innerHTML = `<div class="log-empty">Jurnalni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    console.error('renderLogTab xatoligi:', e);
+    box.innerHTML = `
+      <div class="log-table-wrap">
+        <div class="log-empty">
+          ⚠ Jurnalni yuklab bo'lmadi.<br/>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">
+            ${escapeHtmlGlobal(e.message || e.code || String(e))}
+          </span><br/><br/>
+          <button class="abtn-primary" onclick="renderLogTab()">Qayta urinish</button>
+        </div>
+      </div>`;
     return;
   }
 
@@ -1190,9 +1204,31 @@ async function renderUsersTab() {
   const box = document.getElementById('usersContent');
   let users = [], adminUids = [];
   try {
-    [users, adminUids] = await Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids()]);
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (15s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
+    ]);
+    [users, adminUids] = await withTimeout(
+      Promise.all([fetchAllUsersAdmin(), fetchAllAdminUids()]),
+      15000
+    );
   } catch (e) {
-    box.innerHTML = `<div class="log-empty">Ro'yxatni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    console.error('renderUsersTab xatoligi:', e);
+    box.innerHTML = `
+      <div class="log-table-wrap">
+        <div class="log-empty">
+          ⚠ Ro'yxatni yuklab bo'lmadi.<br/>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">
+            ${escapeHtmlGlobal(e.message || e.code || String(e))}
+          </span><br/><br/>
+          <button class="abtn-primary" onclick="renderUsersTab()">Qayta urinish</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!users.length) {
+    box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hozircha foydalanuvchilar topilmadi.</div></div>`;
     return;
   }
 

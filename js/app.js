@@ -488,6 +488,15 @@ function computeBadges(stats) {
   return BADGE_DEFS.map(b => ({ ...b, earned: !!b.check(stats) }));
 }
 
+// Talaba hozir qaysi darajada ekanini aniqlaydi: ochiq va hali
+// tugallanmagan birinchi daraja — agar hammasi tugagan bo'lsa, oxirgi
+// (Upper-Intermediate) daraja qaytariladi.
+function currentLevelInfo(perLevel) {
+  const active = perLevel.find(p => p.unlocked && !p.isDone);
+  const chosen = active || perLevel[perLevel.length - 1];
+  return { id: chosen.level.id, name: chosen.level.name };
+}
+
 // ── Progressni eksport / import qilish ─────────────────────────────
 function exportProgress(user) {
   const payload = {
@@ -550,27 +559,23 @@ function leaderboardDocRef(uid) { return db.collection('leaderboard').doc(uid); 
 // flushPersist() har safar progress saqlanganda avtomatik chaqiradi.
 async function syncLeaderboardEntry() {
   if (!_currentUser || !_userDataCache) return;
-  const levelData = await loadAllWords();
-  const progress = _userDataCache.progress;
-  let totalLearned = 0, totalWords = 0;
+  const stats = await collectStats(_currentUser.uid);
+  const cur = currentLevelInfo(stats.perLevel);
+  const badgeCount = computeBadges(stats).filter(b => b.earned).length;
   const perLevel = {};
-  levelData.forEach(({ level, words }) => {
-    const learnedArr = Array.isArray(progress[level.id]) ? progress[level.id] : [];
-    const learned = learnedArr.filter(w => words.some(x => x.en.toLowerCase() === w)).length;
-    totalLearned += learned;
-    totalWords += words.length;
-    perLevel[level.id] = learned;
-  });
-  const streak = getStreak();
+  stats.perLevel.forEach(p => { perLevel[p.level.id] = p.learned; });
 
   await leaderboardDocRef(_currentUser.uid).set({
     name: publicDisplayName(_userNameCache, _currentUser.email),
-    totalLearned,
-    totalWords,
-    pct: totalWords ? Math.round((totalLearned / totalWords) * 100) : 0,
+    totalLearned: stats.totalLearned,
+    totalWords: stats.totalWords,
+    pct: stats.totalWords ? Math.round((stats.totalLearned / stats.totalWords) * 100) : 0,
     perLevel,
-    streakCurrent: streak.current,
-    streakLongest: streak.longest,
+    currentLevelId: cur.id,
+    currentLevelName: cur.name,
+    badgeCount,
+    streakCurrent: stats.streak.current,
+    streakLongest: stats.streak.longest,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   }, { merge: true });
 }
@@ -578,6 +583,13 @@ async function syncLeaderboardEntry() {
 // Reyting sahifasi uchun — hamma tizimga kirgan foydalanuvchilarga ochiq
 async function fetchLeaderboard() {
   const snap = await db.collection('leaderboard').orderBy('totalLearned', 'desc').limit(200).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Bosh sahifadagi qisqa reyting bo'limi uchun — faqat eng yaxshi N ta
+// talaba (mehmonlar ham ko'ra oladi, tizimga kirish shart emas).
+async function fetchTopLeaderboard(n) {
+  const snap = await db.collection('leaderboard').orderBy('totalLearned', 'desc').limit(n).get();
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 

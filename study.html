@@ -356,7 +356,10 @@ function renderCard() {
         <div class="face front">
           <span class="stamp-badge" id="stampBadge">${reviewMode ? 'ESLANDI' : "O'RGANILDI"}</span>
           <div class="eyebrow">Inglizcha</div>
-          <div class="word">${escapeHtml(item.en)}</div>
+          <div class="word-audio-row">
+            <div class="word">${escapeHtml(item.en)}</div>
+            ${speakBtnHtml(item.en)}
+          </div>
           ${item.ipa ? `<div class="ipa">/${escapeHtml(item.ipa)}/</div>` : ''}
           <div class="hint">Tarjimani ko'rish uchun bosing</div>
         </div>
@@ -539,7 +542,10 @@ function renderMiniTestCard() {
     <div class="minitest-score-row">${dotsHtml}</div>
     <div class="quiz-card">
       <div class="eyebrow">O'zbekchasi nima?</div>
-      <div class="quiz-word">${escapeHtml(word.en)}</div>
+      <div class="word-audio-row">
+        <div class="quiz-word">${escapeHtml(word.en)}</div>
+        ${speakBtnHtml(word.en)}
+      </div>
       ${word.ipa ? `<div class="ipa">/${escapeHtml(word.ipa)}/</div>` : ''}
       <div class="quiz-options" id="quizOpts">
         ${options.map((opt, i) => `

@@ -1556,3 +1556,111 @@ footer.site-foot {
 }
 .lb-row.compact .lb-avatar { width: 32px; height: 32px; font-size: 13px; }
 .lb-row.compact .lb-meta { display: none; }
+
+/* ── Bosh sahifadagi yagona reyting ro'yxati (podiumsiz, rasm bo'yicha) ── */
+.lb-list2 {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lb-row2 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  padding: 13px 18px;
+}
+.lb-row2-top {
+  background: linear-gradient(135deg, rgba(255,201,61,0.20), rgba(255,61,127,0.14));
+  border-color: rgba(255,201,61,0.6);
+  box-shadow: 0 10px 24px rgba(255,201,61,0.14);
+}
+.lb-rank2 {
+  width: 30px;
+  flex-shrink: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text-on-ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lb-medal2 {
+  position: relative;
+  width: 30px;
+  height: 40px;
+}
+.lb-medal2 .ribbon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 17px;
+  clip-path: polygon(0 0, 100% 0, 68% 100%, 50% 78%, 32% 100%);
+}
+.lb-medal2.gold .ribbon { background: linear-gradient(90deg, #E01F63 50%, #2FD5FF 50%); }
+.lb-medal2.silver .ribbon { background: linear-gradient(90deg, #E01F63 50%, #2FD5FF 50%); }
+.lb-medal2.bronze .ribbon { background: linear-gradient(90deg, #E01F63 50%, #2FD5FF 50%); }
+.lb-medal2 .disc {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 13px;
+  color: #4A3400;
+  border: 2px solid rgba(0,0,0,0.25);
+}
+.lb-medal2.gold .disc { background: linear-gradient(135deg, #FFE17A, #E8A939); }
+.lb-medal2.silver .disc { background: linear-gradient(135deg, #F2F2F5, #B9BFC7); color: #33363B; }
+.lb-medal2.bronze .disc { background: linear-gradient(135deg, #E3A06B, #A86336); color: #3A1F0A; }
+.lb-avatar2 {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-b), var(--bg-a));
+  color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  border: 2.5px solid rgba(255,255,255,0.35);
+}
+.lb-row2-top .lb-avatar2 { border-color: #FFC93D; }
+.lb-info2 { flex: 1; min-width: 0; }
+.lb-name2 {
+  font-weight: 700; font-size: 15px; color: #fff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-meta2 {
+  font-size: 12.5px; color: var(--text-on-ink-muted); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-divider2 {
+  width: 2px;
+  align-self: stretch;
+  background: rgba(255,255,255,0.18);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.lb-row2-top .lb-divider2 { background: #FFC93D; }
+.lb-nums2 { text-align: center; flex-shrink: 0; min-width: 50px; }
+.lb-num2 { font-family: var(--font-mono); font-weight: 800; font-size: 21px; color: #fff; }
+.lb-lbl2 { font-size: 10.5px; color: var(--text-on-ink-muted); margin-top: 1px; }
+
+@media (max-width: 480px) {
+  .lb-row2 { padding: 11px 12px; gap: 10px; }
+  .lb-avatar2 { width: 40px; height: 40px; font-size: 16px; }
+  .lb-name2 { font-size: 13.5px; }
+  .lb-meta2 { font-size: 11.5px; }
+  .lb-num2 { font-size: 18px; }
+}

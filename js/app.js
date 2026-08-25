@@ -40,6 +40,8 @@ function authReady() {
         if (user) {
           try { await loadUserData(user.uid); }
           catch (e) { console.error("Ma'lumotlarni yuklashda xatolik:", e); _userDataCache = emptyUserData(); }
+          try { await backfillEarningsIfNeeded(user.uid); }
+          catch (e) { console.error("Eski progress uchun mukofotni hisoblashda xatolik:", e); }
           try { checkEarningsReset(); }
           catch (e) { console.error("Mukofot holatini tekshirishda xatolik:", e); }
           try { await checkIsAdminStatus(user.uid); }
@@ -502,6 +504,25 @@ function addEarning(_user, amount) {
   earnings.balance += amount;
   earnings.lifetimeEarned += amount;
   saveEarnings(_user, earnings);
+}
+
+// Pul mukofoti funksiyasi qo'shilishidan OLDIN allaqachon o'rganilgan
+// so'zlar uchun ham mukofot berish (bir martalik migratsiya). Har bir
+// foydalanuvchida faqat bir marta ishlaydi — flags.earningsMigrated
+// bayrog'i orqali belgilanadi. Shundan keyin barcha yangi so'zlar odatiy
+// tartibda (markLearned ichida) hisoblanadi.
+async function backfillEarningsIfNeeded(_user) {
+  const flags = getFlags();
+  if (flags.earningsMigrated) return;
+  const stats = await collectStats(_user);
+  if (stats.totalLearned > 0) {
+    const amount = stats.totalLearned * EARNING_PER_WORD;
+    const earnings = getEarnings();
+    earnings.balance += amount;
+    earnings.lifetimeEarned += amount;
+    saveEarnings(_user, earnings);
+  }
+  setFlag(_user, 'earningsMigrated');
 }
 
 // Talaba pulni chiqarishga haqlimi: kamida MIN_WORDS_TO_WITHDRAW ta

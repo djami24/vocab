@@ -988,3 +988,23 @@ function shuffle(arr) {
   }
   return a;
 }
+
+// ── "powered by Djami" belgisi — har bir sahifada avtomatik chiqadi ──
+// position: fixed bo'lgani uchun sahifa qanchalik скролл qilinmasin,
+// belgi doim ekranning bir joyida (chap pastda) qoladi. "Djami" so'zi
+// css/style.css dagi @keyframes djami-flow orqali asta-sekin rang
+// oqib turadi (gradient flow).
+(function renderDjamiBadge() {
+  function mount() {
+    if (document.querySelector('.djami-powered-badge')) return;
+    const badge = document.createElement('div');
+    badge.className = 'djami-powered-badge';
+    badge.innerHTML = 'powered by&nbsp;<strong>Djami</strong>';
+    document.body.appendChild(badge);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();

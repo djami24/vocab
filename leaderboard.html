@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Reyting | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+
+<style>
+/* ── LEADERBOARD-SPECIFIC STYLES (asosiy uslubga mos) ─── */
+.lb-podium {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+@media (max-width: 640px) { .lb-podium { grid-template-columns: 1fr; } }
+
+.lb-podium-card {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 20px 16px 18px;
+  text-align: center;
+  color: var(--text-on-paper);
+  position: relative;
+}
+.lb-podium-card.gold { order: 2; transform: translateY(-10px); }
+.lb-podium-card.silver { order: 1; }
+.lb-podium-card.bronze { order: 3; }
+@media (max-width: 640px) {
+  .lb-podium-card.gold, .lb-podium-card.silver, .lb-podium-card.bronze { order: initial; transform: none; }
+}
+.lb-medal { font-size: 30px; }
+.lb-podium-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-b), var(--bg-a));
+  color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 8px auto 10px; border: 3px solid var(--ink);
+}
+.lb-podium-name {
+  font-weight: 700; font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-podium-num {
+  font-family: var(--font-mono); font-size: 22px; font-weight: 800;
+  color: var(--stamp-dark); margin-top: 6px;
+}
+.lb-podium-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+.lb-list {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lb-row {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop-sm);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-on-paper);
+}
+.lb-row.is-me {
+  background: linear-gradient(160deg, #FFF6E0, #FFE7C2);
+  border-color: var(--stamp-dark);
+}
+.lb-rank {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 16px;
+  width: 32px;
+  text-align: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.lb-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--bg-b), var(--bg-a));
+  color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border: 2px solid var(--ink);
+}
+.lb-info { flex: 1; min-width: 0; }
+.lb-name {
+  font-weight: 700; font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-name .me-tag {
+  font-size: 10px; font-weight: 700; color: var(--stamp-dark);
+  background: rgba(255,61,127,0.12); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
+}
+.lb-meta {
+  font-size: 11.5px; color: var(--text-muted); margin-top: 1px;
+}
+.lb-nums { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.lb-num-box { text-align: center; }
+.lb-num-val {
+  font-family: var(--font-mono); font-weight: 800; font-size: 17px; color: var(--stamp-dark);
+}
+.lb-num-lbl { font-size: 9.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.lb-bar-wrap {
+  margin-top: 6px;
+  height: 6px;
+  background: rgba(27,16,53,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lb-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--bg-b), var(--bg-a));
+  border-radius: 999px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">← Darajalar</a>
+      <a href="stats.html" class="chip-link">📊 Statistika</a>
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="dash-head">
+      <h1>🏆 Reyting</h1>
+      <p>Barcha talabalar orasida kim ko'proq so'z o'rgangan — jonli reyting.</p>
+    </div>
+
+    <div id="lbRoot">
+      <div class="empty-state"><div class="emoji">🏆</div><p>Yuklanmoqda...</p></div>
+    </div>
+  </div>
+
+  <footer class="site-foot">Reytingda faqat ismingiz va o'rgangan so'zlar soni ko'rinadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+let user = null;
+
+(async () => {
+  user = await requireAuth();
+  if (!user) return;
+  document.getElementById('userLabel').textContent = user;
+  render();
+})();
+
+async function render() {
+  const root = document.getElementById('lbRoot');
+  let entries = [];
+  try {
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi — internetni tekshiring')), ms))
+    ]);
+    entries = await withTimeout(fetchLeaderboard(), 15000);
+  } catch (e) {
+    root.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">⚠️</div>
+        <p>Reytingni yuklab bo'lmadi.<br/><span style="font-size:12px;opacity:.8">${escapeHtml(e.message || String(e))}</span></p>
+        <button class="btn-primary" style="margin-top:14px" onclick="render()">Qayta urinish</button>
+      </div>`;
+    return;
+  }
+
+  if (!entries.length) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">🌱</div><p>Hali hech kim so'z o'rganmagan — birinchi bo'ling!</p></div>`;
+    return;
+  }
+
+  const myUid = _currentUser ? _currentUser.uid : null;
+  const top3 = entries.slice(0, 3);
+  const rest = entries.slice(3);
+
+  const medalClass = ['gold', 'silver', 'bronze'];
+  const medalIcon = ['🥇', '🥈', '🥉'];
+
+  const podiumHtml = top3.length ? `
+    <div class="lb-podium">
+      ${top3.map((e, i) => `
+        <div class="lb-podium-card ${medalClass[i]}">
+          <div class="lb-medal">${medalIcon[i]}</div>
+          <div class="lb-podium-avatar">${escapeHtml((e.name || '?')[0].toUpperCase())}</div>
+          <div class="lb-podium-name">${escapeHtml(e.name || 'Talaba')}${e.id === myUid ? ' <span class="me-tag" style="display:inline-block;margin-top:2px">Siz</span>' : ''}</div>
+          <div class="lb-podium-num">${e.totalLearned || 0}</div>
+          <div class="lb-podium-lbl">so'z o'rgangan</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const listHtml = `
+    <div class="lb-list">
+      ${rest.map((e, i) => {
+        const rank = i + 4;
+        const isMe = e.id === myUid;
+        return `
+          <div class="lb-row ${isMe ? 'is-me' : ''}">
+            <div class="lb-rank">#${rank}</div>
+            <div class="lb-avatar">${escapeHtml((e.name || '?')[0].toUpperCase())}</div>
+            <div class="lb-info">
+              <div class="lb-name">${escapeHtml(e.name || 'Talaba')}${isMe ? '<span class="me-tag">Siz</span>' : ''}</div>
+              <div class="lb-meta">🔥 ${e.streakCurrent || 0} kunlik seriya</div>
+              <div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${e.pct || 0}%"></div></div>
+            </div>
+            <div class="lb-nums">
+              <div class="lb-num-box">
+                <div class="lb-num-val">${e.totalLearned || 0}</div>
+                <div class="lb-num-lbl">so'z</div>
+              </div>
+              <div class="lb-num-box">
+                <div class="lb-num-val">${e.pct || 0}%</div>
+                <div class="lb-num-lbl">progress</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  root.innerHTML = podiumHtml + listHtml;
+}
+
+function escapeHtml(str) { return escapeHtmlGlobal(str); }
+</script>
+</body>
+</html>

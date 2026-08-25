@@ -44,5 +44,16 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
       allow update: if false;
     }
+
+    // Reyting (leaderboard): har bir foydalanuvchi FAQAT o'zining
+    // xulosa hujjatini (ism + o'rgangan so'zlar soni) yoza oladi —
+    // boshqa birovning natijasini o'zgartira olmaydi. O'qish barcha
+    // tizimga kirgan foydalanuvchilarga ochiq — chunki bu reyting
+    // sahifasida hammaga ko'rinishi kerak. Bu yerda email yoki boshqa
+    // shaxsiy ma'lumot SAQLANMAYDI — faqat ism va son.
+    match /leaderboard/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }

@@ -13,6 +13,11 @@ const LEVELS = [
 const SESSION_SIZE = 10; // bitta o'qish sessiyasidagi so'zlar soni
 const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
 
+// ── Pul mukofoti (so'z uchun haq) sozlamalari ───────────────────────
+const EARNING_PER_WORD = 10;       // har bir YANGI o'rganilgan so'z uchun (so'm)
+const MIN_WORDS_TO_WITHDRAW = 2000; // pul chiqarish uchun kerak bo'lgan eng kam o'rganilgan so'z soni
+const INACTIVITY_RESET_DAYS = 3;    // shuncha kun ketma-ket kirmasa, yig'ilgan summa 0'ga tushadi
+
 // ── Firebase auth va foydalanuvchi ma'lumotlari keshi ──────────────
 // `auth` va `db` — js/firebase-config.js faylida yaratiladigan globallar.
 // Sahifa ochilganda ma'lumotlar Firestore'dan bir marta o'qiladi va
@@ -35,6 +40,8 @@ function authReady() {
         if (user) {
           try { await loadUserData(user.uid); }
           catch (e) { console.error("Ma'lumotlarni yuklashda xatolik:", e); _userDataCache = emptyUserData(); }
+          try { checkEarningsReset(); }
+          catch (e) { console.error("Mukofot holatini tekshirishda xatolik:", e); }
           try { await checkIsAdminStatus(user.uid); }
           catch (e) { console.error('Admin holatini tekshirishda xatolik:', e); _isAdminCache = false; }
           // Reyting yozuvini har safar (istalgan sahifa ochilganda) yangilab
@@ -113,7 +120,23 @@ function emptyUserData() {
   progress.later = {};
   progress.reviews = {};
   LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; });
-  return { progress, activity: {}, flags: {} };
+  return { progress, activity: {}, flags: {}, earnings: emptyEarnings() };
+}
+
+// Pul mukofoti uchun boshlang'ich holat.
+// balance — hozir yig'ilgan, hali chiqarilmagan summa (nofaollikda 0'ga tushadi)
+// lifetimeEarned — jami HECH QACHON kamaymaydigan yig'indi (admin statistikasi uchun)
+// cashWithdrawn / tuitionWithdrawn — jami naqd olingan / markaz to'loviga o'tkazilgan summa
+// history — oxirgi chiqarishlar/nofaollik tufayli nolga tushishlar jurnali
+function emptyEarnings() {
+  return {
+    balance: 0,
+    lifetimeEarned: 0,
+    cashWithdrawn: 0,
+    tuitionWithdrawn: 0,
+    lastActiveDate: null,
+    history: [],
+  };
 }
 
 function normalizeUserData(data) {
@@ -128,6 +151,17 @@ function normalizeUserData(data) {
   }
   if (data && data.activity && typeof data.activity === 'object') out.activity = data.activity;
   if (data && data.flags && typeof data.flags === 'object') out.flags = data.flags;
+  if (data && data.earnings && typeof data.earnings === 'object') {
+    const e = data.earnings;
+    out.earnings = {
+      balance: typeof e.balance === 'number' ? e.balance : 0,
+      lifetimeEarned: typeof e.lifetimeEarned === 'number' ? e.lifetimeEarned : 0,
+      cashWithdrawn: typeof e.cashWithdrawn === 'number' ? e.cashWithdrawn : 0,
+      tuitionWithdrawn: typeof e.tuitionWithdrawn === 'number' ? e.tuitionWithdrawn : 0,
+      lastActiveDate: typeof e.lastActiveDate === 'string' ? e.lastActiveDate : null,
+      history: Array.isArray(e.history) ? e.history : [],
+    };
+  }
   return out;
 }
 
@@ -205,6 +239,7 @@ const DEFAULT_SITE_SETTINGS = {
   loginSubtitle: "Email va parolingiz bilan kiring.",
   registerSubtitle: "Progressingiz bulutda saqlanadi — istalgan qurilmadan kirishingiz mumkin.",
   authNote: "Ma'lumotlaringiz Firebase bulutida xavfsiz saqlanadi — istalgan qurilmadan kirib, davom ettirishingiz mumkin.",
+  tuitionTotal: "400000", // o'quv markazi to'liq tuloviga (so'mda) — pul mukofoti shundan ayiriladi
 };
 
 function siteSettingsDocRef() { return db.collection('settings').doc('site'); }
@@ -304,7 +339,10 @@ function markLearned(_user, levelId, enWord) {
   }
 
   saveProgress(_user, progress);
-  if (wasNew) recordActivity(_user);
+  if (wasNew) {
+    recordActivity(_user);
+    addEarning(_user, EARNING_PER_WORD); // har bir yangi so'z uchun pul mukofoti
+  }
   return progress;
 }
 
@@ -413,6 +451,100 @@ function setFlag(_user, name) {
   flags[name] = true;
   _userDataCache.flags = flags;
   persistUserData();
+}
+
+// ── Pul mukofoti (har bir o'rganilgan so'z uchun) ───────────────────
+// Hujjat tuzilishi uchun emptyEarnings()'ga qarang. Muhim qoida:
+// `balance` — talaba hozir CHIQARIB OLISHI mumkin bo'lgan summa. Agar
+// talaba 3 kun ketma-ket profiliga kirmasa, shu maydon 0'ga tushadi
+// (checkEarningsReset orqali) — lekin `lifetimeEarned` va o'rganilgan
+// so'zlar soni (haqiqiy progress) hech qachon kamaymaydi.
+function getEarnings(_user) {
+  if (!_userDataCache.earnings) _userDataCache.earnings = emptyEarnings();
+  return _userDataCache.earnings;
+}
+function saveEarnings(_user, earnings) {
+  _userDataCache.earnings = earnings;
+  persistUserData();
+}
+
+function daysBetween(dateStrA, dateStrB) {
+  const a = new Date(dateStrA + 'T00:00:00');
+  const b = new Date(dateStrB + 'T00:00:00');
+  return Math.round((b - a) / 86400000);
+}
+
+// Har bir sahifa ochilib, foydalanuvchi tizimga kirgan holatda
+// authReady() ichida chaqiriladi. Agar oxirgi faollikdan beri
+// INACTIVITY_RESET_DAYS kun (yoki undan ko'p) uzilish bo'lsa —
+// ya'ni talaba shuncha kun ketma-ket profiliga kirmagan bo'lsa —
+// yig'ilgan (hali chiqarilmagan) summa 0'ga tushadi. So'ngra so'z
+// o'rganishni davom ettirsa, summa yana boshidan hisoblana boshlaydi.
+function checkEarningsReset() {
+  const earnings = getEarnings();
+  const today = todayStr();
+  if (earnings.lastActiveDate) {
+    const gap = daysBetween(earnings.lastActiveDate, today);
+    if (gap >= INACTIVITY_RESET_DAYS + 1 && earnings.balance > 0) {
+      const lost = earnings.balance;
+      earnings.balance = 0;
+      earnings.history = earnings.history || [];
+      earnings.history.push({ type: 'reset', amount: lost, date: today });
+      if (earnings.history.length > 50) earnings.history = earnings.history.slice(-50);
+    }
+  }
+  earnings.lastActiveDate = today;
+  saveEarnings(_currentUser && _currentUser.uid, earnings);
+}
+
+function addEarning(_user, amount) {
+  const earnings = getEarnings();
+  earnings.balance += amount;
+  earnings.lifetimeEarned += amount;
+  saveEarnings(_user, earnings);
+}
+
+// Talaba pulni chiqarishga haqlimi: kamida MIN_WORDS_TO_WITHDRAW ta
+// so'z o'rgangan (haqiqiy, data/*.json'dagi so'zlar bo'yicha
+// tekshirilgan progress — collectStats orqali) va hozirgi balansi 0'dan katta.
+async function getWithdrawEligibility(_user) {
+  const stats = await collectStats(_user);
+  const earnings = getEarnings();
+  return {
+    eligible: stats.totalLearned >= MIN_WORDS_TO_WITHDRAW && earnings.balance > 0,
+    totalLearned: stats.totalLearned,
+    needed: MIN_WORDS_TO_WITHDRAW,
+    balance: earnings.balance,
+  };
+}
+
+// Joriy balansni naqd yoki o'quv markazi to'loviga chiqarib oladi.
+// type: 'cash' | 'tuition'. Muvaffaqiyatli bo'lsa, chiqarilgan summani qaytaradi.
+async function withdrawEarnings(_user, type) {
+  if (type !== 'cash' && type !== 'tuition') throw new Error("Noto'g'ri chiqarish turi");
+  const elig = await getWithdrawEligibility(_user);
+  if (!elig.eligible) {
+    if (elig.balance <= 0) throw new Error("Hozircha chiqarish uchun mablag' yo'q.");
+    throw new Error(`Pul chiqarish uchun kamida ${MIN_WORDS_TO_WITHDRAW} ta so'z o'rganishingiz kerak (hozir: ${elig.totalLearned}).`);
+  }
+  const earnings = getEarnings();
+  const amount = earnings.balance;
+  earnings.balance = 0;
+  if (type === 'cash') earnings.cashWithdrawn += amount;
+  else earnings.tuitionWithdrawn += amount;
+  earnings.history = earnings.history || [];
+  earnings.history.push({ type, amount, date: todayStr() });
+  if (earnings.history.length > 50) earnings.history = earnings.history.slice(-50);
+  saveEarnings(_user, earnings);
+  await flushPersist(); // pul amaliyoti — kechiktirmasdan darhol saqlaymiz
+  return amount;
+}
+
+// Sayt sozlamalaridagi jami o'quv markazi to'lovi (masalan 400 000 so'm)
+// asosida, talaba markaz to'loviga o'tkazgan summalarni ayirib, hali
+// TO'LASHI kerak bo'lgan qoldiqni hisoblaydi.
+function tuitionRemaining(tuitionTotal, tuitionWithdrawn) {
+  return Math.max(0, (Number(tuitionTotal) || 0) - (Number(tuitionWithdrawn) || 0));
 }
 
 // ── Yutuqlar (badges) ───────────────────────────────────────────────

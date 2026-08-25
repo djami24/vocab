@@ -239,6 +239,61 @@ body {
   line-height: 1.55 !important;
 }
 
+/* ── EARNINGS SUMMARY ─── */
+.earn-summary-row {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+  gap: 12px !important;
+  margin-bottom: 22px !important;
+}
+.earn-summary-box {
+  background: #16151c !important;
+  border: 1px solid #2a2835 !important;
+  border-radius: 12px !important;
+  padding: 16px 18px !important;
+}
+.earn-summary-val {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  color: #FFC93D !important;
+}
+.earn-summary-lbl {
+  font-size: 11px !important;
+  color: #7c7a8e !important;
+  margin-top: 4px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+.earn-elig-badge {
+  display: inline-block !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  margin-top: 6px !important;
+}
+.earn-elig-badge.yes { background: rgba(23,214,124,0.16) !important; color: #17D67C !important; }
+.earn-elig-badge.no { background: rgba(255,255,255,0.06) !important; color: #7c7a8e !important; }
+.earn-tuition-bar-track {
+  margin-top: 8px !important;
+  height: 8px !important;
+  border-radius: 999px !important;
+  background: #0f0f13 !important;
+  border: 1px solid #2a2835 !important;
+  overflow: hidden !important;
+  max-width: 220px !important;
+}
+.earn-tuition-bar-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #00D9C0, #7B2FF7) !important;
+}
+.earn-hist-mini {
+  font-size: 11px !important;
+  color: #7c7a8e !important;
+  margin-top: 3px !important;
+}
+
 /* ── FORM FIELDS ─── */
 .afield {
   margin-bottom: 18px !important;
@@ -971,6 +1026,10 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
       <span class="nav-icon">📊</span>
       Talabalar statistikasi
     </button>
+    <button class="sidebar-nav-btn" data-tab="earnings">
+      <span class="nav-icon">💰</span>
+      Pul mukofoti
+    </button>
   </nav>
 
   <!-- MAIN -->
@@ -1014,6 +1073,17 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
         <p>Har bir talabaning o'rganish jarayoni, darajalar bo'yicha progress va faollik tarixi.</p>
       </div>
       <div id="studentsContent">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+    <!-- EARNINGS TAB -->
+    <div class="admin-section" id="secEarnings">
+      <div class="page-header">
+        <h1>💰 Pul mukofoti</h1>
+        <p>Har bir talabaning yig'gan balansi, chiqargan (naqd / markaz to'lovi) summalari va o'quv markaziga to'lash qolgan qoldiq.</p>
+      </div>
+      <div id="earningsContent">
         <div class="log-empty"><span class="spinner"></span></div>
       </div>
     </div>
@@ -1075,7 +1145,7 @@ let user = null;
       document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
-      const map = { settings: 'secSettings', log: 'secLog', users: 'secUsers', students: 'secStudents' };
+      const map = { settings: 'secSettings', log: 'secLog', users: 'secUsers', students: 'secStudents', earnings: 'secEarnings' };
       document.getElementById(map[btn.dataset.tab]).classList.add('active');
     });
   });
@@ -1084,6 +1154,7 @@ let user = null;
   renderLogTab();
   renderUsersTab();
   renderStudentsTab();
+  renderEarningsTab();
 })();
 
 // ── SETTINGS TAB ─────────────────────────────────────
@@ -1129,6 +1200,16 @@ async function renderSettingsTab() {
       </div>
     </div>
 
+    <div class="acard">
+      <div class="acard-title">💰 Pul mukofoti</div>
+      <div class="acard-sub">Har bir o'rgangan so'z uchun ${EARNING_PER_WORD} so'm avtomatik yig'iladi (kod ichida belgilangan). Bu yerda faqat o'quv markazi to'liq to'lovi miqdorini sozlang.</div>
+      <div class="afield">
+        <label>O'quv markazi to'liq to'lovi (so'mda)</label>
+        <input type="number" min="0" step="1000" id="fTuitionTotal" value="${escapeAttr(s.tuitionTotal || '400000')}"/>
+        <div class="afield-hint">Talaba balansini markaz to'loviga o'tkazganda, shu summadan ayirilib boradi.</div>
+      </div>
+    </div>
+
     <div style="display:flex; align-items:center; gap:12px">
       <button class="abtn-primary" id="settingsSaveBtn" onclick="saveSettings()">
         Saqlash
@@ -1155,6 +1236,7 @@ async function saveSettings() {
       loginSubtitle: document.getElementById('fLoginSubtitle').value.trim(),
       registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
       authNote: document.getElementById('fAuthNote').value.trim(),
+      tuitionTotal: String(Math.max(0, Number(document.getElementById('fTuitionTotal').value) || 0)),
     });
     ok.classList.add('show');
     setTimeout(() => ok.classList.remove('show'), 3000);
@@ -1696,6 +1778,209 @@ function renderStudentsList() {
 
 function toggleStudentCard(id) {
   const card = document.getElementById('scard-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+// ── EARNINGS TAB (Pul mukofoti) ─────────────────────────
+let _earningsCache = null;
+let _earningsTuitionTotal = 400000;
+
+async function renderEarningsTab() {
+  const box = document.getElementById('earningsContent');
+  try {
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (20s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
+    ]);
+
+    const [users, levelData, settings] = await withTimeout(
+      Promise.all([fetchAllUsersAdmin(), loadAllWords(), loadSiteSettings()]),
+      20000
+    );
+
+    _earningsTuitionTotal = Number(settings.tuitionTotal) || 400000;
+    _earningsCache = users.map(u => computeEarningsStats(u, levelData));
+  } catch (e) {
+    console.error('renderEarningsTab xatoligi:', e);
+    box.innerHTML = `
+      <div class="log-table-wrap">
+        <div class="log-empty">
+          ⚠ Pul mukofoti ma'lumotlarini yuklab bo'lmadi.<br/>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">
+            ${escapeHtmlGlobal(e.message || e.code || String(e))}
+          </span><br/><br/>
+          <button class="abtn-primary" onclick="renderEarningsTab()">Qayta urinish</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!_earningsCache.length) {
+    box.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Hozircha talabalar topilmadi.</div></div>`;
+    return;
+  }
+
+  const totalBalance = _earningsCache.reduce((s, e) => s + e.balance, 0);
+  const totalLifetime = _earningsCache.reduce((s, e) => s + e.lifetimeEarned, 0);
+  const totalCash = _earningsCache.reduce((s, e) => s + e.cashWithdrawn, 0);
+  const totalTuition = _earningsCache.reduce((s, e) => s + e.tuitionWithdrawn, 0);
+  const eligibleCount = _earningsCache.filter(e => e.eligible).length;
+
+  box.innerHTML = `
+    <div class="earn-summary-row">
+      <div class="earn-summary-box">
+        <div class="earn-summary-val">${totalBalance.toLocaleString('en-US')}</div>
+        <div class="earn-summary-lbl">Jami joriy balans (so'm)</div>
+      </div>
+      <div class="earn-summary-box">
+        <div class="earn-summary-val">${totalLifetime.toLocaleString('en-US')}</div>
+        <div class="earn-summary-lbl">Umrbod yig'ilgan (so'm)</div>
+      </div>
+      <div class="earn-summary-box">
+        <div class="earn-summary-val">${totalCash.toLocaleString('en-US')}</div>
+        <div class="earn-summary-lbl">Jami naqd chiqarilgan</div>
+      </div>
+      <div class="earn-summary-box">
+        <div class="earn-summary-val">${totalTuition.toLocaleString('en-US')}</div>
+        <div class="earn-summary-lbl">Markaz to'loviga o'tkazilgan</div>
+      </div>
+      <div class="earn-summary-box">
+        <div class="earn-summary-val">${eligibleCount} / ${_earningsCache.length}</div>
+        <div class="earn-summary-lbl">Chiqarishga haqli talabalar (≥${MIN_WORDS_TO_WITHDRAW} so'z)</div>
+      </div>
+    </div>
+    <div class="students-toolbar">
+      <div class="students-search-wrap">
+        <span class="students-search-icon">🔍</span>
+        <input type="text" id="earningsSearch" placeholder="Ism yoki email bo'yicha qidiring..." oninput="renderEarningsList()"/>
+      </div>
+      <select class="sort-select" id="earningsSort" onchange="renderEarningsList()">
+        <option value="balance_desc">Balans (ko'p) ↓</option>
+        <option value="balance_asc">Balans (kam) ↑</option>
+        <option value="lifetime_desc">Umrbod yig'ilgan ↓</option>
+        <option value="tuition_desc">Markazga o'tkazilgan ↓</option>
+        <option value="email">Ism / Email (A-Z)</option>
+      </select>
+    </div>
+    <div id="earningsList"></div>
+  `;
+
+  renderEarningsList();
+}
+
+function computeEarningsStats(userDoc, levelData) {
+  const progress = (userDoc.progress && typeof userDoc.progress === 'object') ? userDoc.progress : {};
+  const e = (userDoc.earnings && typeof userDoc.earnings === 'object') ? userDoc.earnings : {};
+
+  let totalLearned = 0;
+  LEVELS.forEach(level => {
+    const words = (levelData.find(ld => ld.level.id === level.id) || {}).words || [];
+    const learnedArr = Array.isArray(progress[level.id]) ? progress[level.id] : [];
+    totalLearned += learnedArr.filter(w => words.some(x => x.en.toLowerCase() === w)).length;
+  });
+
+  const balance = typeof e.balance === 'number' ? e.balance : 0;
+  const lifetimeEarned = typeof e.lifetimeEarned === 'number' ? e.lifetimeEarned : 0;
+  const cashWithdrawn = typeof e.cashWithdrawn === 'number' ? e.cashWithdrawn : 0;
+  const tuitionWithdrawn = typeof e.tuitionWithdrawn === 'number' ? e.tuitionWithdrawn : 0;
+  const history = Array.isArray(e.history) ? e.history : [];
+  const lastEvent = history.length ? history[history.length - 1] : null;
+
+  return {
+    id: userDoc.id,
+    name: (userDoc.name && userDoc.name.trim()) ? userDoc.name.trim() : '',
+    email: userDoc.email || userDoc.id,
+    totalLearned,
+    balance,
+    lifetimeEarned,
+    cashWithdrawn,
+    tuitionWithdrawn,
+    history,
+    lastEvent,
+    eligible: totalLearned >= MIN_WORDS_TO_WITHDRAW,
+  };
+}
+
+function renderEarningsList() {
+  const listBox = document.getElementById('earningsList');
+  if (!listBox || !_earningsCache) return;
+
+  const q = (document.getElementById('earningsSearch')?.value || '').toLowerCase();
+  const sortVal = document.getElementById('earningsSort')?.value || 'balance_desc';
+
+  let list = _earningsCache.filter(s =>
+    s.email.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+  );
+
+  list = list.slice().sort((a, b) => {
+    switch (sortVal) {
+      case 'balance_asc': return a.balance - b.balance;
+      case 'lifetime_desc': return b.lifetimeEarned - a.lifetimeEarned;
+      case 'tuition_desc': return b.tuitionWithdrawn - a.tuitionWithdrawn;
+      case 'email': return (a.name || a.email).localeCompare(b.name || b.email);
+      case 'balance_desc':
+      default: return b.balance - a.balance;
+    }
+  });
+
+  if (!list.length) {
+    listBox.innerHTML = `<div class="log-table-wrap"><div class="log-empty">Qidiruvga mos talaba topilmadi.</div></div>`;
+    return;
+  }
+
+  listBox.innerHTML = list.map(s => {
+    const remaining = Math.max(0, _earningsTuitionTotal - s.tuitionWithdrawn);
+    const tuitionPct = _earningsTuitionTotal > 0 ? Math.min(100, Math.round((s.tuitionWithdrawn / _earningsTuitionTotal) * 100)) : 0;
+    return `
+    <div class="student-card" id="ecard-${s.id}" onclick="toggleEarningsCard('${s.id}')">
+      <div class="student-header">
+        <div class="student-avatar">${escapeHtmlGlobal(((s.name || s.email)[0] || '?').toUpperCase())}</div>
+        <div class="student-info">
+          <div class="student-email">${escapeHtmlGlobal(s.name || s.email)}</div>
+          <div class="student-meta">
+            ${s.name ? escapeHtmlGlobal(s.email) + ' · ' : ''}${s.totalLearned} so'z o'rgangan
+            <span class="earn-elig-badge ${s.eligible ? 'yes' : 'no'}">${s.eligible ? '✓ Chiqarishga haqli' : `Kamida ${MIN_WORDS_TO_WITHDRAW} so'z kerak`}</span>
+          </div>
+        </div>
+        <div class="student-summary">
+          <div class="stat-pill">
+            <span class="stat-pill-val">${s.balance.toLocaleString('en-US')}</span>
+            <span class="stat-pill-lbl">Balans</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-val">${s.cashWithdrawn.toLocaleString('en-US')}</span>
+            <span class="stat-pill-lbl">Naqd</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-val">${s.tuitionWithdrawn.toLocaleString('en-US')}</span>
+            <span class="stat-pill-lbl">Markazga</span>
+          </div>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="student-details">
+        <div style="margin-bottom:16px">
+          <div class="stat-pill-lbl" style="margin-bottom:6px">O'quv markazi to'lovi qoldig'i</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:#e8e6f0">
+            ${remaining.toLocaleString('en-US')} so'm <span style="color:#7c7a8e; font-weight:400; font-size:12px">/ ${_earningsTuitionTotal.toLocaleString('en-US')} so'mdan</span>
+          </div>
+          <div class="earn-tuition-bar-track"><div class="earn-tuition-bar-fill" style="width:${tuitionPct}%"></div></div>
+        </div>
+        <div class="stat-pill-lbl" style="margin-bottom:8px">Chiqarishlar tarixi</div>
+        ${s.history.length ? s.history.slice().reverse().slice(0, 10).map(h => `
+          <div class="earn-hist-mini">
+            ${h.date} — ${h.type === 'cash' ? 'Naqd chiqarildi' : h.type === 'tuition' ? "Markaz to'loviga o'tkazildi" : 'Nofaollik sababli balans nolga tushdi'}:
+            <b style="color:${h.type === 'reset' ? '#f87171' : '#17D67C'}">${h.type === 'reset' ? '−' : '+'}${Number(h.amount || 0).toLocaleString('en-US')} so'm</b>
+          </div>
+        `).join('') : `<div class="earn-hist-mini">Hali hech qanday chiqarish bo'lmagan.</div>`}
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function toggleEarningsCard(id) {
+  const card = document.getElementById('ecard-' + id);
   if (card) card.classList.toggle('expanded');
 }
 

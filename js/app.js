@@ -221,11 +221,16 @@ async function flushPersist() {
   clearTimeout(_persistTimer);
   if (!_currentUser || !_userDataCache) return;
   try {
-    await userDocRef(_currentUser.uid).set({
+    const dataToSave = {
       progress: _userDataCache.progress,
       activity: _userDataCache.activity,
       flags: _userDataCache.flags,
-    }, { merge: true });
+    };
+    // earnings mavjud bo'lsa, uni ham saqlash (pul mukofoti ma'lumotlari)
+    if (_userDataCache.earnings && typeof _userDataCache.earnings === 'object') {
+      dataToSave.earnings = _userDataCache.earnings;
+    }
+    await userDocRef(_currentUser.uid).set(dataToSave, { merge: true });
   } catch (e) { console.error('Saqlashda xatolik:', e); }
   // Progress saqlangach, reyting yozuvini ham fonda yangilab qo'yamiz
   // (xato bo'lsa ham asosiy saqlashga ta'sir qilmasin — shuning uchun alohida catch)

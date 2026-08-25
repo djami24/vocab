@@ -1824,6 +1824,7 @@ async function renderEarningsTab() {
   const totalLifetime = _earningsCache.reduce((s, e) => s + e.lifetimeEarned, 0);
   const totalCash = _earningsCache.reduce((s, e) => s + e.cashWithdrawn, 0);
   const totalTuition = _earningsCache.reduce((s, e) => s + e.tuitionWithdrawn, 0);
+  const totalSpent = totalCash + totalTuition; // jami "yegan" — naqd + markaz to'lovi
   const eligibleCount = _earningsCache.filter(e => e.eligible).length;
 
   box.innerHTML = `
@@ -1835,6 +1836,10 @@ async function renderEarningsTab() {
       <div class="earn-summary-box">
         <div class="earn-summary-val">${totalLifetime.toLocaleString('en-US')}</div>
         <div class="earn-summary-lbl">Umrbod yig'ilgan (so'm)</div>
+      </div>
+      <div class="earn-summary-box" style="border: 1px solid rgba(255,180,0,0.3); background: rgba(255,180,0,0.07);">
+        <div class="earn-summary-val" style="color:#f5c842">${totalSpent.toLocaleString('en-US')}</div>
+        <div class="earn-summary-lbl">Jami sarflangan (naqd + markaz)</div>
       </div>
       <div class="earn-summary-box">
         <div class="earn-summary-val">${totalCash.toLocaleString('en-US')}</div>
@@ -1946,6 +1951,10 @@ function renderEarningsList() {
           <div class="stat-pill">
             <span class="stat-pill-val">${s.balance.toLocaleString('en-US')}</span>
             <span class="stat-pill-lbl">Balans</span>
+          </div>
+          <div class="stat-pill" style="border-color: rgba(245,200,66,0.3); background: rgba(245,200,66,0.07);">
+            <span class="stat-pill-val" style="color:#f5c842">${(s.cashWithdrawn + s.tuitionWithdrawn).toLocaleString('en-US')}</span>
+            <span class="stat-pill-lbl">Jami sarflagan</span>
           </div>
           <div class="stat-pill">
             <span class="stat-pill-val">${s.cashWithdrawn.toLocaleString('en-US')}</span>

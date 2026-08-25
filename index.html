@@ -130,7 +130,11 @@
     try {
       entries = await fetchTopLeaderboard(30);
     } catch (e) {
-      root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Reytingni yuklab bo'lmadi.</p></div>`;
+      root.innerHTML = `
+        <div class="empty-state">
+          <div class="emoji">⚠️</div>
+          <p>Reytingni yuklab bo'lmadi.<br/><span style="font-size:12px;opacity:.8">${escapeHtmlGlobal(e.message || String(e))}</span></p>
+        </div>`;
       return;
     }
 

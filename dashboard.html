@@ -19,6 +19,7 @@
       <a href="games.html" class="chip-link">🎮 O'yinlar</a>
       <a href="stats.html" class="chip-link">📊 Statistika</a>
       <a href="leaderboard.html" class="chip-link">🏆 Reyting</a>
+      <a href="wallet.html" class="chip-link">💰 Hamyon</a>
       <a href="admin.html" class="chip-link" id="adminLink" style="display:none">🛠 Admin panel</a>
       <span id="userLabel">—</span>
       <button id="logoutBtn">Chiqish</button>
@@ -137,6 +138,10 @@
         <span class="sp-num">🔥 ${stats.streak.current}</span>
         <span class="sp-lbl">Kunlik seriya</span>
       </div>
+      <button class="stat-pill" style="cursor:pointer; text-align:left; border-color:var(--mustard)" onclick="location.href='wallet.html'">
+        <span class="sp-num" style="color:#B8860B">💰 ${Math.round(getEarnings(user).balance).toLocaleString('en-US')}</span>
+        <span class="sp-lbl">Hamyon (so'm) — bosing</span>
+      </button>
     `;
   }
 

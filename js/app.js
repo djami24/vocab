@@ -876,6 +876,48 @@ async function deleteTestimonial(uid) {
   await testimonialDocRef(uid).delete();
 }
 
+// ── So'zni ovozda o'qish (talaffuz) ─────────────────────────────
+// Brauzerning o'zidagi Speech Synthesis API'sidan foydalanadi —
+// internetdan audio fayl yuklash shart emas. Mavjud bo'lsa inglizcha
+// ovozni tanlaydi (ro'yxat ba'zi brauzerlarda kechroq keladi, shuning
+// uchun voiceschanged hodisasida ham qayta tanlanadi).
+let _enVoice = null;
+function _pickEnglishVoice() {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  return voices.find(v => v.lang === 'en-US') ||
+         voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
+         null;
+}
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  _enVoice = _pickEnglishVoice();
+  speechSynthesis.onvoiceschanged = () => { _enVoice = _pickEnglishVoice(); };
+}
+
+// So'zni (odatda inglizcha) ovozda o'qiydi. Qo'llab-quvvatlanmasa
+// (juda eski brauzer) — sekin jim o'tkazib yuboradi.
+function speakWord(text) {
+  if (!('speechSynthesis' in window) || !text) return;
+  try {
+    speechSynthesis.cancel(); // oldingi o'qishni to'xtatib, yangisini boshlaydi
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    if (_enVoice) utter.voice = _enVoice;
+    utter.rate = 0.9;
+    speechSynthesis.speak(utter);
+  } catch (e) { console.error("Ovozda o'qishda xatolik:", e); }
+}
+
+// "🔊" tugmasi uchun umumiy HTML — so'z data-word atributida (HTML
+// tarzida ekranlangan holda) saqlanadi, shunda apostrof/qo'shtirnoq
+// kabi belgilar JS satriga noto'g'ri kiritilib qolmaydi. Bosilganda
+// atrofdagi elementga (masalan flashcard flip) hodisa tarqalmasligi
+// uchun stopPropagation chaqiriladi.
+function speakBtnHtml(word) {
+  return `<button type="button" class="speak-btn" data-word="${escapeHtmlGlobal(word)}" onclick="event.stopPropagation(); speakWord(this.dataset.word)" aria-label="Talaffuzni eshitish" title="Talaffuzni eshitish">🔊</button>`;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

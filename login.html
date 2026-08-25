@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Kirish | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<style>
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.login-brand {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 28px;
+  letter-spacing: -0.03em;
+}
+.login-brand .dot { color: var(--mustard, #f5a623); }
+.login-back {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 20px;
+  align-self: flex-start;
+  max-width: 380px;
+  width: 100%;
+}
+.login-back:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <a href="index.html" class="login-back">← Bosh sahifa</a>
+
+  <div class="auth-box" style="max-width:420px; width:100%;">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" id="tabLogin">Kirish</button>
+      <button type="button" class="auth-tab" id="tabRegister">Ro'yxatdan o'tish</button>
+    </div>
+
+    <!-- ── KIRISH ─────────────────────────────────────────── -->
+    <div class="auth-panel active" id="panelLogin">
+      <h2>Xush kelibsiz</h2>
+      <p class="sub" id="loginSubtitle">Email va parolingiz bilan kiring.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="siz@misol.com" autocomplete="email" required/>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Parol</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required/>
+        </div>
+        <div class="form-error" id="loginError"></div>
+        <div class="form-success" id="loginSuccess"></div>
+        <button type="submit" class="btn-primary" id="loginSubmit">Kirish →</button>
+      </form>
+
+      <p class="form-note">
+        <button type="button" class="link-btn" id="forgotBtn">Parolni unutdingizmi?</button>
+      </p>
+    </div>
+
+    <!-- ── RO'YXATDAN O'TISH ──────────────────────────────── -->
+    <div class="auth-panel" id="panelRegister">
+      <h2>Hisob yarating</h2>
+      <p class="sub" id="registerSubtitle">Progressingiz bulutda saqlanadi — istalgan qurilmadan kirishingiz mumkin.</p>
+
+      <form id="registerForm">
+        <div class="field">
+          <label for="registerName">Ismingiz</label>
+          <input type="text" id="registerName" placeholder="Ism Familiya" autocomplete="name" required/>
+        </div>
+        <div class="field">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" placeholder="siz@misol.com" autocomplete="email" required/>
+        </div>
+        <div class="field">
+          <label for="registerPassword">Parol</label>
+          <input type="password" id="registerPassword" placeholder="••••••••" autocomplete="new-password" required/>
+          <div class="field-hint">Kamida 6 ta belgi</div>
+        </div>
+        <div class="form-error" id="registerError"></div>
+        <button type="submit" class="btn-primary" id="registerSubmit">Ro'yxatdan o'tish →</button>
+      </form>
+    </div>
+
+    <p class="form-note" style="margin-top:18px" id="authNote">Ma'lumotlaringiz Firebase bulutida xavfsiz saqlanadi — istalgan qurilmadan kirib, davom ettirishingiz mumkin.</p>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Allaqachon login bo'lsa dashboardga
+  auth.onAuthStateChanged((user) => {
+    if (user) location.href = 'dashboard.html';
+  });
+
+  // URL parametridan boshlang'ich tabni aniqlash (?tab=register)
+  const params = new URLSearchParams(location.search);
+  const tabParam = params.get('tab');
+
+  // Firestore'dan matnlarni yuklash
+  (async () => {
+    const s = await loadSiteSettings();
+    document.getElementById('loginSubtitle').textContent    = s.loginSubtitle;
+    document.getElementById('registerSubtitle').textContent = s.registerSubtitle;
+    document.getElementById('authNote').textContent         = s.authNote;
+  })();
+
+  // ── Tablarni almashtirish ─────────────────────────────────────
+  const tabLogin     = document.getElementById('tabLogin');
+  const tabRegister  = document.getElementById('tabRegister');
+  const panelLogin   = document.getElementById('panelLogin');
+  const panelRegister = document.getElementById('panelRegister');
+
+  function showTab(which) {
+    const isLogin = which === 'login';
+    tabLogin.classList.toggle('active', isLogin);
+    tabRegister.classList.toggle('active', !isLogin);
+    panelLogin.classList.toggle('active', isLogin);
+    panelRegister.classList.toggle('active', !isLogin);
+  }
+
+  tabLogin.addEventListener('click',    () => showTab('login'));
+  tabRegister.addEventListener('click', () => showTab('register'));
+
+  // URL parametriga qarab tab tanlash
+  if (tabParam === 'register') showTab('register');
+
+  // ── Kirish ──────────────────────────────────────────────────────
+  const loginError   = document.getElementById('loginError');
+  const loginSuccess = document.getElementById('loginSuccess');
+  const loginSubmit  = document.getElementById('loginSubmit');
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.classList.remove('show');
+    loginSuccess.classList.remove('show');
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Kirilmoqda...';
+    try {
+      await loginUser(email, password);
+      location.href = 'dashboard.html';
+    } catch (err) {
+      loginError.textContent = authErrorMessage(err);
+      loginError.classList.add('show');
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Kirish →';
+    }
+  });
+
+  // ── Parolni unutdingizmi ──────────────────────────────────────
+  document.getElementById('forgotBtn').addEventListener('click', async () => {
+    loginError.classList.remove('show');
+    loginSuccess.classList.remove('show');
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) {
+      loginError.textContent = "Avval email manzilingizni kiriting.";
+      loginError.classList.add('show');
+      return;
+    }
+    try {
+      await sendPasswordReset(email);
+      loginSuccess.textContent = "Parolni tiklash havolasi " + email + " manziliga yuborildi.";
+      loginSuccess.classList.add('show');
+    } catch (err) {
+      loginError.textContent = authErrorMessage(err);
+      loginError.classList.add('show');
+    }
+  });
+
+  // ── Ro'yxatdan o'tish ─────────────────────────────────────────
+  const registerError  = document.getElementById('registerError');
+  const registerSubmit = document.getElementById('registerSubmit');
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerError.classList.remove('show');
+    const name     = document.getElementById('registerName').value.trim();
+    const email    = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+
+    registerSubmit.disabled = true;
+    registerSubmit.textContent = "Yaratilmoqda...";
+    try {
+      await registerUser(email, password, name);
+      location.href = 'dashboard.html';
+    } catch (err) {
+      registerError.textContent = authErrorMessage(err);
+      registerError.classList.add('show');
+      registerSubmit.disabled = false;
+      registerSubmit.textContent = "Ro'yxatdan o'tish →";
+    }
+  });
+</script>
+</body>
+</html>

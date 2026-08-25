@@ -807,6 +807,42 @@ function renderLeaderboardList2(entries, myUid) {
   `;
 }
 
+// ── Fikrlar (testimonials) — bosh sahifada ko'rsatiladigan talaba fikri ──
+// Hujjat ID = foydalanuvchi uid'i, shuning uchun har bir talaba faqat
+// bitta marta fikr qoldira oladi (Firestore qoidalari ham buni talab
+// qiladi — qarang: firestore.rules, /testimonials/{uid}).
+function testimonialDocRef(uid) { return db.collection('testimonials').doc(uid); }
+
+// Joriy foydalanuvchi allaqachon fikr qoldirganmi — forma o'rniga
+// "rahmat" holatini ko'rsatish uchun ishlatiladi.
+async function fetchMyTestimonial(uid) {
+  const snap = await testimonialDocRef(uid).get();
+  return snap.exists ? { id: snap.id, ...snap.data() } : null;
+}
+
+// Yangi fikr qo'shadi. Faqat bir marta muvaffaqiyatli bo'ladi — agar
+// foydalanuvchi avval fikr qoldirgan bo'lsa, Firestore qoidalari
+// yozishni rad etadi (update taqiqlangan).
+async function submitTestimonial(uid, name, text) {
+  await testimonialDocRef(uid).set({
+    name: (name || '').trim(),
+    text: (text || '').trim(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// Bosh sahifada va admin panelida ko'rsatish uchun — oxirgi N ta fikr
+// (o'qish hammaga ochiq, tizimga kirish shart emas).
+async function fetchTestimonials(n) {
+  const snap = await db.collection('testimonials').orderBy('createdAt', 'desc').limit(n || 30).get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Faqat admin chaqirishi kerak — Firestore qoidalari o'chirishni faqat adminga ruxsat beradi
+async function deleteTestimonial(uid) {
+  await testimonialDocRef(uid).delete();
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

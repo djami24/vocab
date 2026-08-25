@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>So'z duelisi | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="duelRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — sizning brauzeringizda saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ── So'z duelisi — 2 kishilik real vaqtli o'yin ──────────────────
+// Har bir o'yinchi o'z telefonida: bittasi xona yaratadi (5 xonali
+// kod chiqadi), ikkinchisi shu kodni kiritib qo'shiladi. Ikkalasiga
+// ham bir xil savollar ketma-ket chiqadi — kim BIRINCHI to'g'ri
+// javobni bossa, o'sha ballni oladi. Sinxronlash Firestore'ning
+// real-vaqt onSnapshot() tinglovchisi orqali amalga oshadi.
+//
+// MUHIM: duel savollari o'sha darajaning TO'LIQ so'z ro'yxatidan
+// tanlanadi (faqat "o'rgangan" so'zlardan emas) — chunki ikkinchi
+// o'yinchining shaxsiy progressi (users/{uid}) xavfsizlik qoidalari
+// bo'yicha boshqa foydalanuvchiga o'qilmaydi. Shu sababli xona
+// yaratilganda savollar darhol tayyorlanadi (mezbon ANIQLAYDI),
+// mehmon esa qo'shilganda ularni tayyor holda ko'radi.
+
+const DUEL_ROUNDS = 8;            // bitta duelda nechta savol
+const ROUND_TIMEOUT_MS = 15000;   // hech kim javob bermasa, shuncha vaqtdan keyin o'tkazib yuboriladi
+const ADVANCE_DELAY_MS = 1800;    // g'olib chiqqach, keyingi savolgacha kutish
+
+let user = null;
+let isHost = null;      // true = men xona yaratganman, false = men qo'shilganman
+let roomCode = null;
+let unsub = null;       // onSnapshot obunasini bekor qilish funksiyasi
+
+let _lastRenderedRound = -1;
+let _roundTimeoutHandle = null;
+let _advanceTimeoutHandle = null;
+let _iAnsweredThisRound = false;
+let _currentRoundIdx = -1;
+let _currentCorrect = null;
+
+const params = new URLSearchParams(location.search);
+const presetLevel = params.get('level');
+const root = document.getElementById('duelRoot');
+
+(async () => {
+  user = await requireAuth();
+  if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  document.getElementById('userLabel').textContent = user;
+  renderMenu();
+})();
+
+window.addEventListener('beforeunload', () => { if (unsub) unsub(); });
+
+// ── Bosh menyu: xona yaratish yoki qo'shilish ────────────────────
+function renderMenu() {
+  cleanupRoom();
+  const presetLevelObj = presetLevel ? LEVELS.find(l => l.id === presetLevel) : null;
+  const createAction = presetLevelObj ? `createRoom('${presetLevelObj.id}')` : `renderLevelPicker()`;
+  const createDesc = presetLevelObj
+    ? `${presetLevelObj.name} darajasida kod chiqadi — shu kodni do'stingizga yuborasiz.`
+    : `Daraja tanlaysiz, kod chiqadi — shu kodni do'stingizga yuborasiz.`;
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>⚔️ So'z duelisi</h1>
+      <p>Do'stingiz bilan 2 kishilik jonli o'yin — kim tezroq va to'g'ri javob bersa, o'sha g'alaba qozonadi.</p>
+    </div>
+    <div class="duel-menu">
+      <button class="duel-choice" onclick="${createAction}">
+        <div class="dicon">🆕</div>
+        <div class="dname">Xona yaratish</div>
+        <div class="ddesc">${createDesc}</div>
+      </button>
+      <button class="duel-choice" onclick="renderJoinForm()">
+        <div class="dicon">🔑</div>
+        <div class="dname">Xonaga qo'shilish</div>
+        <div class="ddesc">Do'stingiz yuborgan 5 xonali kodni kiritasiz.</div>
+      </button>
+    </div>
+    <p style="margin-top:18px"><a href="games.html" style="color:var(--mustard);font-size:13px;font-weight:600;text-decoration:none">← O'yinlarga qaytish</a></p>
+  `;
+}
+
+// ── Daraja tanlash (faqat xona yaratuvchi uchun) ─────────────────
+async function renderLevelPicker() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">⚔️</div><p>Darajalar yuklanmoqda...</p></div>`;
+  const stats = await collectStats(user);
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>⚔️ Qaysi daraja?</h1>
+      <p>Duel savollari shu darajaning to'liq ro'yxatidan tanlanadi.</p>
+    </div>
+    <div class="levels" id="duelLevelsGrid"></div>
+    <p style="margin-top:18px"><a href="#" onclick="renderMenu();return false" style="color:var(--mustard);font-size:13px;font-weight:600;text-decoration:none">← Orqaga</a></p>
+  `;
+  const grid = document.getElementById('duelLevelsGrid');
+  grid.innerHTML = stats.perLevel.map((row, i) => {
+    const { level, unlocked } = row;
+    if (!unlocked) {
+      return `
+        <div class="level-card locked" data-idx="0${i+1}">
+          <div class="level-hit">
+            <div class="lname">${level.name}</div>
+            <div class="lock-msg"><span class="lock-icon">🔒</span><span>Bu daraja hali qulflangan</span></div>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="level-card" data-idx="0${i+1}">
+        <button class="level-hit level-pick" onclick="createRoom('${level.id}')">
+          <div class="lname">${level.name}</div>
+          <div class="lcount-mini">⚔️ Duel boshlash</div>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+// ── Xona yaratish ─────────────────────────────────────────────────
+async function createRoom(levelId) {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">⚔️</div><p>Xona tayyorlanmoqda...</p></div>`;
+
+  let words = [];
+  try { words = await loadLevelWords(levelId); }
+  catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>So'zlarni yuklab bo'lmadi.</p></div>`;
+    return;
+  }
+  if (words.length < 4) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Bu darajada duel uchun so'z yetarli emas.</p></div>`;
+    return;
+  }
+
+  const pool = shuffle(words).slice(0, Math.min(DUEL_ROUNDS, words.length));
+  const questions = pool.map(item => {
+    const wrongPool = words.filter(w => w.en !== item.en);
+    const wrongs = shuffle(wrongPool).slice(0, 3).map(w => w.uz);
+    const options = shuffle([item.uz, ...wrongs]);
+    return { en: item.en, correct: item.uz, options };
+  });
+
+  let code = null;
+  for (let attempt = 0; attempt < 6 && !code; attempt++) {
+    const candidate = String(Math.floor(10000 + Math.random() * 90000));
+    const ref = db.collection('duels').doc(candidate);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      await ref.set({
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        levelId,
+        hostUid: _currentUser.uid,
+        hostName: user,
+        guestUid: null,
+        guestName: null,
+        status: 'waiting',
+        words: questions,
+        round: 0,
+        roundWinner: null,
+        hostScore: 0,
+        guestScore: 0,
+      });
+      code = candidate;
+    }
+  }
+
+  if (!code) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Xona yaratib bo'lmadi, qayta urinib ko'ring.</p></div>`;
+    return;
+  }
+
+  isHost = true;
+  roomCode = code;
+  subscribeToRoom();
+}
+
+// ── Xonaga qo'shilish ─────────────────────────────────────────────
+function renderJoinForm() {
+  root.innerHTML = `
+    <div class="dash-head">
+      <h1>🔑 Xonaga qo'shilish</h1>
+      <p>Do'stingiz yuborgan 5 xonali kodni kiriting.</p>
+    </div>
+    <div class="duel-join-box">
+      <input id="joinCodeInput" class="duel-code-input" type="tel" inputmode="numeric" maxlength="5" placeholder="00000" autofocus/>
+      <button class="btn-primary" style="margin-top:16px" onclick="attemptJoin()">Qo'shilish</button>
+      <div id="joinError" class="duel-join-error"></div>
+    </div>
+    <p style="margin-top:18px"><a href="#" onclick="renderMenu();return false" style="color:var(--mustard);font-size:13px;font-weight:600;text-decoration:none">← Orqaga</a></p>
+  `;
+  const input = document.getElementById('joinCodeInput');
+  input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 5); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptJoin(); });
+}
+
+async function attemptJoin() {
+  const input = document.getElementById('joinCodeInput');
+  const errBox = document.getElementById('joinError');
+  const code = input.value.trim();
+  errBox.textContent = '';
+
+  if (code.length !== 5) { errBox.textContent = "Kod 5 ta raqamdan iborat bo'lishi kerak."; return; }
+
+  const ref = db.collection('duels').doc(code);
+  try {
+    const snap = await ref.get();
+    if (!snap.exists) { errBox.textContent = "Bunday xona topilmadi. Kodni tekshiring."; return; }
+    const data = snap.data();
+    if (data.hostUid === _currentUser.uid) { errBox.textContent = "O'z xonangizga qo'shila olmaysiz."; return; }
+    if (data.status !== 'waiting' || data.guestUid) { errBox.textContent = "Bu xona allaqachon band yoki o'yin boshlangan."; return; }
+
+    await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const d = doc.data();
+      if (!d || d.status !== 'waiting' || d.guestUid) throw new Error('full');
+      tx.update(ref, {
+        guestUid: _currentUser.uid,
+        guestName: user,
+        status: 'playing',
+        startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+
+    isHost = false;
+    roomCode = code;
+    subscribeToRoom();
+  } catch (e) {
+    console.error('Xonaga qo\'shilishda xatolik:', e);
+    errBox.textContent = "Qo'shilib bo'lmadi — xona band bo'lib qolgan bo'lishi mumkin.";
+  }
+}
+
+// ── Real-vaqt tinglovchi ──────────────────────────────────────────
+function subscribeToRoom() {
+  if (unsub) unsub();
+  _lastRenderedRound = -1;
+  const ref = db.collection('duels').doc(roomCode);
+  unsub = ref.onSnapshot((snap) => {
+    if (!snap.exists) { renderMenu(); return; }
+    renderFromDoc(snap.data());
+  }, (err) => {
+    console.error('Xonani kuzatishda xatolik:', err);
+  });
+}
+
+function cleanupRoom() {
+  if (unsub) { unsub(); unsub = null; }
+  clearTimeout(_roundTimeoutHandle);
+  clearTimeout(_advanceTimeoutHandle);
+  roomCode = null;
+  isHost = null;
+}
+
+async function cancelWaitingRoom() {
+  if (roomCode) {
+    try { await db.collection('duels').doc(roomCode).delete(); }
+    catch (e) { console.error("Xonani bekor qilishda xatolik:", e); }
+  }
+  renderMenu();
+}
+
+// ── Firestore hujjatidan UI chizish ───────────────────────────────
+function renderFromDoc(d) {
+  if (d.status === 'waiting') { renderWaitingRoom(); return; }
+  if (d.status === 'playing') { renderRound(d); return; }
+  if (d.status === 'finished') { renderResult(d); return; }
+}
+
+function renderWaitingRoom() {
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">⏳</div>
+      <h2>Do'stingizni kutmoqda...</h2>
+      <p>Quyidagi kodni do'stingizga yuboring — u shu kodni "Xonaga qo'shilish" orqali kiritishi kerak.</p>
+      <div class="duel-code-box">
+        <div class="duel-code" id="waitCode">${roomCode}</div>
+        <button class="btn-secondary" onclick="copyRoomCode()">📋 Nusxalash</button>
+      </div>
+      <div class="btns">
+        <button class="btn-secondary" onclick="cancelWaitingRoom()">Bekor qilish</button>
+      </div>
+    </div>`;
+}
+
+function copyRoomCode() {
+  if (navigator.clipboard) navigator.clipboard.writeText(roomCode).catch(() => {});
+}
+
+function renderRound(d) {
+  const round = d.round;
+  const q = d.words[round];
+  const total = d.words.length;
+  const myScore = isHost ? d.hostScore : d.guestScore;
+  const oppScore = isHost ? d.guestScore : d.hostScore;
+  const myName = isHost ? d.hostName : d.guestName;
+  const oppName = isHost ? d.guestName : d.hostName;
+
+  if (round !== _lastRenderedRound) {
+    _lastRenderedRound = round;
+    _iAnsweredThisRound = false;
+    clearTimeout(_roundTimeoutHandle);
+    if (!d.roundWinner) {
+      _roundTimeoutHandle = setTimeout(() => attemptTimeout(round), ROUND_TIMEOUT_MS);
+    }
+  }
+
+  const decided = !!d.roundWinner;
+  let banner = '';
+  if (decided) {
+    clearTimeout(_roundTimeoutHandle);
+    if (d.roundWinner === 'none') {
+      banner = `<div class="duel-banner draw">⏰ Vaqt tugadi — hech kim javob bermadi</div>`;
+    } else {
+      const iWon = (d.roundWinner === 'host' && isHost) || (d.roundWinner === 'guest' && !isHost);
+      banner = iWon
+        ? `<div class="duel-banner win">✅ Siz oldingiz!</div>`
+        : `<div class="duel-banner lose">😅 ${escapeHtmlGlobal(oppName || 'Raqibingiz')} oldindi!</div>`;
+    }
+    scheduleAdvance(round);
+  }
+
+  root.innerHTML = `
+    <div class="study-head">
+      <span></span>
+      <span class="counter">⚔️ Duel · ${round + 1} / ${total}</span>
+    </div>
+    <div class="session-track"><div class="session-fill" style="width:${(round / total) * 100}%"></div></div>
+
+    <div class="duel-vs-row">
+      <div class="duel-player me">
+        <div class="dp-name">${escapeHtmlGlobal(myName || 'Siz')} (siz)</div>
+        <div class="dp-score">${myScore}</div>
+      </div>
+      <div class="duel-vs-label">VS</div>
+      <div class="duel-player">
+        <div class="dp-name">${escapeHtmlGlobal(oppName || 'Raqib')}</div>
+        <div class="dp-score">${oppScore}</div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="eyebrow">Bu so'zning tarjimasi qaysi?</div>
+      <div class="word-audio-row">
+        <div class="quiz-word">${escapeHtmlGlobal(q.en)}</div>
+        ${speakBtnHtml(q.en)}
+      </div>
+      <div class="quiz-options" id="duelOptions">
+        ${q.options.map(opt => `<button type="button" class="quiz-opt" data-opt="${escapeHtmlGlobal(opt)}" ${decided ? 'disabled' : ''} onclick="handleDuelAnswer(this)">${escapeHtmlGlobal(opt)}</button>`).join('')}
+      </div>
+      ${banner}
+    </div>
+  `;
+  _currentRoundIdx = round;
+  _currentCorrect = q.correct;
+}
+
+async function handleDuelAnswer(btn) {
+  if (_iAnsweredThisRound) return;
+  const chosen = btn.getAttribute('data-opt');
+  const roundIdx = _currentRoundIdx;
+
+  if (chosen !== _currentCorrect) {
+    btn.disabled = true;
+    btn.classList.add('wrong');
+    return; // boshqa variantni sinab ko'rishi mumkin
+  }
+
+  _iAnsweredThisRound = true;
+  const ref = db.collection('duels').doc(roomCode);
+  const field = isHost ? 'hostScore' : 'guestScore';
+  const winnerVal = isHost ? 'host' : 'guest';
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const d = doc.data();
+      if (!d || d.status !== 'playing' || d.round !== roundIdx || d.roundWinner) return;
+      tx.update(ref, {
+        roundWinner: winnerVal,
+        [field]: (d[field] || 0) + 1,
+      });
+    });
+  } catch (e) {
+    console.error('Javobni yozishda xatolik:', e);
+    _iAnsweredThisRound = false;
+  }
+}
+
+async function attemptTimeout(roundIdx) {
+  if (!roomCode) return;
+  const ref = db.collection('duels').doc(roomCode);
+  try {
+    await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const d = doc.data();
+      if (!d || d.status !== 'playing' || d.round !== roundIdx || d.roundWinner) return;
+      tx.update(ref, { roundWinner: 'none' });
+    });
+  } catch (e) { console.error('Vaqt tugashini belgilashda xatolik:', e); }
+}
+
+function scheduleAdvance(roundIdx) {
+  clearTimeout(_advanceTimeoutHandle);
+  _advanceTimeoutHandle = setTimeout(() => attemptAdvance(roundIdx), ADVANCE_DELAY_MS);
+}
+
+async function attemptAdvance(roundIdx) {
+  if (!roomCode) return;
+  const ref = db.collection('duels').doc(roomCode);
+  try {
+    await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const d = doc.data();
+      if (!d || d.status !== 'playing' || d.round !== roundIdx || !d.roundWinner) return;
+      const next = d.round + 1;
+      if (next >= d.words.length) {
+        tx.update(ref, { status: 'finished' });
+      } else {
+        tx.update(ref, { round: next, roundWinner: null });
+      }
+    });
+  } catch (e) { console.error("Keyingi savolga o'tishda xatolik:", e); }
+}
+
+function renderResult(d) {
+  const myScore = isHost ? d.hostScore : d.guestScore;
+  const oppScore = isHost ? d.guestScore : d.hostScore;
+  const oppName = isHost ? d.guestName : d.hostName;
+  const iWon = myScore > oppScore;
+  const isDraw = myScore === oppScore;
+
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">${isDraw ? '🤝' : iWon ? '🏆' : '💪'}</div>
+      <h2>${isDraw ? "Durrang!" : iWon ? "Siz g'alaba qozondingiz!" : `${escapeHtmlGlobal(oppName || 'Raqib')} g'alaba qozondi`}</h2>
+      <p>Yakuniy hisob: <b>Siz ${myScore}</b> — <b>${oppScore} ${escapeHtmlGlobal(oppName || 'Raqib')}</b></p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="createRoom('${d.levelId}')">Yana o'ynash</button>
+        <a class="btn-secondary" href="games.html">Boshqa o'yin</a>
+        <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+      </div>
+    </div>`;
+  cleanupRoom();
+}
+</script>
+</body>
+</html>

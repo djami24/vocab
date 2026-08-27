@@ -35,7 +35,7 @@ const QUIZ_SIZE = 10;
 let user = null;
 const params = new URLSearchParams(location.search);
 const levelId = params.get('level');
-const level = LEVELS.find(l => l.id === levelId);
+let level = null; // requireAuth() dan keyin, LEVELS to'liq yuklangach quyida aniqlanadi
 const root = document.getElementById('quizRoot');
 
 let questions = [];
@@ -46,6 +46,7 @@ let answered = false;
 (async () => {
   user = await requireAuth();
   if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  level = LEVELS.find(l => l.id === levelId); // Firestore darajalari shu yerda allaqachon yuklangan
   document.getElementById('userLabel').textContent = user;
   if (!level) {
     root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="dashboard.html" style="color:var(--mustard)">Darajalarga qaytish</a></p></div>`;

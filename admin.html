@@ -1308,6 +1308,10 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
       <span class="nav-icon">💰</span>
       Pul mukofoti
     </button>
+    <button class="sidebar-nav-btn" data-tab="levels">
+      <span class="nav-icon">📚</span>
+      Darajalar
+    </button>
   </nav>
 
   <!-- MAIN -->
@@ -1388,6 +1392,17 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
       </div>
     </div>
 
+    <!-- LEVELS TAB -->
+    <div class="admin-section" id="secLevels">
+      <div class="page-header">
+        <h1>📚 Darajalar</h1>
+        <p>Yangi daraja oching va unga so'zlar qo'shing. 5 ta tayyor daraja (Beginner...Upper-Intermediate) o'zgarmaydi — bu yerda faqat QO'SHIMCHA darajalar yaratiladi.</p>
+      </div>
+      <div id="levelsContent">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1434,7 +1449,7 @@ let user = null;
       document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
-      const map = { settings: 'secSettings', log: 'secLog', testimonials: 'secTestimonials', users: 'secUsers', students: 'secStudents', earnings: 'secEarnings' };
+      const map = { settings: 'secSettings', log: 'secLog', testimonials: 'secTestimonials', users: 'secUsers', students: 'secStudents', earnings: 'secEarnings', levels: 'secLevels' };
       document.getElementById(map[btn.dataset.tab]).classList.add('active');
     });
   });
@@ -1445,6 +1460,7 @@ let user = null;
   renderUsersTab();
   renderStudentsTab();
   renderEarningsTab();
+  renderLevelsTab();
 })();
 
 // ── TESTIMONIALS TAB ─────────────────────────────────
@@ -2590,6 +2606,254 @@ function renderEarningsList() {
 function toggleEarningsCard(id) {
   const card = document.getElementById('ecard-' + id);
   if (card) card.classList.toggle('expanded');
+}
+
+// ── LEVELS TAB (Darajalar) ─────────────────────────────
+// _levelsAdminCache: [{ level, wordCount }] — barcha darajalar (statik + admin qo'shgan)
+// _levelWordsCache: { [levelId]: word[] } — kengaytirilgan darajaning to'liq so'zlar ro'yxati (lazy load)
+let _levelsAdminCache = [];
+let _levelWordsCache = {};
+let _expandedLevelIds = new Set();
+
+async function renderLevelsTab() {
+  const box = document.getElementById('levelsContent');
+  box.innerHTML = `<div class="log-table-wrap"><div class="log-empty"><span class="spinner"></span></div></div>`;
+  try {
+    await ensureLevelsLoaded();
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Vaqt tugadi (15s) — internet yoki Firestore ruxsatlarini tekshiring')), ms))
+    ]);
+    const counts = await withTimeout(
+      Promise.all(LEVELS.map(l => loadLevelWords(l.id).then(w => w.length).catch(() => 0))),
+      15000
+    );
+    _levelsAdminCache = LEVELS.map((level, i) => ({ level, wordCount: counts[i] }));
+  } catch (e) {
+    console.error('renderLevelsTab xatoligi:', e);
+    box.innerHTML = `
+      <div class="log-table-wrap">
+        <div class="log-empty">
+          ⚠ Darajalarni yuklab bo'lmadi.<br/>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">
+            ${escapeHtmlGlobal(e.message || e.code || String(e))}
+          </span><br/><br/>
+          <button class="abtn-primary" onclick="renderLevelsTab()">Qayta urinish</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="acard">
+      <div class="acard-title">➕ Yangi daraja ochish</div>
+      <div class="acard-sub">Daraja ochilgach, pastdagi ro'yxatda paydo bo'ladi — shu yerdan unga so'zlar qo'sha olasiz. Talabalar uchun bu daraja Upper-Intermediate'dan keyin navbat bilan ochiladi.</div>
+      <div class="aform-grid">
+        <div class="afield">
+          <label>Daraja nomi</label>
+          <input type="text" id="newLevelName" placeholder="Masalan: Advanced"/>
+        </div>
+        <div class="afield">
+          <label>Uzoq muddatli maqsad (so'z soni, ixtiyoriy)</label>
+          <input type="number" min="0" step="100" id="newLevelTarget" placeholder="Masalan: 6000"/>
+        </div>
+      </div>
+      <div id="newLevelError" style="display:none; color:#f87171; font-size:12.5px; margin-top:4px;"></div>
+      <button class="abtn-primary" style="margin-top:14px" onclick="handleCreateLevel()" id="createLevelBtn">Daraja ochish</button>
+    </div>
+    <div id="levelsList"></div>
+  `;
+
+  renderLevelsList();
+}
+
+async function handleCreateLevel() {
+  const nameInput = document.getElementById('newLevelName');
+  const targetInput = document.getElementById('newLevelTarget');
+  const errBox = document.getElementById('newLevelError');
+  const btn = document.getElementById('createLevelBtn');
+  errBox.style.display = 'none';
+
+  const name = nameInput.value.trim();
+  if (!name) {
+    errBox.textContent = "Daraja nomini kiriting";
+    errBox.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Ochilmoqda...';
+  try {
+    await createLevel(name, targetInput.value);
+    nameInput.value = '';
+    targetInput.value = '';
+    await renderLevelsTab();
+  } catch (e) {
+    errBox.textContent = e.message || e.code || String(e);
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Daraja ochish';
+  }
+}
+
+function renderLevelsList() {
+  const listBox = document.getElementById('levelsList');
+  if (!listBox) return;
+
+  listBox.innerHTML = _levelsAdminCache.map(({ level, wordCount }) => {
+    const isCustom = level.source === 'firestore';
+    const expanded = _expandedLevelIds.has(level.id);
+    return `
+    <div class="student-card ${expanded ? 'expanded' : ''}" id="lvlcard-${level.id}">
+      <div class="student-header" onclick="toggleLevelCard('${level.id}')">
+        <div class="student-avatar">${isCustom ? '➕' : '📘'}</div>
+        <div class="student-info">
+          <div class="student-email">${escapeHtmlGlobal(level.name)}</div>
+          <div class="student-meta">${isCustom ? "Admin qo'shgan daraja" : "Tayyor daraja (o'zgartirib bo'lmaydi)"}${level.target ? ` · Maqsad: ${Number(level.target).toLocaleString('en-US')} ta so'z` : ''}</div>
+        </div>
+        <div class="student-summary">
+          <div class="stat-pill">
+            <span class="stat-pill-val">${wordCount}</span>
+            <span class="stat-pill-lbl">So'z</span>
+          </div>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="student-details" id="lvldetails-${level.id}">
+        ${isCustom ? `<div class="log-empty"><span class="spinner"></span></div>` : `
+          <div class="log-empty">Bu — tayyor (statik) daraja. So'zlarini shu paneldan o'zgartirib bo'lmaydi.</div>
+        `}
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  // Avval ochilgan (expanded) darajalar uchun so'zlar ro'yxatini qayta yuklaymiz
+  _expandedLevelIds.forEach(id => {
+    const level = LEVELS.find(l => l.id === id);
+    if (level && level.source === 'firestore') loadAndRenderLevelWords(id);
+  });
+}
+
+function toggleLevelCard(levelId) {
+  const card = document.getElementById('lvlcard-' + levelId);
+  if (!card) return;
+  const isNowExpanded = !card.classList.contains('expanded');
+  card.classList.toggle('expanded');
+  if (isNowExpanded) {
+    _expandedLevelIds.add(levelId);
+    const level = LEVELS.find(l => l.id === levelId);
+    if (level && level.source === 'firestore') loadAndRenderLevelWords(levelId);
+  } else {
+    _expandedLevelIds.delete(levelId);
+  }
+}
+
+async function loadAndRenderLevelWords(levelId) {
+  const details = document.getElementById('lvldetails-' + levelId);
+  if (!details) return;
+  try {
+    const words = await loadLevelWords(levelId);
+    _levelWordsCache[levelId] = words;
+  } catch (e) {
+    details.innerHTML = `<div class="log-empty">⚠ So'zlarni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+  renderLevelWordsPanel(levelId);
+}
+
+function renderLevelWordsPanel(levelId) {
+  const details = document.getElementById('lvldetails-' + levelId);
+  if (!details) return;
+  const words = _levelWordsCache[levelId] || [];
+  const safeId = levelId.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  details.innerHTML = `
+    <div class="afield" style="margin-bottom:14px">
+      <label>Yangi so'z qo'shish</label>
+      <div class="aform-grid" style="margin-top:6px">
+        <input type="text" id="wEn_${safeId}" placeholder="Inglizcha (masalan: achieve)"/>
+        <input type="text" id="wUz_${safeId}" placeholder="O'zbekcha tarjima (masalan: erishmoq)"/>
+      </div>
+      <div class="aform-grid" style="margin-top:8px">
+        <input type="text" id="wIpa_${safeId}" placeholder="Talaffuz / IPA (ixtiyoriy, masalan: əˈtʃiːv)"/>
+        <input type="text" id="wEx_${safeId}" placeholder="Misol gap (ixtiyoriy)"/>
+      </div>
+      <div id="wErr_${safeId}" style="display:none; color:#f87171; font-size:12.5px; margin-top:6px;"></div>
+      <button class="abtn-primary" style="margin-top:10px" onclick="handleAddWord('${levelId}')" id="wBtn_${safeId}">So'z qo'shish</button>
+    </div>
+    ${words.length ? `
+      <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Inglizcha</th>
+              <th>O'zbekcha</th>
+              <th>IPA</th>
+              <th>Misol</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${words.map((w, i) => `
+              <tr>
+                <td class="log-time">${escapeHtmlGlobal(w.en || '')}</td>
+                <td class="log-time">${escapeHtmlGlobal(w.uz || '')}</td>
+                <td class="log-time">${escapeHtmlGlobal(w.ipa || '')}</td>
+                <td class="log-time">${escapeHtmlGlobal(w.example || '')}</td>
+                <td><button class="toggle-admin-btn take" onclick="handleDeleteWord('${levelId}', ${i})">O'chirish</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : `<div class="log-empty">Bu darajada hali so'z yo'q.</div>`}
+  `;
+}
+
+async function handleAddWord(levelId) {
+  const safeId = levelId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const en = document.getElementById(`wEn_${safeId}`).value;
+  const uz = document.getElementById(`wUz_${safeId}`).value;
+  const ipa = document.getElementById(`wIpa_${safeId}`).value;
+  const example = document.getElementById(`wEx_${safeId}`).value;
+  const errBox = document.getElementById(`wErr_${safeId}`);
+  const btn = document.getElementById(`wBtn_${safeId}`);
+  errBox.style.display = 'none';
+
+  btn.disabled = true;
+  btn.textContent = "Qo'shilmoqda...";
+  try {
+    await addWordToLevel(levelId, { en, uz, ipa, example });
+    const words = await loadLevelWords(levelId);
+    _levelWordsCache[levelId] = words;
+    const cacheEntry = _levelsAdminCache.find(c => c.level.id === levelId);
+    if (cacheEntry) cacheEntry.wordCount = words.length;
+    renderLevelsList(); // _expandedLevelIds saqlanib qoladi, panel avtomatik qayta chiziladi
+  } catch (e) {
+    errBox.textContent = e.message || e.code || String(e);
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = "So'z qo'shish";
+  }
+}
+
+async function handleDeleteWord(levelId, idx) {
+  const words = _levelWordsCache[levelId] || [];
+  const word = words[idx];
+  if (!word) return;
+  if (!confirm(`"${word.en}" so'zini o'chirmoqchimisiz?`)) return;
+  try {
+    await removeWordFromLevel(levelId, word);
+    const freshWords = await loadLevelWords(levelId);
+    _levelWordsCache[levelId] = freshWords;
+    const cacheEntry = _levelsAdminCache.find(c => c.level.id === levelId);
+    if (cacheEntry) cacheEntry.wordCount = freshWords.length;
+    renderLevelsList();
+  } catch (e) {
+    alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
+  }
 }
 
 </script>

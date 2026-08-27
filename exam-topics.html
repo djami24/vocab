@@ -92,14 +92,8 @@
     document.getElementById('logoutBtn').addEventListener('click', logout);
     if (isAdmin()) document.getElementById('adminLink').style.display = '';
 
-    // Sotib olganini tekshiramiz (admin bo'lsa — har doim ruxsat)
-    let hasPurchased = isAdmin();
-    if (!hasPurchased) {
-      try {
-        const doc = await db.collection('ielts_purchases').doc(_currentUser.uid).get();
-        hasPurchased = doc.exists && doc.data().active === true;
-      } catch (e) { console.error(e); }
-    }
+    // Sotib olganini tekshiramiz (admin bo'lsa — har doim ruxsat, HAR BO'LIM ALOHIDA)
+    const hasPurchased = await checkExamPurchased(track);
     if (!hasPurchased) { location.href = 'dashboard-ielts.html'; return; }
 
     const meta = track === 'cefr'

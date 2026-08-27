@@ -3034,6 +3034,11 @@ async function renderExamTab() {
       <div id="examPurchaseRequestsList" style="margin-top:10px;"><div class="log-empty"><span class="spinner"></span></div></div>
     </div>
     <div class="acard">
+      <div class="acard-title">✅ Sotib olganlar va o'rganish progressi</div>
+      <div class="acard-sub">Har bir talaba sotib olgan bo'limda nechta so'zni "o'rgandim" deb belgilagani (jami so'zga nisbatan).</div>
+      <div id="examActivePurchasesList" style="margin-top:10px;"><div class="log-empty"><span class="spinner"></span></div></div>
+    </div>
+    <div class="acard">
       <div class="acard-title">Bo'lim</div>
       <div class="afield-hint" style="margin-bottom:10px">Avval qaysi bo'lim bilan ishlashni tanlang, keyin unga mavzu va so'z qo'shing.</div>
       <div style="display:flex; gap:10px;">
@@ -3057,7 +3062,83 @@ async function renderExamTab() {
   `;
 
   await renderExamPurchaseRequests();
+  await renderExamActivePurchases();
   await loadAndRenderExamTopicsList();
+}
+
+async function renderExamActivePurchases() {
+  const box = document.getElementById('examActivePurchasesList');
+  if (!box) return;
+  let purchases = [];
+  try {
+    purchases = await listActiveExamPurchases();
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">⚠ Yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+
+  if (!purchases.length) {
+    box.innerHTML = `<div class="log-empty">Hozircha hech kim sotib olmagan.</div>`;
+    return;
+  }
+
+  // Har bir bo'lim (ielts/cefr) uchun jami mavzular/so'zlarni bir marta hisoblaymiz
+  const trackInfo = {};
+  try {
+    await Promise.all(['ielts', 'cefr'].map(async (track) => {
+      const topics = await loadExamTopics(track, true);
+      const counts = await Promise.all(topics.map(t => loadExamTopicWords(t.id).then(w => w.length).catch(() => 0)));
+      trackInfo[track] = {
+        topicIds: topics.map(t => t.id),
+        totalWords: counts.reduce((a, b) => a + b, 0),
+      };
+    }));
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">⚠ Mavzu ma'lumotlarini yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+
+  let rows;
+  try {
+    rows = await Promise.all(purchases.map(async (p) => {
+      let name = p.uid, examProgress = {};
+      try {
+        const uDoc = await db.collection('users').doc(p.uid).get();
+        if (uDoc.exists) {
+          const ud = uDoc.data();
+          name = ud.name || ud.email || p.uid;
+          if (ud.examProgress && typeof ud.examProgress === 'object') examProgress = ud.examProgress;
+        }
+      } catch (e) { /* talaba hujjatini o'qib bo'lmasa ham ro'yxat davom etadi */ }
+      const info = trackInfo[p.track] || { topicIds: [], totalWords: 0 };
+      const learned = info.topicIds.reduce((sum, tid) => sum + (Array.isArray(examProgress[tid]) ? examProgress[tid].length : 0), 0);
+      const pct = info.totalWords ? Math.round((learned / info.totalWords) * 100) : 0;
+      return { name, track: p.track, activatedAt: p.activatedAt, learned, total: info.totalWords, pct };
+    }));
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">⚠ Progressni hisoblashda xatolik: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
+      <table class="log-table">
+        <thead>
+          <tr><th>Ism</th><th>Bo'lim</th><th>Sotib olingan</th><th>Progress</th></tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td class="log-time">${escapeHtmlGlobal(r.name)}</td>
+              <td class="log-time">${r.track === 'cefr' ? '🌍 CEFR' : '🎓 IELTS'}</td>
+              <td class="log-time">${r.activatedAt ? formatLogTime(r.activatedAt) : '—'}</td>
+              <td class="log-time">${r.learned} / ${r.total} so'z (${r.pct}%)</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 async function renderExamPurchaseRequests() {

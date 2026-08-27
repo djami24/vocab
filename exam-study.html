@@ -151,7 +151,8 @@
         <h2>"${escapeHtml(topicName)}" mavzusi tugallandi!</h2>
         <p style="margin-top:8px; font-size:14px; color:var(--text-muted,#666);">Ushbu mavzudagi barcha so'zlarni ko'rib chiqdingiz.</p>
         <div style="margin-top:22px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn-primary" style="margin-top:0" onclick="restartTopic()">🔄 Qaytadan takrorlash</button>
+          <a class="btn-primary" style="margin-top:0; text-align:center;" href="exam-quiz.html?track=${track}&topic=${encodeURIComponent(topicId)}">📝 Test ishlash</a>
+          <button class="btn-secondary" onclick="restartTopic()">🔄 Qaytadan takrorlash</button>
           <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
         </div>
       </div>`;

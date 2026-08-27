@@ -324,6 +324,9 @@ const DEFAULT_SITE_SETTINGS = {
   registerSubtitle: "Progressingiz bulutda saqlanadi — istalgan qurilmadan kirishingiz mumkin.",
   authNote: "Ma'lumotlaringiz Firebase bulutida xavfsiz saqlanadi — istalgan qurilmadan kirib, davom ettirishingiz mumkin.",
   tuitionTotal: "400000", // o'quv markazi to'liq tuloviga (so'mda) — pul mukofoti shundan ayiriladi
+  paymentCardNumber: "", // IELTS/CEFR sotib olishda talabaga ko'rsatiladigan karta raqami
+  paymentCardHolder: "", // karta egasining ismi
+  paymentTelegram: "",   // to'lov skrinshotini yuborish uchun Telegram username/link
 };
 
 // Ushbu matn maydonlari admin panelida yoqilishi/o'chirilishi mumkin —
@@ -357,6 +360,9 @@ async function loadSiteSettings() {
     });
 
     if (typeof data.tuitionTotal === 'string') out.tuitionTotal = data.tuitionTotal;
+    if (typeof data.paymentCardNumber === 'string') out.paymentCardNumber = data.paymentCardNumber;
+    if (typeof data.paymentCardHolder === 'string') out.paymentCardHolder = data.paymentCardHolder;
+    if (typeof data.paymentTelegram === 'string') out.paymentTelegram = data.paymentTelegram;
     out._raw = data;      // admin panelida forma qiymatlarini to'ldirish uchun (o'chirilgan bo'lsa ham matnni yo'qotmaslik)
     out._enabled = enabledMap;
     return out;

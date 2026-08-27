@@ -749,8 +749,9 @@ async function collectStats(user) {
     // Daraja ochiqmi: oldingi daraja tugagan bo'lsa YOKI bu darajada
     // allaqachon progress bor bo'lsa (so'zlar ro'yxati keyinchalik
     // kengaytirilsa ham, foydalanuvchi qo'lga kiritgan progress hech
-    // qachon qayta "qulflanib" qolmasligi uchun).
-    const unlocked = prevDone || learned > 0;
+    // qachon qayta "qulflanib" qolmasligi uchun). Admin uchun barcha
+    // darajalar doim ochiq.
+    const unlocked = isAdmin() || prevDone || learned > 0;
     levelDone[level.id] = isDone;
     levelUnlocked[level.id] = unlocked;
     prevDone = isDone;
@@ -770,6 +771,7 @@ async function collectStats(user) {
 async function isLevelUnlocked(user, levelId) {
   const idx = LEVELS.findIndex(l => l.id === levelId);
   if (idx < 0) return false;
+  if (isAdmin()) return true; // Admin uchun barcha darajalar doim ochiq
   if (idx === 0) return true;
 
   const progress = getProgress(user);

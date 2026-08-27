@@ -47,6 +47,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Darajalar (levels): admin panelidan qo'shiladigan QO'SHIMCHA darajalar
+    // (Beginner...Upper-Intermediate 5 ta tayyor daraja koddagi statik
+    // fayllarda saqlanadi va bu yerga tegishli emas). O'qish HAMMAGA ochiq
+    // — chunki statik data/*.json fayllar ham hech qanday autentifikatsiyasiz
+    // ochiq o'qiladi, shu bilan bir xillik saqlanadi. Yozish faqat adminga.
+    match /levels/{levelId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Har bir (admin qo'shgan) darajaning so'zlari — hujjat ID darajaning
+    // o'zi bilan bir xil. Struktura: { words: [ {en, uz, example, ipa}, ... ] }.
+    // O'qish HAMMAGA ochiq (yuqoridagi /levels/ bilan bir xil sabab).
+    // Yozish faqat adminga — talaba so'zlar ro'yxatini o'zgartira olmaydi.
+    match /levelWords/{levelId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Sayt sozlamalari (bosh sahifa matnlari): hatto tizimga
     // kirmagan mehmon ham bosh sahifani ochganda o'qiy olishi kerak
     // — shuning uchun ochiq o'qish. Yozish faqat adminga.

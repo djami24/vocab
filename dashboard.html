@@ -176,7 +176,7 @@
       <div class="level-card" data-idx="0${i+1}">
         <button class="level-hit" onclick="location.href='study.html?level=${level.id}'">
           <div class="lname">${level.name}</div>
-          <div class="ltarget">Yakuniy maqsad: ${level.target.toLocaleString('en-US')} ta so'z</div>
+          ${level.target ? `<div class="ltarget">Yakuniy maqsad: ${level.target.toLocaleString('en-US')} ta so'z</div>` : ''}
           <div class="lbar-track">
             <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
             <div class="lcount"><span>Joriy to'plam</span><b>${learned} / ${total}</b></div>

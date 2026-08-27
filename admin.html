@@ -1632,6 +1632,24 @@ async function renderSettingsTab() {
       </div>
     </div>
 
+    <div class="acard">
+      <div class="acard-title">💳 To'lov ma'lumotlari</div>
+      <div class="acard-sub">Talaba IELTS/CEFR sotib olmoqchi bo'lganda shu karta raqami, ism va Telegram havolasi ko'rsatiladi — u to'lov qilib, skrinshotni shu Telegramga yuboradi, siz tekshirib tasdiqlaysiz.</div>
+      <div class="afield">
+        <label>Karta raqami</label>
+        <input type="text" id="fPaymentCard" value="${escapeAttr(s.paymentCardNumber || '')}" placeholder="8600 1234 5678 9012"/>
+      </div>
+      <div class="afield">
+        <label>Karta egasining ismi</label>
+        <input type="text" id="fPaymentCardHolder" value="${escapeAttr(s.paymentCardHolder || '')}" placeholder="Familiya Ism"/>
+      </div>
+      <div class="afield">
+        <label>Telegram (skrinshot yuborish uchun)</label>
+        <input type="text" id="fPaymentTelegram" value="${escapeAttr(s.paymentTelegram || '')}" placeholder="https://t.me/username yoki @username"/>
+        <div class="afield-hint">To'liq havola (https://t.me/...) yoki @username shaklida kiriting.</div>
+      </div>
+    </div>
+
     <div style="display:flex; align-items:center; gap:12px">
       <button class="abtn-primary" id="settingsSaveBtn" onclick="saveSettings()">
         Saqlash
@@ -1674,6 +1692,9 @@ async function saveSettings() {
       registerSubtitle: document.getElementById('fRegisterSubtitle').value.trim(),
       authNote: document.getElementById('fAuthNote').value.trim(),
       tuitionTotal: String(Math.max(0, Number(document.getElementById('fTuitionTotal').value) || 0)),
+      paymentCardNumber: document.getElementById('fPaymentCard').value.trim(),
+      paymentCardHolder: document.getElementById('fPaymentCardHolder').value.trim(),
+      paymentTelegram: document.getElementById('fPaymentTelegram').value.trim(),
     }, enabledMap);
     ok.classList.add('show');
     setTimeout(() => ok.classList.remove('show'), 3000);

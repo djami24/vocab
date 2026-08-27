@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Mavzuni o'rganish | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<style>
+.study-head { display:flex; align-items:center; justify-content:space-between; max-width:420px; width:100%; margin-bottom:10px; }
+.study-head a { color: var(--text-muted, #888); font-size: 13px; text-decoration:none; }
+.study-head .counter { font-size: 13px; font-weight:700; color: var(--text-on-paper, #1b1035); }
+.session-track { width:100%; max-width:420px; height:6px; background:rgba(79,70,229,0.12); border-radius:99px; overflow:hidden; margin-bottom:18px; }
+.session-fill { height:100%; background:linear-gradient(90deg,#4f46e5,#7c3aed); border-radius:99px; transition:width .3s; }
+.exam-actions { display:flex; gap:12px; margin-top:22px; max-width:420px; width:100%; }
+.exam-actions button { flex:1; padding:14px; border-radius:12px; border:3px solid var(--ink,#1b1035); font-weight:800; font-size:14px; cursor:pointer; box-shadow:4px 4px 0 var(--ink,#1b1035); }
+.btn-know { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; }
+.btn-later { background:var(--paper,#fff); color:var(--text-on-paper,#1b1035); }
+.exam-hint { max-width:420px; width:100%; text-align:center; margin-top:10px; font-size:12px; color:var(--text-muted,#888); }
+.done-box { background: var(--paper, #fff); border:3px solid var(--ink,#1b1035); box-shadow:4px 4px 0 var(--ink,#1b1035); border-radius:16px; max-width:420px; width:100%; padding:34px 28px; text-align:center; }
+.done-box .emoji { font-size:44px; }
+.done-box h2 { font-family: var(--font-display, Georgia, serif); font-size:20px; font-weight:800; margin-top:10px; color:var(--text-on-paper,#1b1035); }
+</style>
+</head>
+<body>
+<div class="wrap" style="align-items:center;">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button id="logoutBtn">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash" style="display:flex; flex-direction:column; align-items:center;" id="root">
+    <div class="empty-state"><div class="emoji">⏳</div><p>Yuklanmoqda...</p></div>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const params  = new URLSearchParams(location.search);
+  const track   = params.get('track') === 'cefr' ? 'cefr' : 'ielts';
+  const topicId = params.get('topic');
+  let user = null;
+  let topicName = '';
+  let words = [];
+  let queue = [];
+  let idx = 0;
+  let flipped = false;
+
+  const root = document.getElementById('root');
+
+  (async () => {
+    user = await requireAuth();
+    if (!user) return;
+    document.getElementById('userLabel').textContent = user;
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    if (!topicId) { location.href = 'exam-topics.html?track=' + track; return; }
+
+    let hasPurchased = isAdmin();
+    if (!hasPurchased) {
+      try {
+        const doc = await db.collection('ielts_purchases').doc(_currentUser.uid).get();
+        hasPurchased = doc.exists && doc.data().active === true;
+      } catch (e) { console.error(e); }
+    }
+    if (!hasPurchased) { location.href = 'dashboard-ielts.html'; return; }
+
+    try {
+      const topics = await loadExamTopics(track);
+      const t = topics.find(x => x.id === topicId);
+      topicName = t ? t.name : 'Mavzu';
+      words = await loadExamTopicWords(topicId);
+    } catch (e) {
+      root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Yuklab bo'lmadi: ${escapeHtml(e.message || String(e))}</p></div>`;
+      return;
+    }
+
+    if (!words.length) {
+      root.innerHTML = `<div class="empty-state"><div class="emoji">🌱</div><p>Bu mavzuda hali so'z yo'q.</p></div>`;
+      return;
+    }
+
+    const learnedSet = getExamLearned(user, topicId);
+    queue = words.filter(w => !learnedSet.has((w.en || '').toLowerCase()));
+    if (!queue.length) queue = words.slice(); // hammasi o'rganilgan bo'lsa — qayta takrorlash uchun
+    renderCard();
+  })();
+
+  function renderCard() {
+    if (idx >= queue.length) { renderDone(); return; }
+    const item = queue[idx];
+    flipped = false;
+
+    root.innerHTML = `
+      <div class="study-head">
+        <a href="exam-topics.html?track=${track}">← Mavzular</a>
+        <span class="counter">${escapeHtml(topicName)} · ${idx + 1} / ${queue.length}</span>
+      </div>
+      <div class="session-track"><div class="session-fill" style="width:${(idx / queue.length) * 100}%"></div></div>
+
+      <div class="flash-stage">
+        <div class="flashcard" id="flashcard">
+          <div class="face front">
+            <div class="eyebrow">Inglizcha</div>
+            <div class="word">${escapeHtml(item.en)}</div>
+            ${item.ipa ? `<div class="ipa">/${escapeHtml(item.ipa)}/</div>` : ''}
+            <div class="hint">Tarjima/ta'rifni ko'rish uchun bosing</div>
+          </div>
+          <div class="face back">
+            <div class="eyebrow">Tarjima / ta'rif</div>
+            <div class="word">${escapeHtml(item.uz)}</div>
+            ${item.example ? `<div class="example">${item.example}</div>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-actions">
+        <button class="btn-later" onclick="handleLater()">↻ Keyinroq</button>
+        <button class="btn-know" onclick="handleKnow()">✓ Bilaman</button>
+      </div>
+      <div class="exam-hint">Kartani bosib tarjimani ko'ring, so'ng natijani belgilang.</div>
+    `;
+
+    document.getElementById('flashcard').addEventListener('click', () => {
+      flipped = !flipped;
+      document.getElementById('flashcard').classList.toggle('flipped', flipped);
+    });
+  }
+
+  function handleKnow() {
+    markExamLearned(user, topicId, queue[idx].en);
+    idx++;
+    renderCard();
+  }
+
+  function handleLater() {
+    // Navbatning oxiriga surib qo'yamiz — shu sessiyada yana chiqadi
+    const item = queue.splice(idx, 1)[0];
+    queue.push(item);
+    if (idx >= queue.length) { renderDone(); return; }
+    renderCard();
+  }
+
+  function renderDone() {
+    root.innerHTML = `
+      <div class="done-box">
+        <div class="emoji">🎉</div>
+        <h2>"${escapeHtml(topicName)}" mavzusi tugallandi!</h2>
+        <p style="margin-top:8px; font-size:14px; color:var(--text-muted,#666);">Ushbu mavzudagi barcha so'zlarni ko'rib chiqdingiz.</p>
+        <div style="margin-top:22px; display:flex; flex-direction:column; gap:10px;">
+          <button class="btn-primary" style="margin-top:0" onclick="restartTopic()">🔄 Qaytadan takrorlash</button>
+          <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
+        </div>
+      </div>`;
+  }
+
+  function restartTopic() {
+    idx = 0;
+    queue = words.slice();
+    renderCard();
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>

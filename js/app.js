@@ -1325,6 +1325,194 @@ function shuffle(arr) {
   return a;
 }
 
+// ── IELTS & CEFR: mavzular (topics) va so'zlar ──────────────────────
+// Umumiy ("General English") darajalardan farqli o'laroq, IELTS va CEFR
+// so'zlari MAVZULARGA bo'lingan holda saqlanadi. Struktura:
+//   examTopics/{topicId}      → { track: 'ielts'|'cefr', name, order, createdAt }
+//   examTopicWords/{topicId}  → { words: [ {en, uz, example, ipa}, ... ] }
+// (Xuddi levels/levelWords bilan bir xil naqsh — lekin alohida
+// kolleksiyalarda, chunki bular umumiy progress zanjiriga (LEVELS) kirmaydi.)
+let _examTopicsCache = { ielts: null, cefr: null }; // track -> [{id,name,order,track}]
+let _examWordsCache = {}; // topicId -> word[]
+
+async function loadExamTopics(track, force) {
+  if (!force && _examTopicsCache[track]) return _examTopicsCache[track];
+  const snap = await db.collection('examTopics').where('track', '==', track).orderBy('order', 'asc').get();
+  const list = snap.docs.map(d => ({ id: d.id, track, ...d.data() }));
+  _examTopicsCache[track] = list;
+  return list;
+}
+
+// Faqat admin chaqirishi kerak — yangi mavzu ochadi.
+async function createExamTopic(track, name) {
+  const trimmedName = String(name || '').trim();
+  if (!trimmedName) throw new Error("Mavzu nomini kiriting");
+  if (track !== 'ielts' && track !== 'cefr') throw new Error("Noto'g'ri bo'lim");
+
+  let id = slugifyLevelName(trimmedName);
+  const existing = await loadExamTopics(track, true);
+  const existingIds = new Set(existing.map(t => t.id));
+  if (existingIds.has(id)) {
+    let n = 2;
+    while (existingIds.has(`${id}-${n}`)) n++;
+    id = `${id}-${n}`;
+  }
+  const maxOrder = existing.reduce((m, t) => Math.max(m, typeof t.order === 'number' ? t.order : 0), 0);
+  const order = maxOrder + 1;
+
+  await db.collection('examTopics').doc(id).set({
+    track, name: trimmedName, order,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: _currentUser ? _currentUser.uid : null,
+  });
+  await db.collection('examTopicWords').doc(id).set({ words: [] });
+
+  await loadExamTopics(track, true);
+  return { id, track, name: trimmedName, order };
+}
+
+// Faqat admin chaqirishi kerak — mavzuni butunlay o'chiradi (so'zlari bilan).
+async function deleteExamTopic(track, topicId) {
+  await db.collection('examTopics').doc(topicId).delete();
+  await db.collection('examTopicWords').doc(topicId).delete();
+  delete _examWordsCache[topicId];
+  await loadExamTopics(track, true);
+}
+
+async function loadExamTopicWords(topicId) {
+  if (_examWordsCache[topicId]) return _examWordsCache[topicId];
+  const doc = await db.collection('examTopicWords').doc(topicId).get();
+  const words = (doc.exists && Array.isArray(doc.data().words)) ? doc.data().words : [];
+  _examWordsCache[topicId] = words;
+  return words;
+}
+
+// Faqat admin chaqirishi kerak — mavzuga bitta so'z qo'shadi.
+// `example` maydonida oddiy formatlash teglariga ruxsat beriladi
+// (<b>,<i>,<u> va h.k.) — sanitizeRichText() orqali tozalanadi.
+async function addWordToExamTopic(topicId, word) {
+  const en = String(word.en || '').trim();
+  const uz = String(word.uz || '').trim();
+  if (!en) throw new Error("Inglizcha so'z/ibora kiriting");
+  if (!uz) throw new Error("Tarjima/ta'rifni kiriting");
+
+  const entry = {
+    en, uz,
+    example: sanitizeRichText(word.example || ''),
+    ipa: String(word.ipa || '').trim(),
+  };
+
+  const existing = await loadExamTopicWords(topicId).catch(() => []);
+  if (existing.some(w => (w.en || '').toLowerCase() === en.toLowerCase())) {
+    throw new Error(`"${en}" bu mavzuda allaqachon mavjud`);
+  }
+
+  await db.collection('examTopicWords').doc(topicId).set({
+    words: firebase.firestore.FieldValue.arrayUnion(entry),
+  }, { merge: true });
+
+  delete _examWordsCache[topicId];
+  return entry;
+}
+
+// Faqat admin chaqirishi kerak — bir nechta so'zni birdan qo'shadi.
+async function addWordsToExamTopic(topicId, words) {
+  if (!Array.isArray(words) || !words.length) throw new Error("Qo'shish uchun so'zlar topilmadi");
+  const existing = await loadExamTopicWords(topicId).catch(() => []);
+  const existingKeys = new Set(existing.map(w => (w.en || '').toLowerCase()));
+  const added = [];
+  const skipped = [];
+  const seenInBatch = new Set();
+
+  words.forEach(raw => {
+    const en = String(raw.en || '').trim();
+    const uz = String(raw.uz || '').trim();
+    if (!en || !uz) { skipped.push({ word: raw, reason: "en/uz to'ldirilmagan" }); return; }
+    const key = en.toLowerCase();
+    if (existingKeys.has(key)) { skipped.push({ word: raw, reason: 'mavzuda allaqachon mavjud' }); return; }
+    if (seenInBatch.has(key)) { skipped.push({ word: raw, reason: "ro'yxatda takrorlangan" }); return; }
+    seenInBatch.add(key);
+    added.push({
+      en, uz,
+      example: sanitizeRichText(raw.example || ''),
+      ipa: String(raw.ipa || '').trim(),
+    });
+  });
+
+  if (added.length) {
+    await db.collection('examTopicWords').doc(topicId).set({
+      words: firebase.firestore.FieldValue.arrayUnion(...added),
+    }, { merge: true });
+    delete _examWordsCache[topicId];
+  }
+  return { added, skipped };
+}
+
+async function removeWordFromExamTopic(topicId, word) {
+  await db.collection('examTopicWords').doc(topicId).update({
+    words: firebase.firestore.FieldValue.arrayRemove(word),
+  });
+  delete _examWordsCache[topicId];
+}
+
+async function clearExamTopicWords(topicId) {
+  await db.collection('examTopicWords').doc(topicId).set({ words: [] }, { merge: true });
+  delete _examWordsCache[topicId];
+}
+
+// So'z-programma (Word) uslubidagi formatlashdan (bold/italic/underline)
+// kelgan HTML matnni xavfsiz qismgacha tozalaydi — faqat oddiy formatlash
+// teglariga ruxsat beriladi, boshqa hamma narsa (skript, atributlar,
+// noma'lum teglar) olib tashlanadi.
+const RICH_TEXT_ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'SPAN']);
+function sanitizeRichText(html) {
+  const raw = String(html || '').trim();
+  if (!raw) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = raw;
+
+  function clean(node) {
+    [...node.childNodes].forEach(child => {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        if (!RICH_TEXT_ALLOWED_TAGS.has(child.tagName)) {
+          // Ruxsat etilmagan teg — o'zini olib tashlab, ichidagi matnni saqlaymiz
+          const text = document.createTextNode(child.textContent);
+          node.replaceChild(text, child);
+          return;
+        }
+        // Faqat oddiy uslub (bold/italic/underline) uchun ruxsat — boshqa
+        // barcha atributlarni (onclick, style bilan tashqi havola va h.k.) olib tashlaymiz
+        [...child.attributes].forEach(attr => child.removeAttribute(attr.name));
+        clean(child);
+      } else if (child.nodeType !== Node.TEXT_NODE) {
+        node.removeChild(child);
+      }
+    });
+  }
+  clean(tmp);
+  return tmp.innerHTML.trim();
+}
+
+// ── IELTS & CEFR: talabaning o'rganish progressi (brauzerda saqlanadi) ──
+// Bu progress umumiy (General English) progress/pul mukofoti tizimidan
+// ALOHIDA — chunki IELTS/CEFR alohida (pullik) bo'lim.
+function examProgressKey(user, topicId) { return `examProgress::${user}::${topicId}`; }
+function getExamLearned(user, topicId) {
+  try {
+    const raw = localStorage.getItem(examProgressKey(user, topicId));
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch (e) { return new Set(); }
+}
+function markExamLearned(user, topicId, en) {
+  const set = getExamLearned(user, topicId);
+  set.add(String(en || '').toLowerCase());
+  localStorage.setItem(examProgressKey(user, topicId), JSON.stringify([...set]));
+}
+function resetExamProgress(user, topicId) {
+  localStorage.removeItem(examProgressKey(user, topicId));
+}
+
 // ── "powered by Djami" belgisi — har bir sahifada avtomatik chiqadi ──
 // position: fixed bo'lgani uchun sahifa qanchalik скролл qilinmasin,
 // belgi doim ekranning bir joyida (chap pastda) qoladi. "Djami" so'zi

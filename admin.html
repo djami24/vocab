@@ -3008,6 +3008,11 @@ async function renderExamTab() {
 
   box.innerHTML = `
     <div class="acard">
+      <div class="acard-title">⏳ Kutilayotgan to'lov so'rovlari</div>
+      <div class="acard-sub">IELTS va CEFR — ikkalasi ham alohida sotib olinadi. Talaba to'lovni amalga oshirgach, shu yerdan tasdiqlang.</div>
+      <div id="examPurchaseRequestsList" style="margin-top:10px;"><div class="log-empty"><span class="spinner"></span></div></div>
+    </div>
+    <div class="acard">
       <div class="acard-title">Bo'lim</div>
       <div class="afield-hint" style="margin-bottom:10px">Avval qaysi bo'lim bilan ishlashni tanlang, keyin unga mavzu va so'z qo'shing.</div>
       <div style="display:flex; gap:10px;">
@@ -3030,7 +3035,66 @@ async function renderExamTab() {
     <div id="examTopicsList"></div>
   `;
 
+  await renderExamPurchaseRequests();
   await loadAndRenderExamTopicsList();
+}
+
+async function renderExamPurchaseRequests() {
+  const box = document.getElementById('examPurchaseRequestsList');
+  if (!box) return;
+  let requests = [];
+  try {
+    requests = await listPendingExamPurchaseRequests();
+  } catch (e) {
+    box.innerHTML = `<div class="log-empty">⚠ Yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+
+  if (!requests.length) {
+    box.innerHTML = `<div class="log-empty">Hozircha kutilayotgan so'rov yo'q.</div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
+      <table class="log-table">
+        <thead>
+          <tr><th>Ism</th><th>Bo'lim</th><th></th></tr>
+        </thead>
+        <tbody>
+          ${requests.map(r => `
+            <tr>
+              <td class="log-time">${escapeHtmlGlobal(r.name || r.uid || '?')}</td>
+              <td class="log-time">${r.track === 'cefr' ? '🌍 CEFR' : '🎓 IELTS'}</td>
+              <td style="display:flex; gap:6px;">
+                <button class="toggle-admin-btn give" onclick="handleApproveExamPurchase('${r.id}')">✅ Faollashtirish</button>
+                <button class="toggle-admin-btn take" onclick="handleRejectExamPurchase('${r.id}')">✕ Rad etish</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function handleApproveExamPurchase(requestId) {
+  try {
+    await approveExamPurchase(requestId);
+    await renderExamPurchaseRequests();
+  } catch (e) {
+    alert('Xatolik: ' + (e.message || e.code || String(e)));
+  }
+}
+
+async function handleRejectExamPurchase(requestId) {
+  if (!confirm("Bu so'rovni rad etmoqchimisiz?")) return;
+  try {
+    await rejectExamPurchase(requestId);
+    await renderExamPurchaseRequests();
+  } catch (e) {
+    alert('Xatolik: ' + (e.message || e.code || String(e)));
+  }
 }
 
 function switchExamTrack(track) {

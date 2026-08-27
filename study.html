@@ -151,6 +151,7 @@ const levelId   = params.get('level');
 const modeParam = params.get('mode');
 const laterMode  = modeParam === 'later';
 const reviewMode = modeParam === 'review';
+const mistakesMode = modeParam === 'mistakes';
 let level = null; // requireAuth() dan keyin, LEVELS to'liq yuklangach quyida aniqlanadi
 const root  = document.getElementById('studyRoot');
 
@@ -161,6 +162,7 @@ let flipped = false;
 let learnedThisSession  = 0;
 let laterThisSession    = 0;
 let reviewedThisSession = 0;
+let mistakesResolvedThisSession = 0;
 
 // Tezlik nazorati
 let lastLearnedTime   = 0;   // oxirgi "O'rgandim" tugmasi bosilgan vaqt (ms)
@@ -225,6 +227,14 @@ async function init() {
       return;
     }
     queue = shuffle(remaining).slice(0, REVIEW_SESSION_SIZE);
+  } else if (mistakesMode) {
+    const mistakeSet = new Set(getMistakeWords(user, levelId));
+    remaining = words.filter(w => mistakeSet.has(w.en.toLowerCase()));
+    if (remaining.length === 0) {
+      renderEmptyMode('🎉', "Xatolar ro'yxati bo'sh", "Bu darajada hozircha testda xato qilingan so'z yo'q.");
+      return;
+    }
+    queue = shuffle(remaining).slice(0, REVIEW_SESSION_SIZE);
   } else {
     remaining = words.filter(w => !learnedSet.has(w.en.toLowerCase()));
     if (remaining.length === 0) { renderLevelComplete(words.length); return; }
@@ -235,6 +245,7 @@ async function init() {
   learnedThisSession  = 0;
   laterThisSession    = 0;
   reviewedThisSession = 0;
+  mistakesResolvedThisSession = 0;
   learnedBatch        = [];
   lastLearnedTime     = 0;
   fastClickStreak     = 0;
@@ -300,6 +311,19 @@ function renderSessionComplete() {
       </div>`;
     return;
   }
+  if (mistakesMode) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">✅</div>
+        <h2>Xatolar ko'rib chiqildi</h2>
+        <p>Siz <b>${mistakesResolvedThisSession}</b> ta so'zni endi bildingiz.</p>
+        <div class="btns">
+          <button class="btn-primary" style="margin-top:0" onclick="init()">Yana ko'rib chiqish</button>
+          <a class="btn-secondary" href="dashboard.html">Darajalarga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
   const laterLine = laterThisSession > 0
     ? `<b>${laterThisSession}</b> ta so'z "Keyinroq" ro'yxatiga qo'shildi.`
     : '';
@@ -320,21 +344,26 @@ function renderCard() {
   if (idx >= queue.length) { renderSessionComplete(); return; }
   flipped = false;
   const item = queue[idx];
-  const modeLabel = laterMode ? '↻ Keyinroq · ' : reviewMode ? '🔁 Takrorlash · ' : '';
+  const modeLabel = laterMode ? '↻ Keyinroq · ' : reviewMode ? '🔁 Takrorlash · ' : mistakesMode ? '❌ Xatolar · ' : '';
 
-  const actionsHtml = reviewMode
+  const actionsHtml = mistakesMode
+    ? `<button class="btn-skip" onclick="handleMistakeSkip()">Hali bilmayman ↺</button>
+       <button class="btn-learned" onclick="handleMistakeKnown()">Bildim ✓</button>`
+    : reviewMode
     ? `<button class="btn-skip" onclick="handleForgot()">Unutdim ↺</button>
        <button class="btn-learned" onclick="handleRemembered()">Esladim ✓</button>`
     : `<button class="btn-skip" onclick="handleSkip()">Keyinroq ↻</button>
        <button class="btn-learned" id="learnBtn" onclick="handleLearned()">O'rgandim ✓</button>`;
 
-  const kbdHint = reviewMode
+  const kbdHint = mistakesMode
+    ? `<kbd>Space</kbd> flip · <kbd>→</kbd> bildim · <kbd>←</kbd> hali bilmayman`
+    : reviewMode
     ? `<kbd>Space</kbd> flip · <kbd>→</kbd> esladim · <kbd>←</kbd> unutdim`
     : `<kbd>Space</kbd> flip · <kbd>→</kbd> o'rgandim · <kbd>←</kbd> keyinroq`;
 
   // Ogohlantirish satri
   let warnHtml = '';
-  if (!reviewMode && fastClickStreak >= SPEED_WARN_COUNT && fastClickStreak < SPEED_RESET_COUNT) {
+  if (!reviewMode && !mistakesMode && fastClickStreak >= SPEED_WARN_COUNT && fastClickStreak < SPEED_RESET_COUNT) {
     warnHtml = `
       <div class="speed-warning-bar">
         <div class="speed-warning-icon">⚡</div>
@@ -355,7 +384,7 @@ function renderCard() {
     <div class="flash-stage">
       <div class="flashcard" id="flashcard">
         <div class="face front">
-          <span class="stamp-badge" id="stampBadge">${reviewMode ? 'ESLANDI' : "O'RGANILDI"}</span>
+          <span class="stamp-badge" id="stampBadge">${mistakesMode ? 'BILDIM' : reviewMode ? 'ESLANDI' : "O'RGANILDI"}</span>
           <div class="eyebrow">Inglizcha</div>
           <div class="word-audio-row">
             <div class="word">${escapeHtml(item.en)}</div>
@@ -503,6 +532,21 @@ function handleForgot() {
   renderCard();
 }
 
+function handleMistakeKnown() {
+  const item = queue[idx];
+  removeMistake(user, levelId, item.en);
+  mistakesResolvedThisSession++;
+  const badge = document.getElementById('stampBadge');
+  if (badge) badge.classList.add('play');
+  setTimeout(() => { idx++; renderCard(); }, 420);
+}
+
+function handleMistakeSkip() {
+  // So'z hozircha "Xatolar" ro'yxatida qoladi — keyingi safar yana chiqadi
+  idx++;
+  renderCard();
+}
+
 // ─────────────────────────────────────────────
 // MINI-TEST (10 ta so'z o'rganilgandan keyin)
 // ─────────────────────────────────────────────
@@ -562,7 +606,8 @@ function renderMiniTestCard() {
 
 function handleMiniTestAnswer(optIdx, chosenEn, correctEn) {
   const isCorrect = chosenEn.toLowerCase() === correctEn.toLowerCase();
-  if (isCorrect) minitestCorrect++;
+  if (isCorrect) { minitestCorrect++; removeMistake(user, levelId, correctEn); }
+  else { addMistake(user, levelId, correctEn); }
   minitestResults.push(isCorrect);
 
   // Barcha tugmalarni o'chirish va rang berish
@@ -673,8 +718,8 @@ document.addEventListener('keydown', (e) => {
   if (inMiniTest) return; // test paytida klaviatura ishlamaydi
   if (idx >= queue.length) return;
   if (e.code === 'Space')      { e.preventDefault(); toggleFlip(); }
-  else if (e.code === 'ArrowRight') { reviewMode ? handleRemembered() : handleLearned(); }
-  else if (e.code === 'ArrowLeft')  { reviewMode ? handleForgot()     : handleSkip();   }
+  else if (e.code === 'ArrowRight') { mistakesMode ? handleMistakeKnown() : (reviewMode ? handleRemembered() : handleLearned()); }
+  else if (e.code === 'ArrowLeft')  { mistakesMode ? handleMistakeSkip()  : (reviewMode ? handleForgot()     : handleSkip());   }
 });
 </script>
 </body>

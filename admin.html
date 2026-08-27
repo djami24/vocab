@@ -2710,7 +2710,7 @@ function renderLevelsList() {
         <div class="student-avatar">${isCustom ? '➕' : '📘'}</div>
         <div class="student-info">
           <div class="student-email">${escapeHtmlGlobal(level.name)}</div>
-          <div class="student-meta">${isCustom ? "Admin qo'shgan daraja" : "Tayyor daraja (o'zgartirib bo'lmaydi)"}${level.target ? ` · Maqsad: ${Number(level.target).toLocaleString('en-US')} ta so'z` : ''}</div>
+          <div class="student-meta">${isCustom ? "Admin qo'shgan daraja" : "Tayyor daraja"}${level.target ? ` · Maqsad: ${Number(level.target).toLocaleString('en-US')} ta so'z` : ''}</div>
         </div>
         <div class="student-summary">
           <div class="stat-pill">
@@ -2721,9 +2721,7 @@ function renderLevelsList() {
         <span class="chevron">▶</span>
       </div>
       <div class="student-details" id="lvldetails-${level.id}">
-        ${isCustom ? `<div class="log-empty"><span class="spinner"></span></div>` : `
-          <div class="log-empty">Bu — tayyor (statik) daraja. So'zlarini shu paneldan o'zgartirib bo'lmaydi.</div>
-        `}
+        <div class="log-empty"><span class="spinner"></span></div>
       </div>
     </div>
   `;
@@ -2732,7 +2730,7 @@ function renderLevelsList() {
   // Avval ochilgan (expanded) darajalar uchun so'zlar ro'yxatini qayta yuklaymiz
   _expandedLevelIds.forEach(id => {
     const level = LEVELS.find(l => l.id === id);
-    if (level && level.source === 'firestore') loadAndRenderLevelWords(id);
+    if (level) loadAndRenderLevelWords(id);
   });
 }
 
@@ -2744,7 +2742,7 @@ function toggleLevelCard(levelId) {
   if (isNowExpanded) {
     _expandedLevelIds.add(levelId);
     const level = LEVELS.find(l => l.id === levelId);
-    if (level && level.source === 'firestore') loadAndRenderLevelWords(levelId);
+    if (level) loadAndRenderLevelWords(levelId);
   } else {
     _expandedLevelIds.delete(levelId);
   }
@@ -2799,6 +2797,9 @@ believe | ishonmoq | I believe you.
       <button class="abtn-secondary" style="margin-top:10px" onclick="handleBulkAddWords('${levelId}')" id="wBulkBtn_${safeId}">Ro'yxatni qo'shish</button>
     </div>
     ${words.length ? `
+      <div class="afield" style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+        <button class="toggle-admin-btn take" onclick="handleClearLevelWords('${levelId}')" id="wClearBtn_${safeId}">🗑 Barcha so'zlarni o'chirish (${words.length})</button>
+      </div>
       <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
         <table class="log-table">
           <thead>
@@ -2950,6 +2951,29 @@ async function handleDeleteWord(levelId, idx) {
     renderLevelsList();
   } catch (e) {
     alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
+  }
+}
+
+async function handleClearLevelWords(levelId) {
+  const words = _levelWordsCache[levelId] || [];
+  if (!words.length) return;
+  const level = LEVELS.find(l => l.id === levelId);
+  const levelName = level ? level.name : levelId;
+  if (!confirm(`"${levelName}" darajasidagi BARCHA ${words.length} ta so'zni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`)) return;
+
+  const safeId = levelId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const btn = document.getElementById(`wClearBtn_${safeId}`);
+  if (btn) { btn.disabled = true; btn.textContent = "O'chirilmoqda..."; }
+  try {
+    await clearLevelWords(levelId);
+    const freshWords = await loadLevelWords(levelId);
+    _levelWordsCache[levelId] = freshWords;
+    const cacheEntry = _levelsAdminCache.find(c => c.level.id === levelId);
+    if (cacheEntry) cacheEntry.wordCount = freshWords.length;
+    renderLevelsList();
+  } catch (e) {
+    alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
+    if (btn) { btn.disabled = false; btn.textContent = `🗑 Barcha so'zlarni o'chirish (${words.length})`; }
   }
 }
 

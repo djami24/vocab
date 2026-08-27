@@ -316,29 +316,65 @@
     const t = TRACKS.find(x => x.id === track);
     if (!t) return;
 
-    const confirmed = confirm(
-      `To'lov uchun admin bilan bog'lanasizmi?\n\n` +
-      `Bo'lim: ${t.name}\n` +
-      `Narx: ${t.price} (bir martalik)\n\n` +
-      `To'lovdan so'ng admin hisobingizni faollashtiradi va ${t.name} bo'limiga kirish ochiladi.`
-    );
-    if (!confirmed) return;
-
-    const btn = document.getElementById('buyBtn-' + track);
-    if (btn) { btn.disabled = true; btn.textContent = 'Yuborilmoqda...'; }
-
-    try {
-      await requestExamPurchase(track, _userNameCache || currentUser);
-      alert(
-        "So'rovingiz qabul qilindi! ✅\n\n" +
-        "Admin tez orada hisobingizni faollashtiradi.\n" +
-        "To'lovni amalga oshirgandan so'ng sahifani yangilang."
-      );
-    } catch(e) {
-      alert("Xatolik yuz berdi: " + (e.message || e));
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = `💳 ${t.name}ni sotib olish — ${t.price}`; }
+    const settings = await loadSiteSettings();
+    const cardNumber = (settings.paymentCardNumber || '').trim();
+    const cardHolder = (settings.paymentCardHolder || '').trim();
+    let tgLink = (settings.paymentTelegram || '').trim();
+    if (tgLink && !/^https?:\/\//i.test(tgLink)) {
+      tgLink = 'https://t.me/' + tgLink.replace(/^@/, '');
     }
+
+    if (!cardNumber || !tgLink) {
+      alert("To'lov ma'lumotlari hali admin tomonidan kiritilmagan. Iltimos, keyinroq urinib ko'ring yoki admin bilan bog'laning.");
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-title">💳 ${escapeHtml(t.name)}ni sotib olish</div>
+        <div class="modal-sub">Narx: <b>${escapeHtml(t.price)}</b> (bir martalik to'lov)</div>
+
+        <div style="margin-top:14px; padding:14px; border:2px solid var(--ink,#1b1035); border-radius:10px; background:rgba(124,58,237,0.06);">
+          <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted);">Karta raqami</div>
+          <div style="font-size:19px; font-weight:800; letter-spacing:.03em; margin-top:4px;" id="pcCardNum">${escapeHtml(cardNumber)}</div>
+          ${cardHolder ? `<div style="font-size:13px; margin-top:6px; color:var(--text-muted);">Karta egasi: ${escapeHtml(cardHolder)}</div>` : ''}
+        </div>
+
+        <div class="modal-sub" style="margin-top:14px; line-height:1.5;">
+          1. Yuqoridagi kartaga <b>${escapeHtml(t.price)}</b> o'tkazing.<br/>
+          2. To'lov skrinshotini <a href="${escapeHtml(tgLink)}" target="_blank" rel="noopener" style="color:var(--stamp,#7c3aed); font-weight:700;">Telegram</a>ga yuboring.<br/>
+          3. Admin tekshirib, hisobingizni faollashtiradi.
+        </div>
+
+        <div class="modal-close-row" style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+          <button class="modal-close-btn" id="pcCancelBtn">Bekor qilish</button>
+          <button class="buy-btn" style="font-size:13px; padding:10px 18px;" id="pcConfirmBtn">To'lovni yubordim ✅</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#pcCancelBtn').onclick = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelector('#pcConfirmBtn').onclick = async () => {
+      const confirmBtn = overlay.querySelector('#pcConfirmBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Yuborilmoqda...';
+      try {
+        await requestExamPurchase(track, _userNameCache || currentUser);
+        overlay.remove();
+        alert(
+          "So'rovingiz qabul qilindi! ✅\n\n" +
+          "Admin skrinshotni ko'rib, hisobingizni faollashtiradi.\n" +
+          "Tasdiqlangach sahifani yangilang."
+        );
+      } catch(e) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "To'lovni yubordim ✅";
+        alert("Xatolik yuz berdi: " + (e.message || e));
+      }
+    };
   }
 
   function escapeHtml(str) {

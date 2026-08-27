@@ -66,6 +66,48 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // IELTS va CEFR sotib olish holati (HAR BIRI ALOHIDA) — hujjat ID
+    // formati: `${uid}_${track}` (masalan "abc123_ielts", "abc123_cefr").
+    // Har bir foydalanuvchi FAQAT o'zining hujjatini o'qiy oladi, admin —
+    // hammasini. Faollashtirish (yozish) FAQAT adminga tegishli.
+    match /examPurchases/{id} {
+      allow read: if request.auth != null &&
+        (isAdmin() || resource.data.uid == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Sotib olish so'rovlari: foydalanuvchi FAQAT o'zi nomidan (va o'zi
+    // yozayotgan uid bilan) so'rov yarata oladi, o'qish/o'zgartirish/
+    // o'chirish esa faqat adminga (so'rovlarni ko'rib chiqish uchun).
+    match /examPurchaseRequests/{id} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // IELTS/CEFR mavzulari (topics): O'qish faqat SHU ANIQ bo'limni (track)
+    // sotib olgan (yoki admin) foydalanuvchilarga — chunki IELTS va CEFR
+    // bir-biridan mustaqil pullik bo'limlar. Yozish faqat adminga.
+    match /examTopics/{topicId} {
+      allow read: if request.auth != null &&
+        (isAdmin() ||
+         (exists(/databases/$(database)/documents/examPurchases/$(request.auth.uid + '_' + resource.data.track)) &&
+          get(/databases/$(database)/documents/examPurchases/$(request.auth.uid + '_' + resource.data.track)).data.active == true));
+      allow write: if isAdmin();
+    }
+
+    // Har bir mavzuning so'zlari — struktura levelWords bilan bir xil:
+    // { words: [ {en, uz, example, ipa}, ... ] }. Bu hujjatning o'zida
+    // `track` maydoni yo'q, shuning uchun tegishli examTopics hujjatidan
+    // o'qiladi (hujjat ID bir xil — topicId).
+    match /examTopicWords/{topicId} {
+      allow read: if request.auth != null &&
+        (isAdmin() ||
+         (exists(/databases/$(database)/documents/examTopics/$(topicId)) &&
+          exists(/databases/$(database)/documents/examPurchases/$(request.auth.uid + '_' + get(/databases/$(database)/documents/examTopics/$(topicId)).data.track)) &&
+          get(/databases/$(database)/documents/examPurchases/$(request.auth.uid + '_' + get(/databases/$(database)/documents/examTopics/$(topicId)).data.track)).data.active == true));
+      allow write: if isAdmin();
+    }
+
     // Sayt sozlamalari (bosh sahifa matnlari): hatto tizimga
     // kirmagan mehmon ham bosh sahifani ochganda o'qiy olishi kerak
     // — shuning uchun ochiq o'qish. Yozish faqat adminga.

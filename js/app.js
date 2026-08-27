@@ -46,6 +46,13 @@ function authReady() {
           catch (e) { console.error("Mukofot holatini tekshirishda xatolik:", e); }
           try { await checkIsAdminStatus(user.uid); }
           catch (e) { console.error('Admin holatini tekshirishda xatolik:', e); _isAdminCache = false; }
+          // "So'nggi faollik" vaqtini yangilaymiz — bu FAQAT aniq login/logout
+          // (activityLog) emas, balki foydalanuvchi saytga sessiyasi saqlangan
+          // holda (masalan, parol qayta kiritmasdan) qaytib kirgan har safar
+          // ham yangilanadi. Shu sababli admin panelidagi "So'nggi faollik"
+          // sanasi haqiqatan ham eng so'nggi tashrifni ko'rsatadi — faqat
+          // birinchi marta aniq login qilingan sanada "qotib qolmaydi".
+          touchLastSeen(user.uid).catch(e => console.error("So'nggi faollikni yangilashda xatolik:", e));
           // Reyting yozuvini har safar (istalgan sahifa ochilganda) yangilab
           // qo'yamiz — shunda faqat login/ro'yxatdan o'tishda emas, balki
           // avvaldan tizimga kirgan (sessiyasi saqlanib qolgan) talabalar
@@ -180,11 +187,37 @@ async function loadUserData(uid, name) {
       email: _currentUser ? _currentUser.email : '',
       name: name || '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSeenAt: firebase.firestore.FieldValue.serverTimestamp(),
       progress: _userDataCache.progress,
       activity: _userDataCache.activity,
       flags: _userDataCache.flags,
     });
   }
+}
+
+// "So'nggi faollik" (lastSeenAt) — foydalanuvchi hujjatidagi alohida maydon.
+// activityLog'dagi 'login' yozuvidan farqli o'laroq, bu HAR SAFAR sahifa
+// ochilganda (Firebase sessiyasi saqlangan bo'lsa ham) yangilanadi — shuning
+// uchun admin panelida "haqiqiy" so'nggi tashrif vaqtini ko'rsatadi.
+//
+// Har bir sahifa yuklanishida Firestore'ga yozmaslik uchun (bir foydalanuvchi
+// bitta sessiya davomida ko'p sahifa ochishi mumkin), localStorage yordamida
+// throttling qilinadi: bir necha daqiqada bir martadan ko'p yozilmaydi.
+const LAST_SEEN_THROTTLE_MS = 2 * 60 * 1000; // 2 daqiqa
+function shouldTouchLastSeen(uid) {
+  try {
+    const key = 'lastSeenTouch:' + uid;
+    const prev = Number(localStorage.getItem(key) || 0);
+    if (Date.now() - prev < LAST_SEEN_THROTTLE_MS) return false;
+    localStorage.setItem(key, String(Date.now()));
+    return true;
+  } catch (e) { return true; } // localStorage ishlamasa ham yozishga harakat qilamiz
+}
+async function touchLastSeen(uid) {
+  if (!uid || !shouldTouchLastSeen(uid)) return;
+  await userDocRef(uid).set({
+    lastSeenAt: firebase.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
 }
 
 // ── Admin holati ──────────────────────────────────────────────────

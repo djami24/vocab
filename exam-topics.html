@@ -126,10 +126,13 @@
       const learned = getExamLearned(user, t.id).size;
       const pct = total ? Math.min(100, Math.round((learned / total) * 100)) : 0;
       return `
-      <div class="topic-card" onclick="location.href='exam-study.html?track=${track}&topic=${encodeURIComponent(t.id)}'">
-        <div class="t-name">${escapeHtml(t.name)}</div>
-        <div class="t-meta">${total} ta so'z${total ? ` · ${learned}/${total} o'rganildi` : ''}</div>
-        ${total ? `<div class="t-progress-bar"><div class="t-progress-fill" style="width:${pct}%"></div></div>` : ''}
+      <div class="topic-card">
+        <div onclick="location.href='exam-study.html?track=${track}&topic=${encodeURIComponent(t.id)}'">
+          <div class="t-name">${escapeHtml(t.name)}</div>
+          <div class="t-meta">${total} ta so'z${total ? ` · ${learned}/${total} o'rganildi` : ''}</div>
+          ${total ? `<div class="t-progress-bar"><div class="t-progress-fill" style="width:${pct}%"></div></div>` : ''}
+        </div>
+        ${learned >= 4 ? `<button class="btn-secondary" style="margin-top:12px; width:100%; padding:8px; font-size:12.5px;" onclick="event.stopPropagation(); location.href='exam-quiz.html?track=${track}&topic=${encodeURIComponent(t.id)}'">📝 Test ishlash</button>` : ''}
       </div>`;
     }).join('');
   }

@@ -170,7 +170,7 @@ function emptyUserData() {
   progress.reviews = {};
   progress.mistakes = {};
   LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; progress.mistakes[l.id] = []; });
-  return { progress, activity: {}, flags: {}, earnings: emptyEarnings(), examProgress: {} };
+  return { progress, activity: {}, flags: {}, earnings: emptyEarnings(), examProgress: {}, examMistakes: {} };
 }
 
 // Pul mukofoti uchun boshlang'ich holat.
@@ -218,6 +218,11 @@ function normalizeUserData(data) {
   if (data && data.examProgress && typeof data.examProgress === 'object') {
     Object.keys(data.examProgress).forEach(topicId => {
       if (Array.isArray(data.examProgress[topicId])) out.examProgress[topicId] = data.examProgress[topicId];
+    });
+  }
+  if (data && data.examMistakes && typeof data.examMistakes === 'object') {
+    Object.keys(data.examMistakes).forEach(topicId => {
+      if (Array.isArray(data.examMistakes[topicId])) out.examMistakes[topicId] = data.examMistakes[topicId];
     });
   }
   return out;
@@ -314,6 +319,9 @@ async function flushPersist() {
     }
     if (_userDataCache.examProgress && typeof _userDataCache.examProgress === 'object') {
       dataToSave.examProgress = _userDataCache.examProgress;
+    }
+    if (_userDataCache.examMistakes && typeof _userDataCache.examMistakes === 'object') {
+      dataToSave.examMistakes = _userDataCache.examMistakes;
     }
     await userDocRef(_currentUser.uid).set(dataToSave, { merge: true });
   } catch (e) { console.error('Saqlashda xatolik:', e); }
@@ -1626,6 +1634,39 @@ function resetExamProgress(user, topicId) {
     persistUserData();
   }
   localStorage.removeItem(examProgressKey(user, topicId));
+}
+
+// ── IELTS & CEFR: testda xato qilingan so'zlar ──────────────────────
+// Talaba test (exam-quiz.html) ishlaganda noto'g'ri javob bergan so'zlar
+// shu yerga tushadi. So'z "Xatolar" mashqida ("Bildim ✓") to'g'ri
+// deb belgilanganda yoki testda qayta to'g'ri topilganda ro'yxatdan chiqadi.
+function getExamMistakes(user, topicId) {
+  if (_userDataCache && _userDataCache.examMistakes && Array.isArray(_userDataCache.examMistakes[topicId])) {
+    return new Set(_userDataCache.examMistakes[topicId]);
+  }
+  return new Set();
+}
+function addExamMistake(user, topicId, en) {
+  if (!_userDataCache) return;
+  const set = getExamMistakes(user, topicId);
+  const key = String(en || '').toLowerCase();
+  if (!key) return;
+  set.add(key);
+  if (!_userDataCache.examMistakes) _userDataCache.examMistakes = {};
+  _userDataCache.examMistakes[topicId] = [...set];
+  persistUserData();
+}
+function removeExamMistake(user, topicId, en) {
+  if (!_userDataCache || !_userDataCache.examMistakes) return;
+  const set = getExamMistakes(user, topicId);
+  const key = String(en || '').toLowerCase();
+  if (!set.has(key)) return;
+  set.delete(key);
+  _userDataCache.examMistakes[topicId] = [...set];
+  persistUserData();
+}
+function getExamMistakeCount(user, topicId) {
+  return getExamMistakes(user, topicId).size;
 }
 
 // ── "powered by Djami" belgisi — har bir sahifada avtomatik chiqadi ──

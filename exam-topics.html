@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Mavzular | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<style>
+.exam-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 5px 5px 0 var(--ink, #1b1035);
+}
+.exam-header h1 {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+}
+.exam-header p { margin-top: 8px; color: rgba(255,255,255,0.85); font-size: 13.5px; }
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.topic-card {
+  background: var(--paper, #fff);
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform .1s;
+}
+.topic-card:hover { transform: translateY(-3px); }
+.topic-card .t-name {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-on-paper, #1b1035);
+}
+.topic-card .t-meta { margin-top: 6px; font-size: 12.5px; color: var(--text-muted, #888); }
+.topic-card .t-progress-bar { height: 6px; background: rgba(79,70,229,0.12); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.topic-card .t-progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 99px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span> <span style="font-size:12px; font-weight:700; color:#a78bfa; margin-left:4px;">IELTS & CEFR</span></div>
+    <div class="userchip">
+      <a href="dashboard-ielts.html" class="chip-link">← IELTS & CEFR</a>
+      <a href="dashboard.html" class="chip-link">📚 General Words</a>
+      <a href="admin.html" class="chip-link" id="adminLink" style="display:none">🛠 Admin panel</a>
+      <span id="userLabel">—</span>
+      <button id="logoutBtn">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="exam-header" id="examHeader">
+      <h1>Yuklanmoqda...</h1>
+    </div>
+    <div class="topics-grid" id="topicsGrid">
+      <div class="empty-state"><div class="emoji">⏳</div><p>Yuklanmoqda...</p></div>
+    </div>
+  </div>
+
+  <footer class="site-foot">IELTS & CEFR Words — Lug'at maxsus bo'limi</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const track = params.get('track') === 'cefr' ? 'cefr' : 'ielts';
+  let user = null;
+
+  (async () => {
+    user = await requireAuth();
+    if (!user) return;
+
+    document.getElementById('userLabel').textContent = user;
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    if (isAdmin()) document.getElementById('adminLink').style.display = '';
+
+    // Sotib olganini tekshiramiz (admin bo'lsa — har doim ruxsat)
+    let hasPurchased = isAdmin();
+    if (!hasPurchased) {
+      try {
+        const doc = await db.collection('ielts_purchases').doc(_currentUser.uid).get();
+        hasPurchased = doc.exists && doc.data().active === true;
+      } catch (e) { console.error(e); }
+    }
+    if (!hasPurchased) { location.href = 'dashboard-ielts.html'; return; }
+
+    const meta = track === 'cefr'
+      ? { title: '🌍 CEFR mavzulari', desc: 'CEFR (A1–C2) darajalari uchun mavzu tanlang.' }
+      : { title: '🎓 IELTS mavzulari', desc: 'IELTS imtihoni uchun mavzu tanlang.' };
+    document.getElementById('examHeader').innerHTML = `<h1>${meta.title}</h1><p>${meta.desc}</p>`;
+
+    await renderTopics();
+  })();
+
+  async function renderTopics() {
+    const grid = document.getElementById('topicsGrid');
+    let topics = [];
+    try {
+      topics = await loadExamTopics(track, true);
+    } catch (e) {
+      grid.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Mavzularni yuklab bo'lmadi: ${escapeHtml(e.message || String(e))}</p></div>`;
+      return;
+    }
+
+    if (!topics.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="emoji">🌱</div><p>Bu bo'limda hali mavzu qo'shilmagan. Tez orada qo'shiladi.</p></div>`;
+      return;
+    }
+
+    const counts = await Promise.all(topics.map(t => loadExamTopicWords(t.id).then(w => w.length).catch(() => 0)));
+
+    grid.innerHTML = topics.map((t, i) => {
+      const total = counts[i];
+      const learned = getExamLearned(user, t.id).size;
+      const pct = total ? Math.min(100, Math.round((learned / total) * 100)) : 0;
+      return `
+      <div class="topic-card" onclick="location.href='exam-study.html?track=${track}&topic=${encodeURIComponent(t.id)}'">
+        <div class="t-name">${escapeHtml(t.name)}</div>
+        <div class="t-meta">${total} ta so'z${total ? ` · ${learned}/${total} o'rganildi` : ''}</div>
+        ${total ? `<div class="t-progress-bar"><div class="t-progress-fill" style="width:${pct}%"></div></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>

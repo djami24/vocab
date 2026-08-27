@@ -2,13 +2,52 @@
 // `target` = uzoq muddatli maqsad (to'liq so'zlar soni shu darajada bo'lishi kerak).
 // Amaldagi so'zlar soni data/*.json fayllardan avtomatik o'qiladi va
 // progress shu asosda hisoblanadi — shuning uchun ko'rsatkich hech qachon yolg'on bo'lmaydi.
-const LEVELS = [
-  { id: 'beginner', name: 'Beginner', file: 'data/beginner.json', target: 1000 },
-  { id: 'elementary', name: 'Elementary', file: 'data/elementary.json', target: 2000 },
-  { id: 'pre-intermediate', name: 'Pre-Intermediate', file: 'data/pre-intermediate.json', target: 3000 },
-  { id: 'intermediate', name: 'Intermediate', file: 'data/intermediate.json', target: 4000 },
-  { id: 'upper-intermediate', name: 'Upper-Intermediate', file: 'data/upper-intermediate.json', target: 5000 },
+//
+// Bu — 5 ta TAYYOR (statik fayllardan o'qiladigan) daraja. Bulardan tashqari,
+// admin panelidan ("Darajalar" bo'limi) ADMIN yangi darajalar qo'sha oladi —
+// ular Firestore'da (`levels` va `levelWords` kolleksiyalarida) saqlanadi va
+// LEVELS ro'yxatiga sahifa yuklanganda avtomatik qo'shib qo'yiladi (pastdagi
+// ensureLevelsLoaded() ga qarang). Shuning uchun LEVELS endi `const` emas,
+// balki `let` — dinamik darajalar shu massivga push qilinadi.
+let LEVELS = [
+  { id: 'beginner', name: 'Beginner', file: 'data/beginner.json', target: 1000, source: 'static' },
+  { id: 'elementary', name: 'Elementary', file: 'data/elementary.json', target: 2000, source: 'static' },
+  { id: 'pre-intermediate', name: 'Pre-Intermediate', file: 'data/pre-intermediate.json', target: 3000, source: 'static' },
+  { id: 'intermediate', name: 'Intermediate', file: 'data/intermediate.json', target: 4000, source: 'static' },
+  { id: 'upper-intermediate', name: 'Upper-Intermediate', file: 'data/upper-intermediate.json', target: 5000, source: 'static' },
 ];
+
+// Firestore'dagi admin tomonidan qo'shilgan darajalarni LEVELS massiviga
+// bir marta yuklab qo'shadi (keyingi chaqiruvlarda takror so'ramaydi).
+// `authReady()` ICHIDA, foydalanuvchi ma'lumotlari o'qilishidan OLDIN
+// chaqiriladi — shunda LEVELS massivi progress hisoblanguncha to'liq bo'ladi
+// (aks holda yangi darajadagi progress boshqa funksiyalarda "tanilmay",
+// e'tiborga olinmasdan qolib ketishi mumkin edi).
+let _levelsLoadedPromise = null;
+async function ensureLevelsLoaded() {
+  if (!_levelsLoadedPromise) {
+    _levelsLoadedPromise = (async () => {
+      try {
+        const snap = await db.collection('levels').orderBy('order', 'asc').get();
+        const existingIds = new Set(LEVELS.map(l => l.id));
+        snap.docs.forEach(d => {
+          if (existingIds.has(d.id)) return; // xavfsizlik uchun: statik ID bilan ziddiyat bo'lmasin
+          const data = d.data() || {};
+          LEVELS.push({
+            id: d.id,
+            name: typeof data.name === 'string' && data.name.trim() ? data.name.trim() : d.id,
+            target: typeof data.target === 'number' ? data.target : 0,
+            order: typeof data.order === 'number' ? data.order : 0,
+            source: 'firestore',
+          });
+        });
+      } catch (e) {
+        console.error("Qo'shimcha darajalarni yuklashda xatolik:", e);
+      }
+    })();
+  }
+  return _levelsLoadedPromise;
+}
 
 const SESSION_SIZE = 10; // bitta o'qish sessiyasidagi so'zlar soni
 const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
@@ -17,6 +56,7 @@ const REVIEW_SESSION_SIZE = 15; // bitta takrorlash sessiyasidagi so'zlar soni
 const EARNING_PER_WORD = 10;       // har bir YANGI o'rganilgan so'z uchun (so'm)
 const MIN_WORDS_TO_WITHDRAW = 2000; // pul chiqarish uchun kerak bo'lgan eng kam o'rganilgan so'z soni
 const INACTIVITY_RESET_DAYS = 3;    // shuncha kun ketma-ket kirmasa, yig'ilgan summa 0'ga tushadi
+
 
 // ── Firebase auth va foydalanuvchi ma'lumotlari keshi ──────────────
 // `auth` va `db` — js/firebase-config.js faylida yaratiladigan globallar.
@@ -34,7 +74,7 @@ let _persistTimer = null;
 
 function authReady() {
   if (!_authReadyPromise) {
-    _authReadyPromise = new Promise((resolve) => {
+    _authReadyPromise = ensureLevelsLoaded().catch(e => console.error(e)).then(() => new Promise((resolve) => {
       auth.onAuthStateChanged(async (user) => {
         _currentUser = user;
         if (user) {
@@ -65,7 +105,7 @@ function authReady() {
         }
         resolve(user);
       });
-    });
+    }));
   }
   return _authReadyPromise;
 }
@@ -791,15 +831,122 @@ async function loadLevelWords(levelId) {
   if (_wordCache[levelId]) return _wordCache[levelId];
   const level = LEVELS.find(l => l.id === levelId);
   if (!level) throw new Error('Unknown level: ' + levelId);
-  const res = await fetch(level.file);
-  if (!res.ok) throw new Error('Could not load word list for ' + levelId);
-  const data = await res.json();
+  let data;
+  if (level.source === 'firestore') {
+    // Admin tomonidan qo'shilgan daraja — so'zlar Firestore'da saqlanadi
+    const snap = await db.collection('levelWords').doc(levelId).get();
+    data = (snap.exists && Array.isArray(snap.data().words)) ? snap.data().words : [];
+  } else {
+    const res = await fetch(level.file);
+    if (!res.ok) throw new Error('Could not load word list for ' + levelId);
+    data = await res.json();
+  }
   _wordCache[levelId] = data;
   return data;
 }
 async function loadAllWords() {
   const all = await Promise.all(LEVELS.map(l => loadLevelWords(l.id).catch(() => [])));
   return LEVELS.map((l, i) => ({ level: l, words: all[i] }));
+}
+
+// ── Darajalarni boshqarish (FAQAT ADMIN) ────────────────────────────
+// Foydalanuvchidan kiritilgan nomdan xavfsiz, lotin harflaridagi
+// ID (slug) yasaydi: bo'sh joylar/maxsus belgilar '-' bilan almashtiriladi.
+function slugifyLevelName(name) {
+  const translit = {
+    'ў': 'u', 'қ': 'q', 'ғ': 'gʻ', 'ҳ': 'h',
+  };
+  let s = String(name || '').trim().toLowerCase();
+  Object.keys(translit).forEach(k => { s = s.split(k).join(translit[k]); });
+  s = s.replace(/['ʻʼ`]/g, '')
+       .replace(/[^a-z0-9\s-]/g, '')
+       .trim()
+       .replace(/\s+/g, '-')
+       .replace(/-+/g, '-');
+  return s || ('level-' + Date.now());
+}
+
+// Faqat admin chaqirishi kerak (Firestore qoidalari ham buni talab qiladi).
+// Yangi daraja yaratadi: `levels/{id}` hujjati + bo'sh `levelWords/{id}` hujjati.
+// Muvaffaqiyatli bo'lsa, joriy sahifadagi LEVELS massiviga ham darhol
+// qo'shib qo'yadi — shunda admin panel darhol yangilanadi.
+async function createLevel(name, target) {
+  const trimmedName = String(name || '').trim();
+  if (!trimmedName) throw new Error('Daraja nomini kiriting');
+
+  let id = slugifyLevelName(trimmedName);
+  const existingIds = new Set(LEVELS.map(l => l.id));
+  if (existingIds.has(id)) {
+    // ID band bo'lsa, oxiriga raqam qo'shib takrorlanmas qilamiz
+    let n = 2;
+    while (existingIds.has(`${id}-${n}`)) n++;
+    id = `${id}-${n}`;
+  }
+
+  const maxOrder = LEVELS.reduce((m, l) => Math.max(m, typeof l.order === 'number' ? l.order : 0), 0);
+  const order = maxOrder + 1;
+  const targetNum = Number(target) || 0;
+
+  await db.collection('levels').doc(id).set({
+    name: trimmedName,
+    target: targetNum,
+    order,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: _currentUser ? _currentUser.uid : null,
+  });
+  await db.collection('levelWords').doc(id).set({ words: [] });
+
+  const newLevel = { id, name: trimmedName, target: targetNum, order, source: 'firestore' };
+  LEVELS.push(newLevel);
+  delete _wordCache[id];
+  return newLevel;
+}
+
+// Faqat admin chaqirishi kerak — bitta so'zni darajaga qo'shadi.
+// Bir xil inglizcha so'z (katta-kichik harflarga qaramasdan) qayta
+// qo'shilib ketmasligi uchun oldindan tekshiradi.
+async function addWordToLevel(levelId, word) {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) throw new Error('Daraja topilmadi: ' + levelId);
+  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalarga so'z qo'shish mumkin");
+
+  const en = String(word.en || '').trim();
+  const uz = String(word.uz || '').trim();
+  if (!en) throw new Error("Inglizcha so'zni kiriting");
+  if (!uz) throw new Error("O'zbekcha tarjimasini kiriting");
+
+  const entry = {
+    en,
+    uz,
+    example: String(word.example || '').trim(),
+    ipa: String(word.ipa || '').trim(),
+  };
+
+  const existing = await loadLevelWords(levelId).catch(() => []);
+  if (existing.some(w => (w.en || '').toLowerCase() === en.toLowerCase())) {
+    throw new Error(`"${en}" so'zi bu darajada allaqachon mavjud`);
+  }
+
+  await db.collection('levelWords').doc(levelId).set({
+    words: firebase.firestore.FieldValue.arrayUnion(entry),
+  }, { merge: true });
+
+  delete _wordCache[levelId]; // keshni tozalab, keyingi o'qishda yangi ro'yxat kelsin
+  return entry;
+}
+
+// Faqat admin chaqirishi kerak — darajadan bitta so'zni o'chiradi.
+// `word` — loadLevelWords() orqali olingan XUDDI O'ZI (arrayRemove aniq
+// mos obyektni talab qiladi).
+async function removeWordFromLevel(levelId, word) {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) throw new Error('Daraja topilmadi: ' + levelId);
+  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalardan so'z o'chirish mumkin");
+
+  await db.collection('levelWords').doc(levelId).update({
+    words: firebase.firestore.FieldValue.arrayRemove(word),
+  });
+  delete _wordCache[levelId];
 }
 
 // ── Reyting (leaderboard) ───────────────────────────────────────────

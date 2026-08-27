@@ -168,7 +168,8 @@ function emptyUserData() {
   LEVELS.forEach(l => { progress[l.id] = []; });
   progress.later = {};
   progress.reviews = {};
-  LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; });
+  progress.mistakes = {};
+  LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; progress.mistakes[l.id] = []; });
   return { progress, activity: {}, flags: {}, earnings: emptyEarnings() };
 }
 
@@ -197,6 +198,9 @@ function normalizeUserData(data) {
   }
   if (p.reviews && typeof p.reviews === 'object') {
     LEVELS.forEach(l => { if (p.reviews[l.id] && typeof p.reviews[l.id] === 'object') out.progress.reviews[l.id] = p.reviews[l.id]; });
+  }
+  if (p.mistakes && typeof p.mistakes === 'object') {
+    LEVELS.forEach(l => { if (Array.isArray(p.mistakes[l.id])) out.progress.mistakes[l.id] = p.mistakes[l.id]; });
   }
   if (data && data.activity && typeof data.activity === 'object') out.activity = data.activity;
   if (data && data.flags && typeof data.flags === 'object') out.flags = data.flags;
@@ -487,6 +491,43 @@ function getLaterWords(_user, levelId) {
   return getProgress().later[levelId];
 }
 
+// ── Xatolar — test yoki mini-testda noto'g'ri javob berilgan so'zlar.
+// Foydalanuvchi keyinroq aynan shu so'zlarni ("Xatolar" tugmasi orqali)
+// alohida ko'rib chiqishi mumkin. So'z keyingi safar to'g'ri topilsa
+// (testda yoki "Xatolar" mashqida "Bildim" deyilsa), ro'yxatdan chiqadi.
+function _ensureMistakesBucket(progress, levelId) {
+  if (!progress.mistakes) progress.mistakes = {};
+  if (!Array.isArray(progress.mistakes[levelId])) progress.mistakes[levelId] = [];
+  return progress.mistakes[levelId];
+}
+function addMistake(_user, levelId, enWord) {
+  const progress = getProgress();
+  const key = String(enWord || '').toLowerCase();
+  const bucket = _ensureMistakesBucket(progress, levelId);
+  if (key && !bucket.includes(key)) {
+    bucket.push(key);
+    saveProgress(_user, progress);
+  }
+  return progress;
+}
+function removeMistake(_user, levelId, enWord) {
+  const progress = getProgress();
+  const key = String(enWord || '').toLowerCase();
+  const bucket = _ensureMistakesBucket(progress, levelId);
+  const i = bucket.indexOf(key);
+  if (i !== -1) {
+    bucket.splice(i, 1);
+    saveProgress(_user, progress);
+  }
+  return progress;
+}
+function getMistakeWords(_user, levelId) {
+  return _ensureMistakesBucket(getProgress(), levelId);
+}
+function getMistakeCount(_user, levelId) {
+  return getMistakeWords(_user, levelId).length;
+}
+
 // ── Takrorlash (spaced repetition, soddalashtirilgan SM-2) ─────────
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 function addDays(dateStr, days) {
@@ -744,7 +785,7 @@ async function collectStats(user) {
     const learned = progress[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
     const total = words.length;
     const laterCount = progress.later[level.id].filter(w => words.some(x => x.en.toLowerCase() === w)).length;
-    const dueReview = getDueReviewCount(user, level.id);
+    const mistakeCount = getMistakeCount(user, level.id);
     const isDone = total > 0 && learned >= total;
     // Daraja ochiqmi: oldingi daraja tugagan bo'lsa YOKI bu darajada
     // allaqachon progress bor bo'lsa (so'zlar ro'yxati keyinchalik
@@ -758,7 +799,7 @@ async function collectStats(user) {
     totalLearned += learned;
     totalWords += total;
     totalLater += laterCount;
-    perLevel.push({ level, learned, total, laterCount, dueReview, isDone, unlocked });
+    perLevel.push({ level, learned, total, laterCount, mistakeCount, isDone, unlocked });
   }
 
   return { totalLearned, totalWords, totalLater, levelDone, levelUnlocked, perLevel, streak, flags };

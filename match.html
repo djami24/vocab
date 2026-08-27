@@ -36,7 +36,7 @@ const MAX_PAIRS = 8;
 let user = null;
 const params = new URLSearchParams(location.search);
 const levelId = params.get('level');
-const level = LEVELS.find(l => l.id === levelId);
+let level = null; // requireAuth() dan keyin, LEVELS to'liq yuklangach quyida aniqlanadi
 const root = document.getElementById('matchRoot');
 
 let deck = [];
@@ -51,6 +51,7 @@ let timerHandle = null;
 (async () => {
   user = await requireAuth();
   if (!user) return; // requireAuth() allaqachon index.html'ga yo'naltirdi
+  level = LEVELS.find(l => l.id === levelId); // Firestore darajalari shu yerda allaqachon yuklangan
   document.getElementById('userLabel').textContent = user;
   if (!level) {
     root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="games.html" style="color:var(--mustard)">O'yinlarga qaytish</a></p></div>`;

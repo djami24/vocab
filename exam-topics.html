@@ -124,6 +124,7 @@
     grid.innerHTML = topics.map((t, i) => {
       const total = counts[i];
       const learned = getExamLearned(user, t.id).size;
+      const mistakeCount = getExamMistakeCount(user, t.id);
       const pct = total ? Math.min(100, Math.round((learned / total) * 100)) : 0;
       return `
       <div class="topic-card">
@@ -132,7 +133,10 @@
           <div class="t-meta">${total} ta so'z${total ? ` · ${learned}/${total} o'rganildi` : ''}</div>
           ${total ? `<div class="t-progress-bar"><div class="t-progress-fill" style="width:${pct}%"></div></div>` : ''}
         </div>
-        ${learned >= 4 ? `<button class="btn-secondary" style="margin-top:12px; width:100%; padding:8px; font-size:12.5px;" onclick="event.stopPropagation(); location.href='exam-quiz.html?track=${track}&topic=${encodeURIComponent(t.id)}'">📝 Test ishlash</button>` : ''}
+        <div class="card-btn-row" style="padding:0; margin-top:12px;">
+          ${learned >= 4 ? `<button class="btn-quiz" onclick="event.stopPropagation(); location.href='exam-quiz.html?track=${track}&topic=${encodeURIComponent(t.id)}'">📝 Test</button>` : ''}
+          ${mistakeCount > 0 ? `<button class="btn-review" onclick="event.stopPropagation(); location.href='exam-study.html?track=${track}&topic=${encodeURIComponent(t.id)}&mode=mistakes'">❌ Xatolar (${mistakeCount})</button>` : ''}
+        </div>
       </div>`;
     }).join('');
   }

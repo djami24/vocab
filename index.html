@@ -9,6 +9,29 @@
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<style>
+/* IELTS tugmasi va badge */
+.btn-ielts-cta {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+  border-color: rgba(255,255,255,0.5) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-ielts-cta:hover { filter: brightness(1.1); background: linear-gradient(135deg, #4338ca, #6d28d9) !important; }
+.paid-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  background: #fbbf24;
+  color: #1b1035;
+  padding: 2px 9px;
+  border-radius: 99px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -24,8 +47,8 @@
     </div>
 
     <div class="auth-cta">
-      <a href="login.html?tab=login" class="btn-primary" style="margin-top:0; text-align:center; text-decoration:none; display:block;">Kirish →</a>
-      <a href="login.html?tab=register" class="btn-cta-outline">Ro'yxatdan o'tish</a>
+      <a href="login.html?type=general" class="btn-primary" style="margin-top:0; text-align:center; text-decoration:none; display:block;">📚 GENERAL ENGLISH WORDS</a>
+      <a href="login.html?type=ielts" class="btn-cta-outline btn-ielts-cta">🎓 IELTS &amp; CEFR WORDS <span class="paid-badge">💳 Pullik</span></a>
     </div>
   </div>
 
@@ -62,10 +85,8 @@
     document.getElementById('footerText').textContent = s.footerText;
   })();
 
-  // Agar allaqachon login qilingan bo'lsa, to'g'ridan-to'g'ri dashboardga
-  auth.onAuthStateChanged((user) => {
-    if (user) location.href = 'dashboard.html';
-  });
+  // Agar allaqachon login qilingan bo'lsa — bosh sahifada tugmalar orqali tanlasin
+  // (auto-redirect o'chirildi, chunki endi 2 xil profil mavjud)
 
   // ── Bosh sahifadagi qisqa reyting (eng yaxshi 30 ta talaba) ─────
   (async () => {

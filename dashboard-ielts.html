@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>IELTS & CEFR Words | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<style>
+/* ── IELTS Dashboard uslubi ─────────────────────────────── */
+.ielts-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+  border-radius: 16px;
+  padding: 28px 30px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 5px 5px 0 var(--ink, #1b1035);
+}
+.ielts-header::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.ielts-header h1 {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  position: relative;
+}
+.ielts-header p {
+  margin-top: 10px;
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  max-width: 55ch;
+  position: relative;
+}
+.ielts-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 99px;
+  background: #fbbf24;
+  color: #1b1035;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+/* ── Pullik katak ── */
+.locked-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  gap: 16px;
+}
+.locked-overlay .lock-emoji { font-size: 56px; }
+.locked-overlay h2 {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-on-paper, #1b1035);
+}
+.locked-overlay p {
+  font-size: 14px;
+  color: var(--text-muted, #666);
+  max-width: 38ch;
+}
+.price-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  font-weight: 800;
+  font-size: 20px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+  margin: 6px 0;
+}
+.price-tag .per { font-size: 13px; font-weight: 600; opacity: .85; }
+
+.buy-btn {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: transform .1s, box-shadow .1s;
+  font-family: var(--font-body, sans-serif);
+}
+.buy-btn:hover { filter: brightness(1.1); }
+.buy-btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--ink); }
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  background: rgba(79,70,229,0.07);
+  border: 2px solid rgba(79,70,229,0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  max-width: 340px;
+  width: 100%;
+}
+.features-list li {
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-on-paper, #1b1035);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.features-list li::before {
+  content: '✓';
+  color: #4f46e5;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+/* ── Muvaffaqiyatli sotib olgan foydalanuvchi ── */
+.ielts-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ielts-level-card {
+  background: var(--paper, #fff);
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ielts-level-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.ielts-level-head:hover { background: rgba(79,70,229,0.04); }
+.ielts-level-name {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-on-paper, #1b1035);
+}
+.ielts-level-meta { font-size: 13px; color: var(--text-muted, #888); }
+.ielts-progress-bar {
+  height: 6px;
+  background: rgba(79,70,229,0.12);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 2px 0 6px;
+}
+.ielts-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  border-radius: 99px;
+  transition: width .4s;
+}
+
+.coming-soon-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: #fbbf24;
+  color: #1b1035;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span> <span style="font-size:12px; font-weight:700; color:#a78bfa; margin-left:4px;">IELTS & CEFR</span></div>
+    <div class="userchip">
+      <a href="dashboard.html" class="chip-link">📚 General Words</a>
+      <a href="leaderboard.html" class="chip-link">🏆 Reyting</a>
+      <a href="wallet.html" class="chip-link">💰 Hamyon</a>
+      <a href="admin.html" class="chip-link" id="adminLink" style="display:none">🛠 Admin panel</a>
+      <span id="userLabel">—</span>
+      <button id="logoutBtn">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="dash">
+
+    <!-- ── IELTS sarlavha ── -->
+    <div class="ielts-header">
+      <div class="ielts-badge">🎓 IELTS & CEFR WORDS · Maxsus bo'lim</div>
+      <h1>IELTS va CEFR uchun<br/>ixtisoslashgan lug'at</h1>
+      <p>Akademik va professional ingliz tili uchun yuqori ball olishga yordam beradigan so'zlar, iboralar va bog'lovchi so'zlar.</p>
+    </div>
+
+    <!-- ── Asosiy kontent (sotib olish holati) ── -->
+    <div class="auth-box" id="mainContent" style="max-width:100%; margin-bottom:24px;">
+      <div class="empty-state"><div class="emoji">⏳</div><p>Yuklanmoqda...</p></div>
+    </div>
+
+  </div>
+
+  <footer class="site-foot">IELTS & CEFR Words — Lug'at maxsus bo'limi</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  let currentUser = null;
+
+  (async () => {
+    currentUser = await requireAuth();
+    if (!currentUser) return;
+
+    document.getElementById('userLabel').textContent = currentUser;
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    if (isAdmin()) document.getElementById('adminLink').style.display = '';
+
+    await renderIeltsContent();
+  })();
+
+  async function renderIeltsContent() {
+    const box = document.getElementById('mainContent');
+
+    // Firestore'dan foydalanuvchining IELTS sotib olganini tekshiramiz
+    let hasPurchased = false;
+    try {
+      const uid = _currentUser.uid;
+      const doc = await db.collection('ielts_purchases').doc(uid).get();
+      hasPurchased = doc.exists && doc.data().active === true;
+    } catch (e) {
+      console.error('Sotib olish holatini tekshirishda xatolik:', e);
+    }
+
+    if (hasPurchased) {
+      renderPurchasedView(box);
+    } else {
+      renderLockedView(box);
+    }
+  }
+
+  function renderLockedView(box) {
+    box.innerHTML = `
+      <div class="locked-overlay">
+        <div class="lock-emoji">🎓</div>
+        <h2>IELTS & CEFR Words — Maxsus bo'lim</h2>
+        <p>Bu bo'lim IELTS va CEFR imtihonlarida yuqori ball olishga yo'naltirilgan premium so'zlar to'plamini o'z ichiga oladi.</p>
+
+        <div class="price-tag">
+          💳 25 000 so'm <span class="per">/ bir martalik</span>
+        </div>
+
+        <ul class="features-list">
+          <li>IELTS Academic & General so'zlari</li>
+          <li>CEFR B2–C2 darajadagi so'zlar</li>
+          <li>Akademik iboralar va kolokatsiyalar</li>
+          <li>Mavzular bo'yicha tematik to'plamlar</li>
+          <li>Bir martalik to'lov — umrbod kirish</li>
+        </ul>
+
+        <button class="buy-btn" onclick="initiatePurchase()">
+          💳 Sotib olish — 25 000 so'm
+        </button>
+
+        <p style="font-size:12px; color:var(--text-muted,#888); margin-top:8px;">
+          To'lovdan so'ng darrov faollashadi. Savollar uchun: admin orqali bog'laning.
+        </p>
+      </div>
+    `;
+  }
+
+  function renderPurchasedView(box) {
+    // IELTS darajalarini ko'rsatamiz
+    const levels = [
+      { id: 'ielts-b2', name: 'B2 — Upper Intermediate', desc: 'IELTS 5.5–6.5 darajasi uchun', count: 500, available: false },
+      { id: 'ielts-c1', name: 'C1 — Advanced', desc: 'IELTS 7.0–8.0 darajasi uchun', count: 600, available: false },
+      { id: 'ielts-c2', name: 'C2 — Proficiency', desc: 'IELTS 8.0–9.0 darajasi uchun', count: 400, available: false },
+      { id: 'ielts-academic', name: 'Academic Vocabulary', desc: 'AWL — Akademik so\'z ro\'yxati', count: 570, available: false },
+      { id: 'ielts-phrases', name: 'Useful Phrases', desc: 'Essaylar va nutq uchun iboralar', count: 200, available: false },
+    ];
+
+    box.innerHTML = `
+      <div style="padding: 4px 0 20px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+          <span style="font-size:24px;">🎉</span>
+          <div>
+            <div style="font-family:var(--font-display,Georgia,serif); font-size:18px; font-weight:800; color:var(--text-on-paper,#1b1035);">Siz premium a'zodasiz!</div>
+            <div style="font-size:13px; color:var(--text-muted,#888);">IELTS & CEFR to'plamlariga kirish ochildi.</div>
+          </div>
+        </div>
+
+        <div class="ielts-levels">
+          ${levels.map(l => `
+            <div class="ielts-level-card">
+              <div class="ielts-level-head" onclick="${l.available ? `location.href='study.html?level=${l.id}'` : 'void(0)'}">
+                <div>
+                  <div class="ielts-level-name">${escapeHtml(l.name)}</div>
+                  <div class="ielts-level-meta">${escapeHtml(l.desc)} · ${l.count} ta so'z</div>
+                  <div class="ielts-progress-bar" style="width:200px; margin-top:8px;">
+                    <div class="ielts-progress-fill" style="width:0%"></div>
+                  </div>
+                </div>
+                ${l.available
+                  ? `<span style="font-size:22px;">→</span>`
+                  : `<span class="coming-soon-chip">Tez kunda</span>`
+                }
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <p style="margin-top:24px; font-size:13px; color:var(--text-muted,#888); text-align:center;">
+          To'plamlar yangilanib boriladi — tez kunda barcha darajalar ochildi.
+        </p>
+      </div>
+    `;
+  }
+
+  async function initiatePurchase() {
+    // To'lov logikasi — hozircha admin orqali manual tasdiqlash
+    // (Payme / Click integratsiyasi keyinroq qo'shiladi)
+    const confirmed = confirm(
+      "To'lov uchun admin bilan bog'lanasizmi?\n\n" +
+      "Narx: 25 000 so'm (bir martalik)\n\n" +
+      "To'lovdan so'ng admin hisobingizni faollashtiradi va IELTS bo'limiga kirish ochiladi."
+    );
+    if (!confirmed) return;
+
+    // Foydalanuvchining so'rovini Firestore'ga yozamiz
+    try {
+      const uid = _currentUser.uid;
+      await db.collection('ielts_purchase_requests').doc(uid).set({
+        uid,
+        name: _userNameCache || currentUser,
+        requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'pending'
+      });
+      alert(
+        "So'rovingiz qabul qilindi! ✅\n\n" +
+        "Admin tez orada hisobingizni faollashtiradi.\n" +
+        "To'lovni amalga oshirgandan so'ng sahifani yangilang."
+      );
+    } catch(e) {
+      alert("Xatolik yuz berdi: " + (e.message || e));
+    }
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>

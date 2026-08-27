@@ -151,7 +151,7 @@ const levelId   = params.get('level');
 const modeParam = params.get('mode');
 const laterMode  = modeParam === 'later';
 const reviewMode = modeParam === 'review';
-const level = LEVELS.find(l => l.id === levelId);
+let level = null; // requireAuth() dan keyin, LEVELS to'liq yuklangach quyida aniqlanadi
 const root  = document.getElementById('studyRoot');
 
 let queue = [];
@@ -181,6 +181,7 @@ let learnedBatch     = [];   // hozirgi 10'lik uchun yig'iladigan so'zlar
 (async () => {
   user = await requireAuth();
   if (!user) return;
+  level = LEVELS.find(l => l.id === levelId); // Firestore darajalari shu yerda allaqachon yuklangan
   document.getElementById('userLabel').textContent = user;
   if (!level) {
     root.innerHTML = `<div class="empty-state"><div class="emoji">🤔</div><p>Bunday daraja topilmadi.<br><a href="dashboard.html" style="color:var(--mustard)">Darajalarga qaytish</a></p></div>`;

@@ -2771,7 +2771,7 @@ function renderLevelWordsPanel(levelId) {
 
   details.innerHTML = `
     <div class="afield" style="margin-bottom:14px">
-      <label>Yangi so'z qo'shish</label>
+      <label>Bitta so'z qo'shish</label>
       <div class="aform-grid" style="margin-top:6px">
         <input type="text" id="wEn_${safeId}" placeholder="Inglizcha (masalan: achieve)"/>
         <input type="text" id="wUz_${safeId}" placeholder="O'zbekcha tarjima (masalan: erishmoq)"/>
@@ -2782,6 +2782,21 @@ function renderLevelWordsPanel(levelId) {
       </div>
       <div id="wErr_${safeId}" style="display:none; color:#f87171; font-size:12.5px; margin-top:6px;"></div>
       <button class="abtn-primary" style="margin-top:10px" onclick="handleAddWord('${levelId}')" id="wBtn_${safeId}">So'z qo'shish</button>
+    </div>
+
+    <div class="afield" style="margin-bottom:14px; border-top:1px solid #2a2835; padding-top:14px">
+      <label>Ko'p so'zni birdan qo'shish (nusxa-joylash)</label>
+      <div class="afield-hint" style="margin-bottom:8px">
+        Har bir qatorga bitta so'z, <code>|</code> belgisi bilan ajrating:<br/>
+        <code>inglizcha | o'zbekcha | misol gap (ixtiyoriy) | IPA (ixtiyoriy)</code><br/>
+        Masalan: <code>achieve | erishmoq | She achieved her goal. | əˈtʃiːv</code><br/>
+        (Yoki Excel/Google Sheets'dan <code>en, uz, example, ipa</code> ustunlarini nusxalab, shu yerga joylashingiz ham mumkin — vergul yoki tab bilan ham ishlaydi. JSON massiv ham qo'llab-quvvatlanadi.)
+      </div>
+      <textarea id="wBulk_${safeId}" rows="6" placeholder="achieve | erishmoq | She achieved her goal. | əˈtʃiːv
+believe | ishonmoq | I believe you.
+..."></textarea>
+      <div id="wBulkMsg_${safeId}" style="display:none; font-size:12.5px; margin-top:6px;"></div>
+      <button class="abtn-secondary" style="margin-top:10px" onclick="handleBulkAddWords('${levelId}')" id="wBulkBtn_${safeId}">Ro'yxatni qo'shish</button>
     </div>
     ${words.length ? `
       <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
@@ -2810,6 +2825,88 @@ function renderLevelWordsPanel(levelId) {
       </div>
     ` : `<div class="log-empty">Bu darajada hali so'z yo'q.</div>`}
   `;
+}
+
+// Ko'p so'zli matnni (yoki JSON massivni) so'zlar ro'yxatiga aylantiradi.
+// Qo'llab-quvvatlanadigan formatlar:
+//  1) JSON massiv: [{"en":"...", "uz":"...", "example":"...", "ipa":"..."}, ...]
+//  2) Har qatorda bitta so'z, ajratuvchi sifatida "|", tab yoki vergul:
+//     inglizcha | o'zbekcha | misol gap (ixtiyoriy) | IPA (ixtiyoriy)
+function parseBulkWordsText(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return [];
+
+  // 1) Avval JSON sifatida urinib ko'ramiz
+  if (trimmed.startsWith('[')) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr)) {
+        return arr.map(o => ({
+          en: o.en || o.english || '',
+          uz: o.uz || o.uzbek || o.translation || '',
+          example: o.example || o.sentence || '',
+          ipa: o.ipa || o.pronunciation || '',
+        }));
+      }
+    } catch (e) { /* JSON emas — pastdagi qator-qator o'qishga o'tamiz */ }
+  }
+
+  // 2) Qator-qator: ajratuvchini avtomatik aniqlaymiz (birinchi mazmunli
+  // qatorda qaysi belgi ko'proq uchrasa, o'shani ishlatamiz)
+  const lines = trimmed.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const sample = lines[0];
+  const delim = sample.includes('|') ? '|' : (sample.includes('\t') ? '\t' : ',');
+
+  return lines.map(line => {
+    const parts = line.split(delim).map(p => p.trim());
+    return {
+      en: parts[0] || '',
+      uz: parts[1] || '',
+      example: parts[2] || '',
+      ipa: parts[3] || '',
+    };
+  });
+}
+
+async function handleBulkAddWords(levelId) {
+  const safeId = levelId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const textarea = document.getElementById(`wBulk_${safeId}`);
+  const msgBox = document.getElementById(`wBulkMsg_${safeId}`);
+  const btn = document.getElementById(`wBulkBtn_${safeId}`);
+  msgBox.style.display = 'none';
+
+  const parsed = parseBulkWordsText(textarea.value);
+  if (!parsed.length) {
+    msgBox.style.color = '#f87171';
+    msgBox.textContent = "Hech qanday so'z topilmadi — formatni tekshiring.";
+    msgBox.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Qo'shilmoqda...";
+  try {
+    const { added, skipped } = await addWordsToLevel(levelId, parsed);
+    const words = await loadLevelWords(levelId);
+    _levelWordsCache[levelId] = words;
+    const cacheEntry = _levelsAdminCache.find(c => c.level.id === levelId);
+    if (cacheEntry) cacheEntry.wordCount = words.length;
+
+    if (added.length) textarea.value = '';
+    msgBox.style.color = added.length ? '#17D67C' : '#f87171';
+    msgBox.textContent = `${added.length} ta so'z qo'shildi` +
+      (skipped.length ? `, ${skipped.length} tasi o'tkazib yuborildi (takrorlangan yoki to'liq emas: ${skipped.slice(0, 5).map(s => escapeHtmlGlobal(s.word.en || '?')).join(', ')}${skipped.length > 5 ? '...' : ''})` : '.');
+    msgBox.style.display = 'block';
+
+    renderLevelsList(); // _expandedLevelIds saqlanadi, panel avtomatik qayta chiziladi
+  } catch (e) {
+    msgBox.style.color = '#f87171';
+    msgBox.textContent = e.message || e.code || String(e);
+    msgBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = "Ro'yxatni qo'shish";
+  }
 }
 
 async function handleAddWord(levelId) {

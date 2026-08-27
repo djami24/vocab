@@ -1325,6 +1325,82 @@ function shuffle(arr) {
   return a;
 }
 
+// ── IELTS & CEFR: sotib olish holati (HAR BIRI ALOHIDA) ─────────────
+// IELTS va CEFR bir-biridan MUSTAQIL pullik bo'limlar — talaba faqat
+// birini yoki ikkalasini ham sotib olishi mumkin. Har bir (uid, track)
+// juftligi uchun alohida hujjat: doc ID = `${uid}_${track}`.
+//   examPurchases/{uid}_{track}        → { uid, track, active }
+//   examPurchaseRequests/{uid}_{track} → { uid, track, name, status, requestedAt }
+function examPurchaseDocId(uid, track) { return `${uid}_${track}`; }
+
+// Joriy foydalanuvchi (yoki berilgan uid) shu bo'limni sotib olganmi.
+// Admin uchun har doim `true` qaytadi.
+async function checkExamPurchased(track, uid) {
+  if (isAdmin()) return true;
+  const u = uid || (_currentUser ? _currentUser.uid : null);
+  if (!u) return false;
+  try {
+    const doc = await db.collection('examPurchases').doc(examPurchaseDocId(u, track)).get();
+    return doc.exists && doc.data().active === true;
+  } catch (e) {
+    console.error('Sotib olish holatini tekshirishda xatolik:', e);
+    return false;
+  }
+}
+
+// Ikkala bo'lim holatini bir yo'la tekshiradi: { ielts: bool, cefr: bool }
+async function checkExamPurchasedBoth(uid) {
+  const [ielts, cefr] = await Promise.all([checkExamPurchased('ielts', uid), checkExamPurchased('cefr', uid)]);
+  return { ielts, cefr };
+}
+
+// Foydalanuvchi shu bo'lim uchun to'lov so'rovi yuboradi.
+async function requestExamPurchase(track, name) {
+  const uid = _currentUser.uid;
+  await db.collection('examPurchaseRequests').doc(examPurchaseDocId(uid, track)).set({
+    uid, track,
+    name: name || _userNameCache || '',
+    status: 'pending',
+    requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// ── Faqat ADMIN: to'lov so'rovlarini ko'rish va tasdiqlash ───────────
+async function listPendingExamPurchaseRequests() {
+  const snap = await db.collection('examPurchaseRequests').where('status', '==', 'pending').get();
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  list.sort((a, b) => (tsMillisSafe(b.requestedAt) - tsMillisSafe(a.requestedAt)));
+  return list;
+}
+function tsMillisSafe(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === 'function') return ts.toMillis();
+  return 0;
+}
+
+// So'rovni tasdiqlaydi: examPurchases hujjatini `active:true` qilib
+// yaratadi/yangilaydi va so'rovni "approved" deb belgilaydi.
+async function approveExamPurchase(requestId) {
+  const reqDoc = await db.collection('examPurchaseRequests').doc(requestId).get();
+  if (!reqDoc.exists) throw new Error("So'rov topilmadi");
+  const data = reqDoc.data();
+  await db.collection('examPurchases').doc(requestId).set({
+    uid: data.uid,
+    track: data.track,
+    active: true,
+    activatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    activatedBy: _currentUser ? _currentUser.uid : null,
+  }, { merge: true });
+  await db.collection('examPurchaseRequests').doc(requestId).update({
+    status: 'approved',
+    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function rejectExamPurchase(requestId) {
+  await db.collection('examPurchaseRequests').doc(requestId).update({ status: 'rejected' });
+}
+
 // ── IELTS & CEFR: mavzular (topics) va so'zlar ──────────────────────
 // Umumiy ("General English") darajalardan farqli o'laroq, IELTS va CEFR
 // so'zlari MAVZULARGA bo'lingan holda saqlanadi. Struktura:

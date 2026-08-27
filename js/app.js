@@ -170,7 +170,7 @@ function emptyUserData() {
   progress.reviews = {};
   progress.mistakes = {};
   LEVELS.forEach(l => { progress.later[l.id] = []; progress.reviews[l.id] = {}; progress.mistakes[l.id] = []; });
-  return { progress, activity: {}, flags: {}, earnings: emptyEarnings() };
+  return { progress, activity: {}, flags: {}, earnings: emptyEarnings(), examProgress: {} };
 }
 
 // Pul mukofoti uchun boshlang'ich holat.
@@ -214,6 +214,11 @@ function normalizeUserData(data) {
       lastActiveDate: typeof e.lastActiveDate === 'string' ? e.lastActiveDate : null,
       history: Array.isArray(e.history) ? e.history : [],
     };
+  }
+  if (data && data.examProgress && typeof data.examProgress === 'object') {
+    Object.keys(data.examProgress).forEach(topicId => {
+      if (Array.isArray(data.examProgress[topicId])) out.examProgress[topicId] = data.examProgress[topicId];
+    });
   }
   return out;
 }
@@ -306,6 +311,9 @@ async function flushPersist() {
     // earnings mavjud bo'lsa, uni ham saqlash (pul mukofoti ma'lumotlari)
     if (_userDataCache.earnings && typeof _userDataCache.earnings === 'object') {
       dataToSave.earnings = _userDataCache.earnings;
+    }
+    if (_userDataCache.examProgress && typeof _userDataCache.examProgress === 'object') {
+      dataToSave.examProgress = _userDataCache.examProgress;
     }
     await userDocRef(_currentUser.uid).set(dataToSave, { merge: true });
   } catch (e) { console.error('Saqlashda xatolik:', e); }
@@ -1407,6 +1415,14 @@ async function rejectExamPurchase(requestId) {
   await db.collection('examPurchaseRequests').doc(requestId).update({ status: 'rejected' });
 }
 
+// Faqat ADMIN: hozir faol (sotib olingan) barcha IELTS/CEFR obunalari.
+async function listActiveExamPurchases() {
+  const snap = await db.collection('examPurchases').where('active', '==', true).get();
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  list.sort((a, b) => (tsMillisSafe(b.activatedAt) - tsMillisSafe(a.activatedAt)));
+  return list;
+}
+
 // ── IELTS & CEFR: mavzular (topics) va so'zlar ──────────────────────
 // Umumiy ("General English") darajalardan farqli o'laroq, IELTS va CEFR
 // so'zlari MAVZULARGA bo'lingan holda saqlanadi. Struktura:
@@ -1575,11 +1591,18 @@ function sanitizeRichText(html) {
   return tmp.innerHTML.trim();
 }
 
-// ── IELTS & CEFR: talabaning o'rganish progressi (brauzerda saqlanadi) ──
+// ── IELTS & CEFR: talabaning o'rganish progressi ────────────────────
+// Avval faqat brauzerda (localStorage) saqlanardi — endi bulutga
+// (users/{uid}.examProgress) ham yoziladi, shunda admin panelida
+// har bir talaba qaysi mavzuda nechta so'z o'rganganini ko'rish mumkin.
 // Bu progress umumiy (General English) progress/pul mukofoti tizimidan
 // ALOHIDA — chunki IELTS/CEFR alohida (pullik) bo'lim.
 function examProgressKey(user, topicId) { return `examProgress::${user}::${topicId}`; }
 function getExamLearned(user, topicId) {
+  if (_userDataCache && _userDataCache.examProgress) {
+    const arr = _userDataCache.examProgress[topicId];
+    if (Array.isArray(arr)) return new Set(arr);
+  }
   try {
     const raw = localStorage.getItem(examProgressKey(user, topicId));
     const arr = raw ? JSON.parse(raw) : [];
@@ -1589,9 +1612,19 @@ function getExamLearned(user, topicId) {
 function markExamLearned(user, topicId, en) {
   const set = getExamLearned(user, topicId);
   set.add(String(en || '').toLowerCase());
-  localStorage.setItem(examProgressKey(user, topicId), JSON.stringify([...set]));
+  if (_userDataCache) {
+    if (!_userDataCache.examProgress) _userDataCache.examProgress = {};
+    _userDataCache.examProgress[topicId] = [...set];
+    persistUserData();
+  } else {
+    localStorage.setItem(examProgressKey(user, topicId), JSON.stringify([...set]));
+  }
 }
 function resetExamProgress(user, topicId) {
+  if (_userDataCache && _userDataCache.examProgress) {
+    delete _userDataCache.examProgress[topicId];
+    persistUserData();
+  }
   localStorage.removeItem(examProgressKey(user, topicId));
 }
 

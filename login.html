@@ -42,16 +42,138 @@
   padding: 8px 16px;
   box-shadow: 2px 2px 0 var(--ink, #1b1035);
   transition: background .15s, box-shadow .1s, transform .1s;
+  cursor: pointer;
 }
 .login-back:hover { background: var(--stamp-dark, #E01F63); }
 .login-back:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+
+/* ── Kategoriya tanlash ekrani ── */
+.category-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 420px;
+  width: 100%;
+}
+.category-screen h2 {
+  font-family: var(--font-display, 'Georgia', serif);
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.category-screen p {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.cat-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  font-family: var(--font-body, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border: none;
+  transition: transform .1s, box-shadow .1s;
+}
+.cat-btn-general {
+  background: var(--stamp, #FF3D7F);
+  color: #fff;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+}
+.cat-btn-general:hover { filter: brightness(1.08); }
+.cat-btn-general:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
+
+.cat-btn-ielts {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border: 3px solid var(--ink, #1b1035);
+  box-shadow: 4px 4px 0 var(--ink, #1b1035);
+  position: relative;
+}
+.cat-btn-ielts:hover { filter: brightness(1.1); }
+.cat-btn-ielts:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
+.cat-btn-ielts .badge {
+  display: inline-block;
+  font-size: 11px;
+  background: #fbbf24;
+  color: #1b1035;
+  border-radius: 99px;
+  padding: 2px 10px;
+  margin-left: 8px;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+/* ── Auth ekrani ── */
+.auth-type-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  max-width: 420px;
+  width: 100%;
+}
+.auth-type-banner .type-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--stamp, #FF3D7F);
+  color: #fff;
+}
+.auth-type-banner .type-pill.ielts {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
 <div class="login-wrap">
-  <a href="index.html" class="login-back">← Bosh sahifa</a>
 
-  <div class="auth-box" style="max-width:420px; width:100%;">
+  <!-- ── KATEGORIYA TANLASH EKRANI ───────────────────────────────── -->
+  <div id="categoryScreen" class="category-screen hidden">
+    <a href="index.html" class="login-back" style="align-self:flex-start">← Bosh sahifa</a>
+    <h2>Qaysi bo'limni tanlaysiz?</h2>
+    <p>Davom etish uchun kirish yoki ro'yxatdan o'tish kerak</p>
+    <button class="cat-btn cat-btn-general" onclick="selectCategory('general')">
+      📚 GENERAL ENGLISH WORDS
+    </button>
+    <button class="cat-btn cat-btn-ielts" onclick="selectCategory('ielts')">
+      🎓 IELTS &amp; CEFR WORDS <span class="badge">💳 Pullik</span>
+    </button>
+  </div>
+
+  <!-- ── AUTH BANNER (kategoriya tanlangandan keyin) ──────────────── -->
+  <div id="authTypeBanner" class="auth-type-banner hidden">
+    <span id="authTypePill" class="type-pill">GENERAL</span>
+    <span id="authTypeBannerText">General English Words bo'limi uchun</span>
+    <span style="margin-left:auto; cursor:pointer; opacity:.6; font-size:11px;" onclick="goBackToCategory()">← O'zgartirish</span>
+  </div>
+
+  <!-- ── AUTH QUTISI ─────────────────────────────────────────────── -->
+  <div id="authScreen" class="auth-box hidden" style="max-width:420px; width:100%;">
+    <div style="margin-bottom:12px">
+      <a href="index.html" class="login-back" style="display:inline-block; margin-bottom:0">← Bosh sahifa</a>
+    </div>
+
     <div class="auth-tabs">
       <button type="button" class="auth-tab active" id="tabLogin">Kirish</button>
       <button type="button" class="auth-tab" id="tabRegister">Ro'yxatdan o'tish</button>
@@ -113,28 +235,85 @@
 
     <p class="form-note" style="margin-top:18px" id="authNote">Ma'lumotlaringiz Firebase bulutida xavfsiz saqlanadi — istalgan qurilmadan kirib, davom ettirishingiz mumkin.</p>
   </div>
+
 </div>
 
 <script src="js/app.js"></script>
 <script>
-  // Allaqachon login bo'lsa dashboardga
-  auth.onAuthStateChanged((user) => {
-    if (user) location.href = 'dashboard.html';
-  });
+  // ── Holat ────────────────────────────────────────────────────────
+  let selectedType = null; // 'general' yoki 'ielts'
 
-  // URL parametridan boshlang'ich tabni aniqlash (?tab=register)
   const params = new URLSearchParams(location.search);
-  const tabParam = params.get('tab');
+  const typeParam = params.get('type');   // 'general' | 'ielts' | null
+  const tabParam  = params.get('tab');    // 'login' | 'register' | null
+
+  // ── Sahifa yuklanganda ───────────────────────────────────────────
+  // Agar allaqachon login bo'lsa, to'g'ri joyga yo'naltir
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    // Foydalanuvchi login — qaysi tipga borishi kerak?
+    const type = selectedType || typeParam || sessionStorage.getItem('loginType') || 'general';
+    if (type === 'ielts') {
+      location.href = 'dashboard-ielts.html';
+    } else {
+      location.href = 'dashboard.html';
+    }
+  });
 
   // Firestore'dan matnlarni yuklash
   (async () => {
-    const s = await loadSiteSettings();
-    document.getElementById('loginSubtitle').textContent    = s.loginSubtitle;
-    document.getElementById('registerSubtitle').textContent = s.registerSubtitle;
-    document.getElementById('authNote').textContent         = s.authNote;
+    try {
+      const s = await loadSiteSettings();
+      document.getElementById('loginSubtitle').textContent    = s.loginSubtitle    || 'Email va parolingiz bilan kiring.';
+      document.getElementById('registerSubtitle').textContent = s.registerSubtitle || 'Progressingiz bulutda saqlanadi.';
+      document.getElementById('authNote').textContent         = s.authNote         || "Ma'lumotlaringiz xavfsiz saqlanadi.";
+    } catch(e) { /* davom etaveradi */ }
   })();
 
-  // ── Parolni ko'rsatish/yashirish (🙈 / 🙉) ─────────────────────
+  // ── Kategoriya funksiyalari ──────────────────────────────────────
+  function selectCategory(type) {
+    selectedType = type;
+    sessionStorage.setItem('loginType', type);
+
+    // Bannerini yangilaymiz
+    const pill = document.getElementById('authTypePill');
+    const bannerText = document.getElementById('authTypeBannerText');
+    if (type === 'ielts') {
+      pill.textContent = 'IELTS & CEFR';
+      pill.classList.add('ielts');
+      bannerText.textContent = 'IELTS & CEFR Words (pullik) bo\'limi uchun';
+    } else {
+      pill.textContent = 'GENERAL';
+      pill.classList.remove('ielts');
+      bannerText.textContent = 'General English Words bo\'limi uchun';
+    }
+
+    document.getElementById('categoryScreen').classList.add('hidden');
+    document.getElementById('authTypeBanner').classList.remove('hidden');
+    document.getElementById('authScreen').classList.remove('hidden');
+
+    // URL parametriga qarab tab
+    if (tabParam === 'register') showTab('register');
+    else showTab('login');
+  }
+
+  function goBackToCategory() {
+    selectedType = null;
+    document.getElementById('categoryScreen').classList.remove('hidden');
+    document.getElementById('authTypeBanner').classList.add('hidden');
+    document.getElementById('authScreen').classList.add('hidden');
+  }
+
+  // ── Sahifa ochilganda qaysi ekranni ko'rsatish ───────────────────
+  if (typeParam === 'general' || typeParam === 'ielts') {
+    // URL'dan direkt kelgan — kategoriyani o'tkazib, auth ekranini ko'rsat
+    selectCategory(typeParam);
+  } else {
+    // Kategoriya tanlash ekranini ko'rsat
+    document.getElementById('categoryScreen').classList.remove('hidden');
+  }
+
+  // ── Parolni ko'rsatish/yashirish ─────────────────────────────────
   function togglePwVisibility(btn) {
     const input = document.getElementById(btn.dataset.target);
     const showing = input.type === 'text';
@@ -144,9 +323,9 @@
   }
 
   // ── Tablarni almashtirish ─────────────────────────────────────
-  const tabLogin     = document.getElementById('tabLogin');
-  const tabRegister  = document.getElementById('tabRegister');
-  const panelLogin   = document.getElementById('panelLogin');
+  const tabLogin      = document.getElementById('tabLogin');
+  const tabRegister   = document.getElementById('tabRegister');
+  const panelLogin    = document.getElementById('panelLogin');
   const panelRegister = document.getElementById('panelRegister');
 
   function showTab(which) {
@@ -160,10 +339,7 @@
   tabLogin.addEventListener('click',    () => showTab('login'));
   tabRegister.addEventListener('click', () => showTab('register'));
 
-  // URL parametriga qarab tab tanlash
-  if (tabParam === 'register') showTab('register');
-
-  // ── Kirish ──────────────────────────────────────────────────────
+  // ── Kirish ───────────────────────────────────────────────────────
   const loginError   = document.getElementById('loginError');
   const loginSuccess = document.getElementById('loginSuccess');
   const loginSubmit  = document.getElementById('loginSubmit');
@@ -179,7 +355,8 @@
     loginSubmit.textContent = 'Kirilmoqda...';
     try {
       await loginUser(email, password);
-      location.href = 'dashboard.html';
+      const type = selectedType || typeParam || sessionStorage.getItem('loginType') || 'general';
+      location.href = type === 'ielts' ? 'dashboard-ielts.html' : 'dashboard.html';
     } catch (err) {
       loginError.textContent = authErrorMessage(err);
       loginError.classList.add('show');
@@ -223,7 +400,8 @@
     registerSubmit.textContent = "Yaratilmoqda...";
     try {
       await registerUser(email, password, name);
-      location.href = 'dashboard.html';
+      const type = selectedType || typeParam || sessionStorage.getItem('loginType') || 'general';
+      location.href = type === 'ielts' ? 'dashboard-ielts.html' : 'dashboard.html';
     } catch (err) {
       registerError.textContent = authErrorMessage(err);
       registerError.classList.add('show');

@@ -47,6 +47,7 @@
   const params  = new URLSearchParams(location.search);
   const track   = params.get('track') === 'cefr' ? 'cefr' : 'ielts';
   const topicId = params.get('topic');
+  const mistakesMode = params.get('mode') === 'mistakes';
   let user = null;
   let topicName = '';
   let words = [];
@@ -83,6 +84,25 @@
       return;
     }
 
+    if (mistakesMode) {
+      const mistakeSet = getExamMistakes(user, topicId);
+      queue = words.filter(w => mistakeSet.has((w.en || '').toLowerCase()));
+      if (!queue.length) {
+        root.innerHTML = `
+          <div class="complete-box">
+            <div class="emoji">🎉</div>
+            <h2>Xatolar ro'yxati bo'sh</h2>
+            <p>Bu mavzuda hozircha testda xato qilingan so'z yo'q.</p>
+            <div class="btns">
+              <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
+            </div>
+          </div>`;
+        return;
+      }
+      renderCard();
+      return;
+    }
+
     const learnedSet = getExamLearned(user, topicId);
     queue = words.filter(w => !learnedSet.has((w.en || '').toLowerCase()));
     if (!queue.length) queue = words.slice(); // hammasi o'rganilgan bo'lsa — qayta takrorlash uchun
@@ -94,10 +114,17 @@
     const item = queue[idx];
     flipped = false;
 
+    const modeLabel = mistakesMode ? '❌ Xatolar · ' : '';
+    const actionsHtml = mistakesMode
+      ? `<button class="btn-later" onclick="handleMistakeSkip()">Hali bilmayman ↺</button>
+         <button class="btn-know" onclick="handleMistakeKnown()">Bildim ✓</button>`
+      : `<button class="btn-later" onclick="handleLater()">↻ Keyinroq</button>
+         <button class="btn-know" onclick="handleKnow()">✓ Bilaman</button>`;
+
     root.innerHTML = `
       <div class="study-head">
         <a href="exam-topics.html?track=${track}">← Mavzular</a>
-        <span class="counter">${escapeHtml(topicName)} · ${idx + 1} / ${queue.length}</span>
+        <span class="counter">${modeLabel}${escapeHtml(topicName)} · ${idx + 1} / ${queue.length}</span>
       </div>
       <div class="session-track"><div class="session-fill" style="width:${(idx / queue.length) * 100}%"></div></div>
 
@@ -118,8 +145,7 @@
       </div>
 
       <div class="exam-actions">
-        <button class="btn-later" onclick="handleLater()">↻ Keyinroq</button>
-        <button class="btn-know" onclick="handleKnow()">✓ Bilaman</button>
+        ${actionsHtml}
       </div>
       <div class="exam-hint">Kartani bosib tarjimani ko'ring, so'ng natijani belgilang.</div>
     `;
@@ -144,7 +170,31 @@
     renderCard();
   }
 
+  function handleMistakeKnown() {
+    removeExamMistake(user, topicId, queue[idx].en);
+    idx++;
+    renderCard();
+  }
+
+  function handleMistakeSkip() {
+    // So'z hozircha "Xatolar" ro'yxatida qoladi — keyingi safar yana chiqadi
+    idx++;
+    renderCard();
+  }
+
   function renderDone() {
+    if (mistakesMode) {
+      root.innerHTML = `
+        <div class="done-box">
+          <div class="emoji">🎉</div>
+          <h2>Xatolar ko'rib chiqildi</h2>
+          <p style="margin-top:8px; font-size:14px; color:var(--text-muted,#666);">"${escapeHtml(topicName)}" mavzusidagi xato qilingan so'zlarni qayta ko'rib chiqdingiz.</p>
+          <div style="margin-top:22px; display:flex; flex-direction:column; gap:10px;">
+            <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
+          </div>
+        </div>`;
+      return;
+    }
     root.innerHTML = `
       <div class="done-box">
         <div class="emoji">🎉</div>

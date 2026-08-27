@@ -153,8 +153,10 @@ function handleAnswer(btn) {
   if (chosen === q.correct) {
     score++;
     feedback.innerHTML = `<span class="ok">✓ To'g'ri!</span>`;
+    removeExamMistake(user, topicId, q.item.en);
   } else {
     feedback.innerHTML = `<span class="bad">✕ Noto'g'ri. To'g'ri javob: <b>${escapeHtml(q.correct)}</b></span>`;
+    addExamMistake(user, topicId, q.item.en);
   }
   feedback.innerHTML += `<button class="btn-primary" style="margin-top:14px" onclick="nextQuestion()">Keyingisi →</button>`;
 }
@@ -167,6 +169,7 @@ function nextQuestion() {
 function renderResult() {
   const pct = Math.round((score / questions.length) * 100);
   const isPerfect = score === questions.length;
+  const mistakeCount = getExamMistakeCount(user, topicId);
 
   root.innerHTML = `
     <div class="complete-box">
@@ -174,6 +177,7 @@ function renderResult() {
       <h2>Test natijasi: ${score} / ${questions.length}</h2>
       <p>${pct}% to'g'ri javob.${isPerfect ? ' Mukammal natija — tabriklaymiz! 🎉' : ' Yana mashq qilib ko\'ring.'}</p>
       <div class="btns">
+        ${mistakeCount > 0 ? `<a class="btn-review" style="margin-top:0; text-align:center;" href="exam-study.html?track=${track}&topic=${encodeURIComponent(topicId)}&mode=mistakes">❌ Xato qilgan so'zlarni qayta o'rganish (${mistakeCount})</a>` : ''}
         <button class="btn-primary" style="margin-top:0" onclick="init()">Qayta test topshirish</button>
         <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
       </div>

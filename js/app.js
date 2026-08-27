@@ -949,6 +949,49 @@ async function removeWordFromLevel(levelId, word) {
   delete _wordCache[levelId];
 }
 
+// Faqat admin chaqirishi kerak — bir vaqtda BIR NECHTA so'zni darajaga
+// qo'shadi (bitta Firestore yozuvida, arrayUnion orqali — samarali va atomik).
+// Ichki takrorlanganlar (bir xil `en`, katta-kichik harfga qaramasdan) va
+// darajada ALLAQACHON mavjud so'zlar avtomatik o'tkazib yuboriladi.
+// Natija: { added: [...], skipped: [{word, reason}, ...] }
+async function addWordsToLevel(levelId, words) {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) throw new Error('Daraja topilmadi: ' + levelId);
+  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalarga so'z qo'shish mumkin");
+  if (!Array.isArray(words) || !words.length) throw new Error("Qo'shish uchun so'zlar topilmadi");
+
+  const existing = await loadLevelWords(levelId).catch(() => []);
+  const existingKeys = new Set(existing.map(w => (w.en || '').toLowerCase()));
+
+  const added = [];
+  const skipped = [];
+  const seenInBatch = new Set();
+
+  words.forEach(raw => {
+    const en = String(raw.en || '').trim();
+    const uz = String(raw.uz || '').trim();
+    if (!en || !uz) { skipped.push({ word: raw, reason: "en/uz to'ldirilmagan" }); return; }
+    const key = en.toLowerCase();
+    if (existingKeys.has(key)) { skipped.push({ word: raw, reason: "darajada allaqachon mavjud" }); return; }
+    if (seenInBatch.has(key)) { skipped.push({ word: raw, reason: "ro'yxatda takrorlangan" }); return; }
+    seenInBatch.add(key);
+    added.push({
+      en, uz,
+      example: String(raw.example || '').trim(),
+      ipa: String(raw.ipa || '').trim(),
+    });
+  });
+
+  if (added.length) {
+    await db.collection('levelWords').doc(levelId).set({
+      words: firebase.firestore.FieldValue.arrayUnion(...added),
+    }, { merge: true });
+    delete _wordCache[levelId];
+  }
+
+  return { added, skipped };
+}
+
 // ── Reyting (leaderboard) ───────────────────────────────────────────
 // Email hech qachon reyting hujjatiga yozilmaydi — faqat ism (yoki ism
 // kiritilmagan bo'lsa, emaildan olingan xavfsiz taxallus) va sonlar.

@@ -2026,7 +2026,7 @@ async function renderUsersTab() {
           <tr>
             <th>Email</th>
             <th>Ro'yxatdan o'tgan</th>
-            <th>So'nggi kirish</th>
+            <th>So'nggi faollik</th>
             <th>Kirish tarixi</th>
             <th>Holat</th>
             <th>Amal</th>
@@ -2056,15 +2056,25 @@ function renderUsersTableBody(logEntries) {
   tbody.innerHTML = _usersCache.map((u, idx) => {
     const log = logByUid[u.id];
     const sessions = log ? log.sessions : [];
-    const regTxt = log && log.registeredAt ? formatLogTime(log.registeredAt) : null;
-    const lastLoginTxt = sessions.length ? formatLogTime(sessions[0].loginAt) : null;
+    // Ro'yxatdan o'tgan sana: birinchi manba — foydalanuvchi hujjatidagi
+    // `createdAt` (hujjat yaratilganda bir marta yoziladi, hech qachon
+    // o'zgarmaydi — eng ishonchli manba). Agar u yo'q bo'lsa (juda eski
+    // foydalanuvchi), activityLog'dagi 'register' yozuviga tayanamiz.
+    const regTxt = u.createdAt ? formatLogTime(u.createdAt)
+      : (log && log.registeredAt ? formatLogTime(log.registeredAt) : null);
+    // So'nggi faollik: birinchi manba — `lastSeenAt` (har safar sahifa
+    // ochilganda yangilanadi, shuning uchun eng aniq/yangi vaqtni beradi).
+    // Agar u hali yo'q bo'lsa (eski foydalanuvchi hali qayta tashrif
+    // buyurmagan), activityLog'dagi oxirgi aniq login vaqtiga tayanamiz.
+    const lastSeenTxt = u.lastSeenAt ? formatLogTime(u.lastSeenAt)
+      : (sessions.length ? formatLogTime(sessions[0].loginAt) : null);
     return `
     <tr data-email="${escapeAttr((u.name || '') + ' ' + (u.email || u.id))}">
       <td class="user-email">
         ${u.name ? `${escapeHtmlGlobal(u.name)}<br/><span style="color:#4a4860;font-size:11px">${escapeHtmlGlobal(u.email || u.id)}</span>` : escapeHtmlGlobal(u.email || u.id)}
       </td>
       <td class="user-reg-date ${regTxt ? '' : 'empty'}">${regTxt || "Noma'lum"}</td>
-      <td class="user-last-login ${lastLoginTxt ? '' : 'empty'}">${lastLoginTxt || 'Hali kirmagan'}</td>
+      <td class="user-last-login ${lastSeenTxt ? '' : 'empty'}">${lastSeenTxt || 'Hali kirmagan'}</td>
       <td>
         ${sessions.length
           ? `<button class="user-login-toggle-btn" onclick="toggleUserLoginHistory(${idx})">Ko'rish (${sessions.length})</button>`

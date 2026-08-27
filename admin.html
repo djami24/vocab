@@ -620,6 +620,14 @@ body {
 }
 .users-table tbody tr:hover { background: #1a1924; }
 
+.user-rank {
+  font-family: 'JetBrains Mono', monospace !important;
+  color: #6b6884 !important;
+  font-size: 12px !important;
+  width: 32px !important;
+  text-align: center !important;
+}
+
 .user-email {
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 12px !important;
@@ -2010,7 +2018,6 @@ async function renderUsersTab() {
     return;
   }
 
-  users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
   _usersCache = users;
   _usersAdminSet = new Set(adminUids);
 
@@ -2024,6 +2031,7 @@ async function renderUsersTab() {
       <table class="users-table">
         <thead>
           <tr>
+            <th>#</th>
             <th>Email</th>
             <th>Ro'yxatdan o'tgan</th>
             <th>So'nggi faollik</th>
@@ -2053,7 +2061,11 @@ function renderUsersTableBody(logEntries) {
   const logByUid = {};
   groupActivityByUser(logEntries || []).forEach(u => { logByUid[u.uid] = u; });
 
-  tbody.innerHTML = _usersCache.map((u, idx) => {
+  // Har bir foydalanuvchi uchun kerakli ma'lumotlarni oldindan hisoblab olamiz,
+  // so'ng ENG SO'NGGI FAOLLIK bo'yicha (eng yangisi tepada) saralaymiz —
+  // shunda admin scroll qilib kim kirganini qidirib yurmaydi, eng faol/yangi
+  // kirgan foydalanuvchilar ro'yxat boshida turadi.
+  const rows = _usersCache.map((u) => {
     const log = logByUid[u.id];
     const sessions = log ? log.sessions : [];
     // Ro'yxatdan o'tgan sana: birinchi manba — foydalanuvchi hujjatidagi
@@ -2066,10 +2078,21 @@ function renderUsersTableBody(logEntries) {
     // ochilganda yangilanadi, shuning uchun eng aniq/yangi vaqtni beradi).
     // Agar u hali yo'q bo'lsa (eski foydalanuvchi hali qayta tashrif
     // buyurmagan), activityLog'dagi oxirgi aniq login vaqtiga tayanamiz.
+    const lastSeenMs = tsMillis(u.lastSeenAt)
+      ?? (sessions.length ? tsMillis(sessions[0].loginAt) : null)
+      ?? tsMillis(u.createdAt)
+      ?? -1;
     const lastSeenTxt = u.lastSeenAt ? formatLogTime(u.lastSeenAt)
       : (sessions.length ? formatLogTime(sessions[0].loginAt) : null);
+    return { u, log, sessions, regTxt, lastSeenTxt, lastSeenMs };
+  });
+
+  rows.sort((a, b) => b.lastSeenMs - a.lastSeenMs);
+
+  tbody.innerHTML = rows.map(({ u, sessions, regTxt, lastSeenTxt }, idx) => {
     return `
     <tr data-email="${escapeAttr((u.name || '') + ' ' + (u.email || u.id))}">
+      <td class="user-rank">${idx + 1}</td>
       <td class="user-email">
         ${u.name ? `${escapeHtmlGlobal(u.name)}<br/><span style="color:#4a4860;font-size:11px">${escapeHtmlGlobal(u.email || u.id)}</span>` : escapeHtmlGlobal(u.email || u.id)}
       </td>
@@ -2096,7 +2119,7 @@ function renderUsersTableBody(logEntries) {
       </td>
     </tr>
     <tr class="user-login-details-row" id="udet-${idx}" style="display:none">
-      <td colspan="6">
+      <td colspan="7">
         ${sessions.length ? `
           <div class="user-login-list">
             ${sessions.map(s => `<span class="user-login-list-item">${formatLogTime(s.loginAt)}</span>`).join('')}

@@ -158,8 +158,10 @@ function handleAnswer(btn) {
   if (chosen === q.correct) {
     score++;
     feedback.innerHTML = `<span class="ok">✓ To'g'ri!</span>`;
+    removeMistake(user, levelId, q.item.en);
   } else {
     feedback.innerHTML = `<span class="bad">✕ Noto'g'ri. To'g'ri javob: <b>${escapeHtml(q.correct)}</b></span>`;
+    addMistake(user, levelId, q.item.en);
   }
   feedback.innerHTML += `<button class="btn-primary" style="margin-top:14px" onclick="nextQuestion()">Keyingisi →</button>`;
 }

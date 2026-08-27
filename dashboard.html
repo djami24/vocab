@@ -155,7 +155,7 @@
     const stats = await collectStats(user);
 
     grid.innerHTML = stats.perLevel.map((row, i) => {
-      const { level, learned, total, laterCount, dueReview, isDone, unlocked } = row;
+      const { level, learned, total, laterCount, mistakeCount, isDone, unlocked } = row;
       const pct = total ? Math.round((learned / total) * 100) : 0;
 
       if (!unlocked) {
@@ -186,7 +186,7 @@
         <div class="card-btn-row">
           <button class="btn-quiz" ${learned < 4 ? 'disabled title="Test uchun kamida 4 ta so\'z o\'rganilgan bo\'lishi kerak"' : ''} onclick="location.href='quiz.html?level=${level.id}'">📝 Test</button>
           <button class="btn-quiz" ${learned < 4 ? 'disabled title="O\'yinlar uchun kamida 4 ta so\'z o\'rganilgan bo\'lishi kerak"' : ''} onclick="location.href='games.html?level=${level.id}'">🎮 O'yinlar</button>
-          ${dueReview > 0 ? `<button class="btn-review" onclick="location.href='study.html?level=${level.id}&mode=review'">🔁 Takrorlash (${dueReview})</button>` : ''}
+          ${mistakeCount > 0 ? `<button class="btn-review" onclick="location.href='study.html?level=${level.id}&mode=mistakes'">❌ Xatolar (${mistakeCount})</button>` : ''}
         </div>
         ${laterCount > 0 ? `
         <div class="later-row">

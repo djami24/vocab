@@ -230,6 +230,21 @@
 <script>
   let currentUser = null;
 
+  const TRACKS = [
+    { id: 'ielts', emoji: '🎓', name: 'IELTS', desc: 'IELTS imtihoni uchun ixtisoslashgan so\'z va iboralar', features: [
+        "IELTS Academic & General so'zlari",
+        'Akademik iboralar va kolokatsiyalar',
+        "Mavzular bo'yicha tematik to'plamlar",
+        "Bir martalik to'lov — umrbod kirish",
+      ], price: '25 000 so\'m' },
+    { id: 'cefr', emoji: '🌍', name: 'CEFR', desc: 'CEFR (A1–C2) darajalari uchun ixtisoslashgan so\'z va iboralar', features: [
+        'CEFR A1–C2 darajadagi so\'zlar',
+        "Har bir daraja uchun alohida mavzular",
+        "Rasmiy imtihon formatidagi lug'at",
+        "Bir martalik to'lov — umrbod kirish",
+      ], price: '20 000 so\'m' },
+  ];
+
   (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
@@ -238,116 +253,82 @@
     document.getElementById('logoutBtn').addEventListener('click', logout);
     if (isAdmin()) document.getElementById('adminLink').style.display = '';
 
-    await renderIeltsContent();
+    await renderTracks();
   })();
 
-  async function renderIeltsContent() {
+  async function renderTracks() {
     const box = document.getElementById('mainContent');
+    box.innerHTML = `<div class="ielts-levels" id="tracksGrid"></div>`;
+    const grid = document.getElementById('tracksGrid');
+    grid.innerHTML = TRACKS.map(t => `<div class="ielts-level-card" id="trackCard-${t.id}"><div class="ielts-level-head"><div class="ielts-level-name">Yuklanmoqda...</div></div></div>`).join('');
 
-    // Firestore'dan foydalanuvchining IELTS sotib olganini tekshiramiz
-    let hasPurchased = false;
-    try {
-      const uid = _currentUser.uid;
-      const doc = await db.collection('ielts_purchases').doc(uid).get();
-      hasPurchased = doc.exists && doc.data().active === true;
-    } catch (e) {
-      console.error('Sotib olish holatini tekshirishda xatolik:', e);
-    }
+    const purchased = await checkExamPurchasedBoth(_currentUser.uid);
 
-    if (hasPurchased) {
-      renderPurchasedView(box);
-    } else {
-      renderLockedView(box);
+    for (const t of TRACKS) {
+      const card = document.getElementById('trackCard-' + t.id);
+      if (purchased[t.id]) {
+        card.outerHTML = await renderUnlockedTrackCard(t);
+      } else {
+        card.outerHTML = renderLockedTrackCard(t);
+      }
     }
   }
 
-  function renderLockedView(box) {
-    box.innerHTML = `
-      <div class="locked-overlay">
-        <div class="lock-emoji">🎓</div>
-        <h2>IELTS & CEFR Words — Maxsus bo'lim</h2>
-        <p>Bu bo'lim IELTS va CEFR imtihonlarida yuqori ball olishga yo'naltirilgan premium so'zlar to'plamini o'z ichiga oladi.</p>
-
-        <div class="price-tag">
-          💳 25 000 so'm <span class="per">/ bir martalik</span>
-        </div>
-
-        <ul class="features-list">
-          <li>IELTS Academic & General so'zlari</li>
-          <li>CEFR B2–C2 darajadagi so'zlar</li>
-          <li>Akademik iboralar va kolokatsiyalar</li>
-          <li>Mavzular bo'yicha tematik to'plamlar</li>
-          <li>Bir martalik to'lov — umrbod kirish</li>
-        </ul>
-
-        <button class="buy-btn" onclick="initiatePurchase()">
-          💳 Sotib olish — 25 000 so'm
-        </button>
-
-        <p style="font-size:12px; color:var(--text-muted,#888); margin-top:8px;">
-          To'lovdan so'ng darrov faollashadi. Savollar uchun: admin orqali bog'laning.
-        </p>
-      </div>
-    `;
-  }
-
-  async function renderPurchasedView(box) {
-    // IELTS va CEFR — 2ta alohida katta karta. Har birini bosganda
-    // o'sha bo'limning mavzular (topics) ro'yxati ochiladi.
-    box.innerHTML = `
-      <div style="padding: 4px 0 20px;">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-          <span style="font-size:24px;">🎉</span>
-          <div>
-            <div style="font-family:var(--font-display,Georgia,serif); font-size:18px; font-weight:800; color:var(--text-on-paper,#1b1035);">Siz premium a'zodasiz!</div>
-            <div style="font-size:13px; color:var(--text-muted,#888);">IELTS & CEFR to'plamlariga kirish ochildi.</div>
-          </div>
-        </div>
-
-        <div class="ielts-levels" id="examTracksGrid">
-          <div class="ielts-level-card"><div class="ielts-level-head"><div class="ielts-level-name">Yuklanmoqda...</div></div></div>
-        </div>
-      </div>
-    `;
-
-    const tracks = [
-      { id: 'ielts', name: '🎓 IELTS', desc: 'IELTS imtihoni uchun so\'z va iboralar mavzular bo\'yicha' },
-      { id: 'cefr', name: '🌍 CEFR', desc: 'CEFR (A1–C2) darajalari uchun so\'z va iboralar mavzular bo\'yicha' },
-    ];
-    const counts = await Promise.all(tracks.map(t => loadExamTopics(t.id).then(list => list.length).catch(() => 0)));
-
-    document.getElementById('examTracksGrid').innerHTML = tracks.map((t, i) => `
-      <div class="ielts-level-card">
+  async function renderUnlockedTrackCard(t) {
+    let topicCount = 0;
+    try { topicCount = (await loadExamTopics(t.id)).length; } catch (e) { /* ignore */ }
+    return `
+      <div class="ielts-level-card" id="trackCard-${t.id}">
         <div class="ielts-level-head" onclick="location.href='exam-topics.html?track=${t.id}'">
           <div>
-            <div class="ielts-level-name">${escapeHtml(t.name)}</div>
-            <div class="ielts-level-meta">${escapeHtml(t.desc)} · ${counts[i]} ta mavzu</div>
+            <div class="ielts-level-name">${t.emoji} ${escapeHtml(t.name)} <span style="font-size:11px; font-weight:800; color:#17D67C; margin-left:6px;">✓ Sotib olingan</span></div>
+            <div class="ielts-level-meta">${escapeHtml(t.desc)} · ${topicCount} ta mavzu</div>
           </div>
           <span style="font-size:22px;">→</span>
         </div>
-      </div>
-    `).join('');
+      </div>`;
   }
 
-  async function initiatePurchase() {
-    // To'lov logikasi — hozircha admin orqali manual tasdiqlash
-    // (Payme / Click integratsiyasi keyinroq qo'shiladi)
+  function renderLockedTrackCard(t) {
+    return `
+      <div class="ielts-level-card" id="trackCard-${t.id}">
+        <div class="locked-overlay" style="padding:26px 20px;">
+          <div class="lock-emoji" style="font-size:38px;">${t.emoji}</div>
+          <h2 style="font-size:18px;">${escapeHtml(t.name)} — qulflangan</h2>
+          <p style="font-size:13px;">${escapeHtml(t.desc)}</p>
+
+          <div class="price-tag" style="font-size:16px; padding:10px 22px;">
+            💳 ${t.price} <span class="per">/ bir martalik</span>
+          </div>
+
+          <ul class="features-list" style="max-width:300px;">
+            ${t.features.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
+          </ul>
+
+          <button class="buy-btn" style="font-size:14px; padding:12px 26px;" onclick="initiatePurchase('${t.id}')" id="buyBtn-${t.id}">
+            💳 ${escapeHtml(t.name)}ni sotib olish — ${t.price}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  async function initiatePurchase(track) {
+    const t = TRACKS.find(x => x.id === track);
+    if (!t) return;
+
     const confirmed = confirm(
-      "To'lov uchun admin bilan bog'lanasizmi?\n\n" +
-      "Narx: 25 000 so'm (bir martalik)\n\n" +
-      "To'lovdan so'ng admin hisobingizni faollashtiradi va IELTS bo'limiga kirish ochiladi."
+      `To'lov uchun admin bilan bog'lanasizmi?\n\n` +
+      `Bo'lim: ${t.name}\n` +
+      `Narx: ${t.price} (bir martalik)\n\n` +
+      `To'lovdan so'ng admin hisobingizni faollashtiradi va ${t.name} bo'limiga kirish ochiladi.`
     );
     if (!confirmed) return;
 
-    // Foydalanuvchining so'rovini Firestore'ga yozamiz
+    const btn = document.getElementById('buyBtn-' + track);
+    if (btn) { btn.disabled = true; btn.textContent = 'Yuborilmoqda...'; }
+
     try {
-      const uid = _currentUser.uid;
-      await db.collection('ielts_purchase_requests').doc(uid).set({
-        uid,
-        name: _userNameCache || currentUser,
-        requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'pending'
-      });
+      await requestExamPurchase(track, _userNameCache || currentUser);
       alert(
         "So'rovingiz qabul qilindi! ✅\n\n" +
         "Admin tez orada hisobingizni faollashtiradi.\n" +
@@ -355,6 +336,8 @@
       );
     } catch(e) {
       alert("Xatolik yuz berdi: " + (e.message || e));
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = `💳 ${t.name}ni sotib olish — ${t.price}`; }
     }
   }
 

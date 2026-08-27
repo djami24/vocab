@@ -839,9 +839,28 @@ async function loadLevelWords(levelId) {
     const snap = await db.collection('levelWords').doc(levelId).get();
     data = (snap.exists && Array.isArray(snap.data().words)) ? snap.data().words : [];
   } else {
+    // Statik (tayyor) daraja — asl so'zlar data/*.json fayldan o'qiladi.
     const res = await fetch(level.file);
     if (!res.ok) throw new Error('Could not load word list for ' + levelId);
-    data = await res.json();
+    const baseWords = await res.json();
+
+    // Admin bu statik darajaga ham so'z qo'sha oladi yoki asl so'zlardan
+    // birini o'chira oladi — bu o'zgarishlar `data/*.json` faylning o'ziga
+    // emas, Firestore'dagi levelWords/{levelId} hujjatiga (`extra` va
+    // `removed` maydonlariga) yoziladi, so'ng shu yerda asl ro'yxat bilan
+    // birlashtiriladi.
+    let extra = [], removed = [];
+    try {
+      const snap = await db.collection('levelWords').doc(levelId).get();
+      if (snap.exists) {
+        const d = snap.data() || {};
+        if (Array.isArray(d.extra)) extra = d.extra;
+        if (Array.isArray(d.removed)) removed = d.removed.map(x => String(x).toLowerCase());
+      }
+    } catch (e) { /* Firestore'dan o'qib bo'lmasa — faqat statik ro'yxat ishlatiladi */ }
+
+    const removedSet = new Set(removed);
+    data = baseWords.filter(w => !removedSet.has((w.en || '').toLowerCase())).concat(extra);
   }
   _wordCache[levelId] = data;
   return data;
@@ -904,13 +923,13 @@ async function createLevel(name, target) {
   return newLevel;
 }
 
-// Faqat admin chaqirishi kerak — bitta so'zni darajaga qo'shadi.
-// Bir xil inglizcha so'z (katta-kichik harflarga qaramasdan) qayta
-// qo'shilib ketmasligi uchun oldindan tekshiradi.
+// Faqat admin chaqirishi kerak — bitta so'zni darajaga qo'shadi (statik
+// bo'lsin, admin qo'shgan bo'lsin — ISTALGAN darajaga). Bir xil inglizcha
+// so'z (katta-kichik harflarga qaramasdan) qayta qo'shilib ketmasligi
+// uchun oldindan tekshiradi.
 async function addWordToLevel(levelId, word) {
   const level = LEVELS.find(l => l.id === levelId);
   if (!level) throw new Error('Daraja topilmadi: ' + levelId);
-  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalarga so'z qo'shish mumkin");
 
   const en = String(word.en || '').trim();
   const uz = String(word.uz || '').trim();
@@ -929,25 +948,76 @@ async function addWordToLevel(levelId, word) {
     throw new Error(`"${en}" so'zi bu darajada allaqachon mavjud`);
   }
 
+  // Admin qo'shgan (firestore) darajalarda to'liq ro'yxat `words` maydonida
+  // saqlanadi. Statik (tayyor) darajalarda esa asl so'zlar data/*.json
+  // faylda qoladi — bu yerda faqat QO'SHIMCHA so'zlar `extra` maydonida
+  // saqlanadi, ular loadLevelWords() ichida asl ro'yxatga qo'shib beriladi.
+  const field = level.source === 'firestore' ? 'words' : 'extra';
   await db.collection('levelWords').doc(levelId).set({
-    words: firebase.firestore.FieldValue.arrayUnion(entry),
+    [field]: firebase.firestore.FieldValue.arrayUnion(entry),
   }, { merge: true });
 
   delete _wordCache[levelId]; // keshni tozalab, keyingi o'qishda yangi ro'yxat kelsin
   return entry;
 }
 
-// Faqat admin chaqirishi kerak — darajadan bitta so'zni o'chiradi.
-// `word` — loadLevelWords() orqali olingan XUDDI O'ZI (arrayRemove aniq
-// mos obyektni talab qiladi).
+// Faqat admin chaqirishi kerak — darajadan bitta so'zni o'chiradi (statik
+// bo'lsin, admin qo'shgan bo'lsin — ISTALGAN darajadan). `word` —
+// loadLevelWords() orqali olingan XUDDI O'ZI.
 async function removeWordFromLevel(levelId, word) {
   const level = LEVELS.find(l => l.id === levelId);
   if (!level) throw new Error('Daraja topilmadi: ' + levelId);
-  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalardan so'z o'chirish mumkin");
+  const en = String((word && word.en) || '').trim();
+  if (!en) throw new Error("So'z topilmadi");
 
-  await db.collection('levelWords').doc(levelId).update({
-    words: firebase.firestore.FieldValue.arrayRemove(word),
-  });
+  if (level.source === 'firestore') {
+    // Admin qo'shgan daraja — so'z to'g'ridan-to'g'ri `words` massividan
+    // olib tashlanadi (aniq mos obyekt kerak).
+    await db.collection('levelWords').doc(levelId).update({
+      words: firebase.firestore.FieldValue.arrayRemove(word),
+    });
+  } else {
+    // Statik daraja: asl data/*.json faylni o'zgartirib bo'lmaydi, shuning
+    // uchun ikki holat bor:
+    //  1) So'z avval admin tomonidan shu panelga qo'shilgan (`extra`
+    //     ro'yxatida) — o'sha ro'yxatdan olib tashlaymiz.
+    //  2) So'z JSON faylning o'zidagi ASL so'z — uni `removed` ro'yxatiga
+    //     (inglizcha so'zning kichik harfli shakli) qo'shib "yashiramiz";
+    //     asl fayl o'zgarishsiz qoladi, lekin loadLevelWords() uni endi
+     //     qaytarmaydi.
+    const docRef = db.collection('levelWords').doc(levelId);
+    const snap = await docRef.get();
+    const data = snap.exists ? (snap.data() || {}) : {};
+    const extra = Array.isArray(data.extra) ? data.extra : [];
+    const inExtra = extra.find(w => (w.en || '').toLowerCase() === en.toLowerCase());
+    if (inExtra) {
+      await docRef.set({ extra: firebase.firestore.FieldValue.arrayRemove(inExtra) }, { merge: true });
+    } else {
+      await docRef.set({ removed: firebase.firestore.FieldValue.arrayUnion(en.toLowerCase()) }, { merge: true });
+    }
+  }
+  delete _wordCache[levelId];
+}
+
+// Faqat admin chaqirishi kerak — darajadagi BARCHA so'zlarni bir yo'la
+// o'chiradi (statik bo'lsin, admin qo'shgan bo'lsin — ISTALGAN daraja).
+async function clearLevelWords(levelId) {
+  const level = LEVELS.find(l => l.id === levelId);
+  if (!level) throw new Error('Daraja topilmadi: ' + levelId);
+
+  if (level.source === 'firestore') {
+    await db.collection('levelWords').doc(levelId).set({ words: [] }, { merge: true });
+  } else {
+    // Statik darajaning hozirgi (asl + admin qo'shgan) barcha so'zlarini
+    // "removed" ro'yxatiga qo'shib yashiramiz, `extra`ni esa bo'shatamiz —
+    // asl data/*.json fayl o'zgarishsiz qoladi.
+    const words = await loadLevelWords(levelId);
+    const removedList = words.map(w => (w.en || '').toLowerCase());
+    await db.collection('levelWords').doc(levelId).set({
+      extra: [],
+      removed: removedList,
+    }, { merge: true });
+  }
   delete _wordCache[levelId];
 }
 
@@ -959,7 +1029,6 @@ async function removeWordFromLevel(levelId, word) {
 async function addWordsToLevel(levelId, words) {
   const level = LEVELS.find(l => l.id === levelId);
   if (!level) throw new Error('Daraja topilmadi: ' + levelId);
-  if (level.source !== 'firestore') throw new Error("Faqat admin tomonidan qo'shilgan darajalarga so'z qo'shish mumkin");
   if (!Array.isArray(words) || !words.length) throw new Error("Qo'shish uchun so'zlar topilmadi");
 
   const existing = await loadLevelWords(levelId).catch(() => []);
@@ -985,8 +1054,9 @@ async function addWordsToLevel(levelId, words) {
   });
 
   if (added.length) {
+    const field = level.source === 'firestore' ? 'words' : 'extra';
     await db.collection('levelWords').doc(levelId).set({
-      words: firebase.firestore.FieldValue.arrayUnion(...added),
+      [field]: firebase.firestore.FieldValue.arrayUnion(...added),
     }, { merge: true });
     delete _wordCache[levelId];
   }

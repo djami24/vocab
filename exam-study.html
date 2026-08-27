@@ -65,12 +65,7 @@
     if (!topicId) { location.href = 'exam-topics.html?track=' + track; return; }
 
     let hasPurchased = isAdmin();
-    if (!hasPurchased) {
-      try {
-        const doc = await db.collection('ielts_purchases').doc(_currentUser.uid).get();
-        hasPurchased = doc.exists && doc.data().active === true;
-      } catch (e) { console.error(e); }
-    }
+    if (!hasPurchased) hasPurchased = await checkExamPurchased(track);
     if (!hasPurchased) { location.href = 'dashboard-ielts.html'; return; }
 
     try {

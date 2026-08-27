@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Test | Lug'at</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Lug'at<span class="dot">.</span></div>
+    <div class="userchip">
+      <span id="userLabel">—</span>
+      <button onclick="logout()">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="study" id="quizRoot">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+
+  <footer class="site-foot">So'z boyligingiz — bulutda xavfsiz saqlanadi.</footer>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const QUIZ_SIZE = 10;
+
+const params  = new URLSearchParams(location.search);
+const track   = params.get('track') === 'cefr' ? 'cefr' : 'ielts';
+const topicId = params.get('topic');
+
+let user = null;
+let topicName = '';
+let allWords = [];      // shu mavzudagi BARCHA so'zlar (noto'g'ri variantlar uchun)
+let questions = [];
+let qIdx = 0;
+let score = 0;
+let answered = false;
+
+const root = document.getElementById('quizRoot');
+
+(async () => {
+  user = await requireAuth();
+  if (!user) return;
+  document.getElementById('userLabel').textContent = user;
+
+  if (!topicId) { location.href = 'exam-topics.html?track=' + track; return; }
+
+  let hasPurchased = isAdmin();
+  if (!hasPurchased) hasPurchased = await checkExamPurchased(track);
+  if (!hasPurchased) { location.href = 'dashboard-ielts.html'; return; }
+
+  await init();
+})();
+
+async function init() {
+  root.innerHTML = `<div class="empty-state"><div class="emoji">📝</div><p>Test tayyorlanmoqda...</p></div>`;
+
+  try {
+    const topics = await loadExamTopics(track);
+    const t = topics.find(x => x.id === topicId);
+    topicName = t ? t.name : 'Mavzu';
+    allWords = await loadExamTopicWords(topicId);
+  } catch (e) {
+    root.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><p>Yuklab bo'lmadi: ${escapeHtml(e.message || String(e))}</p></div>`;
+    return;
+  }
+
+  // FAQAT talaba "bilaman" deb belgilagan (o'rgangan) so'zlardan test tuzamiz —
+  // hali o'rganilmagan so'zlar testga chiqmaydi.
+  const learnedSet = getExamLearned(user, topicId);
+  const learnedWords = allWords.filter(w => learnedSet.has((w.en || '').toLowerCase()));
+
+  if (learnedWords.length < 4) {
+    root.innerHTML = `
+      <div class="complete-box">
+        <div class="emoji">🔒</div>
+        <h2>Hali erta</h2>
+        <p>Test ishlash uchun avval shu mavzuda kamida 4 ta so'zni o'rganing.</p>
+        <div class="btns">
+          <a class="btn-primary" style="margin-top:0" href="exam-study.html?track=${track}&topic=${encodeURIComponent(topicId)}">O'rganishni boshlash</a>
+          <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Shuffle qilib, kerakli sonini olamiz — har bir so'z ro'yxatda FAQAT bir marta
+  // bo'lgani uchun (dublikat yo'q), bitta test sessiyasida bitta so'z ikki marta
+  // chiqmaydi.
+  const size = Math.min(QUIZ_SIZE, learnedWords.length);
+  const pool = shuffle(learnedWords).slice(0, size);
+  questions = pool.map(item => {
+    const wrongPool = allWords.filter(w => w.en !== item.en);
+    const wrongs = shuffle(wrongPool).slice(0, 3).map(w => w.uz);
+    const options = shuffle([item.uz, ...wrongs]);
+    return { item, options, correct: item.uz };
+  });
+
+  qIdx = 0;
+  score = 0;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (qIdx >= questions.length) { renderResult(); return; }
+  answered = false;
+  const q = questions[qIdx];
+
+  root.innerHTML = `
+    <div class="study-head">
+      <a href="exam-topics.html?track=${track}">← Mavzular</a>
+      <span class="counter">📝 ${escapeHtml(topicName)} · ${qIdx + 1} / ${questions.length}</span>
+    </div>
+    <div class="session-track"><div class="session-fill" style="width:${(qIdx / questions.length) * 100}%"></div></div>
+
+    <div class="quiz-card">
+      <div class="eyebrow">Bu so'zning tarjimasi qaysi?</div>
+      <div class="word-audio-row">
+        <div class="quiz-word">${escapeHtml(q.item.en)}</div>
+        ${speakBtnHtml(q.item.en)}
+      </div>
+      ${q.item.ipa ? `<div class="ipa">/${escapeHtml(q.item.ipa)}/</div>` : ''}
+      <div class="quiz-options" id="quizOptions">
+        ${q.options.map(opt => `<button class="quiz-opt" data-opt="${escapeHtml(opt)}" onclick="handleAnswer(this)">${escapeHtml(opt)}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+  `;
+}
+
+function handleAnswer(btn) {
+  if (answered) return;
+  answered = true;
+  const chosen = btn.getAttribute('data-opt');
+  const q = questions[qIdx];
+  const buttons = document.querySelectorAll('.quiz-opt');
+  const feedback = document.getElementById('quizFeedback');
+
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (b.getAttribute('data-opt') === q.correct) b.classList.add('correct');
+    else if (b === btn) b.classList.add('wrong');
+  });
+
+  if (chosen === q.correct) {
+    score++;
+    feedback.innerHTML = `<span class="ok">✓ To'g'ri!</span>`;
+  } else {
+    feedback.innerHTML = `<span class="bad">✕ Noto'g'ri. To'g'ri javob: <b>${escapeHtml(q.correct)}</b></span>`;
+  }
+  feedback.innerHTML += `<button class="btn-primary" style="margin-top:14px" onclick="nextQuestion()">Keyingisi →</button>`;
+}
+
+function nextQuestion() {
+  qIdx++;
+  renderQuestion();
+}
+
+function renderResult() {
+  const pct = Math.round((score / questions.length) * 100);
+  const isPerfect = score === questions.length;
+
+  root.innerHTML = `
+    <div class="complete-box">
+      <div class="emoji">${isPerfect ? '🏆' : pct >= 60 ? '👍' : '💪'}</div>
+      <h2>Test natijasi: ${score} / ${questions.length}</h2>
+      <p>${pct}% to'g'ri javob.${isPerfect ? ' Mukammal natija — tabriklaymiz! 🎉' : ' Yana mashq qilib ko\'ring.'}</p>
+      <div class="btns">
+        <button class="btn-primary" style="margin-top:0" onclick="init()">Qayta test topshirish</button>
+        <a class="btn-secondary" href="exam-topics.html?track=${track}">← Mavzularga qaytish</a>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

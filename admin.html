@@ -1312,6 +1312,10 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
       <span class="nav-icon">📚</span>
       Darajalar
     </button>
+    <button class="sidebar-nav-btn" data-tab="exam">
+      <span class="nav-icon">🎓</span>
+      IELTS &amp; CEFR
+    </button>
   </nav>
 
   <!-- MAIN -->
@@ -1403,6 +1407,17 @@ html, body { max-width: 100vw !important; overflow-x: hidden !important; }
       </div>
     </div>
 
+    <!-- EXAM (IELTS & CEFR) TAB -->
+    <div class="admin-section" id="secExam">
+      <div class="page-header">
+        <h1>🎓 IELTS &amp; CEFR</h1>
+        <p>IELTS va CEFR bo'limlari uchun mavzular (masalan: Grammatika, Academic Words) oching va har biriga so'z/ibora qo'shing. So'z qo'shishda matnni <b>qalin</b>, <i>qiyshiq</i> yoki <u>tagiga chizilgan</u> qilib formatlashingiz mumkin.</p>
+      </div>
+      <div id="examContent">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1449,7 +1464,7 @@ let user = null;
       document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
-      const map = { settings: 'secSettings', log: 'secLog', testimonials: 'secTestimonials', users: 'secUsers', students: 'secStudents', earnings: 'secEarnings', levels: 'secLevels' };
+      const map = { settings: 'secSettings', log: 'secLog', testimonials: 'secTestimonials', users: 'secUsers', students: 'secStudents', earnings: 'secEarnings', levels: 'secLevels', exam: 'secExam' };
       document.getElementById(map[btn.dataset.tab]).classList.add('active');
     });
   });
@@ -1461,6 +1476,7 @@ let user = null;
   renderStudentsTab();
   renderEarningsTab();
   renderLevelsTab();
+  renderExamTab();
 })();
 
 // ── TESTIMONIALS TAB ─────────────────────────────────
@@ -2974,6 +2990,413 @@ async function handleClearLevelWords(levelId) {
   } catch (e) {
     alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
     if (btn) { btn.disabled = false; btn.textContent = `🗑 Barcha so'zlarni o'chirish (${words.length})`; }
+  }
+}
+
+// ── EXAM TAB (IELTS & CEFR mavzulari) ───────────────────
+// _examTrack: hozir tanlangan bo'lim ('ielts' yoki 'cefr')
+// _examTopicsAdminCache: joriy bo'limning mavzular ro'yxati + so'z soni
+// _examWordsAdminCache: { [topicId]: word[] }
+let _examTrack = 'ielts';
+let _examTopicsAdminCache = [];
+let _examWordsAdminCache = {};
+let _expandedExamTopicIds = new Set();
+
+async function renderExamTab() {
+  const box = document.getElementById('examContent');
+  box.innerHTML = `<div class="log-table-wrap"><div class="log-empty"><span class="spinner"></span></div></div>`;
+
+  box.innerHTML = `
+    <div class="acard">
+      <div class="acard-title">Bo'lim</div>
+      <div class="afield-hint" style="margin-bottom:10px">Avval qaysi bo'lim bilan ishlashni tanlang, keyin unga mavzu va so'z qo'shing.</div>
+      <div style="display:flex; gap:10px;">
+        <button class="abtn-${_examTrack === 'ielts' ? 'primary' : 'secondary'}" onclick="switchExamTrack('ielts')">🎓 IELTS</button>
+        <button class="abtn-${_examTrack === 'cefr' ? 'primary' : 'secondary'}" onclick="switchExamTrack('cefr')">🌍 CEFR</button>
+      </div>
+    </div>
+    <div class="acard">
+      <div class="acard-title">➕ Yangi mavzu ochish (${_examTrack.toUpperCase()})</div>
+      <div class="acard-sub">Masalan: "Grammatika", "Academic Words", "Speaking iboralar". Mavzu ochilgach, pastda paydo bo'ladi — shu yerdan unga so'z qo'sha olasiz.</div>
+      <div class="aform-grid">
+        <div class="afield">
+          <label>Mavzu nomi</label>
+          <input type="text" id="newExamTopicName" placeholder="Masalan: Grammatika"/>
+        </div>
+      </div>
+      <div id="newExamTopicError" style="display:none; color:#f87171; font-size:12.5px; margin-top:4px;"></div>
+      <button class="abtn-primary" style="margin-top:14px" onclick="handleCreateExamTopic()" id="createExamTopicBtn">Mavzu ochish</button>
+    </div>
+    <div id="examTopicsList"></div>
+  `;
+
+  await loadAndRenderExamTopicsList();
+}
+
+function switchExamTrack(track) {
+  if (track === _examTrack) return;
+  _examTrack = track;
+  _expandedExamTopicIds = new Set();
+  renderExamTab();
+}
+
+async function loadAndRenderExamTopicsList() {
+  const listBox = document.getElementById('examTopicsList');
+  if (!listBox) return;
+  listBox.innerHTML = `<div class="log-empty"><span class="spinner"></span></div>`;
+  try {
+    const topics = await loadExamTopics(_examTrack, true);
+    const counts = await Promise.all(topics.map(t => loadExamTopicWords(t.id).then(w => w.length).catch(() => 0)));
+    _examTopicsAdminCache = topics.map((t, i) => ({ topic: t, wordCount: counts[i] }));
+  } catch (e) {
+    listBox.innerHTML = `
+      <div class="log-empty">
+        ⚠ Mavzularni yuklab bo'lmadi.<br/>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f87171;">${escapeHtmlGlobal(e.message || e.code || String(e))}</span>
+        <br/><br/><button class="abtn-primary" onclick="loadAndRenderExamTopicsList()">Qayta urinish</button>
+      </div>`;
+    return;
+  }
+  renderExamTopicsList();
+}
+
+function renderExamTopicsList() {
+  const listBox = document.getElementById('examTopicsList');
+  if (!listBox) return;
+
+  if (!_examTopicsAdminCache.length) {
+    listBox.innerHTML = `<div class="log-empty">Bu bo'limda hali mavzu yo'q — yuqoridan birinchi mavzuni oching.</div>`;
+    return;
+  }
+
+  listBox.innerHTML = _examTopicsAdminCache.map(({ topic, wordCount }) => {
+    const expanded = _expandedExamTopicIds.has(topic.id);
+    return `
+    <div class="student-card ${expanded ? 'expanded' : ''}" id="etcard-${topic.id}">
+      <div class="student-header" onclick="toggleExamTopicCard('${topic.id}')">
+        <div class="student-avatar">📖</div>
+        <div class="student-info">
+          <div class="student-email">${escapeHtmlGlobal(topic.name)}</div>
+          <div class="student-meta">${_examTrack.toUpperCase()} mavzusi</div>
+        </div>
+        <div class="student-summary">
+          <div class="stat-pill">
+            <span class="stat-pill-val">${wordCount}</span>
+            <span class="stat-pill-lbl">So'z</span>
+          </div>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="student-details" id="etdetails-${topic.id}">
+        <div class="log-empty"><span class="spinner"></span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  _expandedExamTopicIds.forEach(id => {
+    if (_examTopicsAdminCache.some(c => c.topic.id === id)) loadAndRenderExamTopicWords(id);
+  });
+}
+
+function toggleExamTopicCard(topicId) {
+  const card = document.getElementById('etcard-' + topicId);
+  if (!card) return;
+  const isNowExpanded = !card.classList.contains('expanded');
+  card.classList.toggle('expanded');
+  if (isNowExpanded) {
+    _expandedExamTopicIds.add(topicId);
+    loadAndRenderExamTopicWords(topicId);
+  } else {
+    _expandedExamTopicIds.delete(topicId);
+  }
+}
+
+async function loadAndRenderExamTopicWords(topicId) {
+  const details = document.getElementById('etdetails-' + topicId);
+  if (!details) return;
+  try {
+    delete _examWordsCache[topicId]; // admin panelida doim eng yangisini ko'rsatamiz
+    const words = await loadExamTopicWords(topicId);
+    _examWordsAdminCache[topicId] = words;
+  } catch (e) {
+    details.innerHTML = `<div class="log-empty">⚠ So'zlarni yuklab bo'lmadi: ${escapeHtmlGlobal(e.message || String(e))}</div>`;
+    return;
+  }
+  renderExamTopicWordsPanel(topicId);
+}
+
+function renderExamTopicWordsPanel(topicId) {
+  const details = document.getElementById('etdetails-' + topicId);
+  if (!details) return;
+  const words = _examWordsAdminCache[topicId] || [];
+  const safeId = topicId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const cacheEntry = _examTopicsAdminCache.find(c => c.topic.id === topicId);
+  const topicName = cacheEntry ? cacheEntry.topic.name : topicId;
+
+  details.innerHTML = `
+    <div class="afield" style="margin-bottom:14px">
+      <label>Bitta so'z / ibora qo'shish</label>
+      <div class="aform-grid" style="margin-top:6px">
+        <input type="text" id="ewEn_${safeId}" placeholder="Inglizcha (masalan: nevertheless)"/>
+        <input type="text" id="ewUz_${safeId}" placeholder="Tarjima / ta'rif (masalan: shunga qaramay)"/>
+      </div>
+      <div class="aform-grid" style="margin-top:8px">
+        <input type="text" id="ewIpa_${safeId}" placeholder="Talaffuz / IPA (ixtiyoriy)"/>
+      </div>
+
+      <div style="margin-top:10px">
+        <label style="display:block; font-size:12.5px; margin-bottom:6px; color:var(--text-muted,#999)">
+          Misol gap / izoh (ixtiyoriy) — matnni belgilab, formatlashingiz mumkin:
+        </label>
+        <div class="richbar" style="display:flex; gap:6px; margin-bottom:6px;">
+          <button type="button" class="abtn-secondary" style="padding:4px 12px; font-weight:900;" onclick="richExec('bold','${safeId}')" title="Qalin">B</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px; font-style:italic;" onclick="richExec('italic','${safeId}')" title="Qiyshiq">I</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px; text-decoration:underline;" onclick="richExec('underline','${safeId}')" title="Tagiga chiziq">U</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px;" onclick="richCase('upper','${safeId}')" title="BOSH HARFLAR">AA</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px;" onclick="richCase('lower','${safeId}')" title="kichik harflar">aa</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px;" onclick="richCase('capitalize','${safeId}')" title="Har Bir So'z Bosh Harf">Aa</button>
+          <button type="button" class="abtn-secondary" style="padding:4px 12px;" onclick="richClear('${safeId}')" title="Formatni tozalash">⌫</button>
+        </div>
+        <div id="ewEx_${safeId}" class="rich-editable" contenteditable="true" placeholder="Masalan: <b>Nevertheless</b>, she decided to continue."
+          style="min-height:64px; border:2px solid #2a2835; border-radius:10px; padding:10px 12px; font-size:14px; background:var(--input-bg,#15131c); color:inherit; outline:none;"></div>
+      </div>
+
+      <div id="ewErr_${safeId}" style="display:none; color:#f87171; font-size:12.5px; margin-top:6px;"></div>
+      <button class="abtn-primary" style="margin-top:10px" onclick="handleAddExamWord('${topicId}')" id="ewBtn_${safeId}">So'z qo'shish</button>
+    </div>
+
+    <div class="afield" style="margin-bottom:14px; border-top:1px solid #2a2835; padding-top:14px">
+      <label>Ko'p so'zni birdan qo'shish (nusxa-joylash)</label>
+      <div class="afield-hint" style="margin-bottom:8px">
+        Har bir qatorga bitta so'z, <code>|</code> belgisi bilan ajrating:<br/>
+        <code>inglizcha | tarjima/ta'rif | misol (ixtiyoriy) | IPA (ixtiyoriy)</code><br/>
+        Bu yerda oddiy HTML formatlash teglariga (<code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;u&gt;</code>) ham ruxsat beriladi.
+      </div>
+      <textarea id="ewBulk_${safeId}" rows="6" placeholder="nevertheless | shunga qaramay | <b>Nevertheless</b>, she smiled.
+consequently | natijada | ..."></textarea>
+      <div id="ewBulkMsg_${safeId}" style="display:none; font-size:12.5px; margin-top:6px;"></div>
+      <button class="abtn-secondary" style="margin-top:10px" onclick="handleBulkAddExamWords('${topicId}')" id="ewBulkBtn_${safeId}">Ro'yxatni qo'shish</button>
+    </div>
+
+    <div class="afield" style="display:flex; justify-content:space-between; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+      ${words.length ? `<button class="toggle-admin-btn take" onclick="handleClearExamTopicWords('${topicId}')" id="ewClearBtn_${safeId}">🗑 Barcha so'zlarni o'chirish (${words.length})</button>` : '<span></span>'}
+      <button class="toggle-admin-btn take" onclick="handleDeleteExamTopic('${topicId}', '${escapeAttr(topicName)}')">🗑 Mavzuni butunlay o'chirish</button>
+    </div>
+
+    ${words.length ? `
+      <div class="log-table-wrap" style="border:1px solid #2a2835 !important">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Inglizcha</th>
+              <th>Tarjima / ta'rif</th>
+              <th>IPA</th>
+              <th>Misol</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${words.map((w, i) => `
+              <tr>
+                <td class="log-time">${escapeHtmlGlobal(w.en || '')}</td>
+                <td class="log-time">${escapeHtmlGlobal(w.uz || '')}</td>
+                <td class="log-time">${escapeHtmlGlobal(w.ipa || '')}</td>
+                <td class="log-time">${w.example || ''}</td>
+                <td><button class="toggle-admin-btn take" onclick="handleDeleteExamWord('${topicId}', ${i})">O'chirish</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : `<div class="log-empty">Bu mavzuda hali so'z yo'q.</div>`}
+  `;
+}
+
+// ── Word-processor uslubidagi mini formatlash asboblari ──
+// contenteditable ustida ishlaydi: execCommand hali ham barcha zamonaviy
+// brauzerlarda oddiy bold/italic/underline uchun yaxshi ishlaydi.
+function richExec(cmd, safeId) {
+  const el = document.getElementById(`ewEx_${safeId}`);
+  if (!el) return;
+  el.focus();
+  document.execCommand(cmd, false, null);
+}
+
+// Belgilangan matnni katta/kichik/har-bir-so'z-bosh-harf qilib almashtiradi.
+// Hech narsa belgilanmagan bo'lsa — butun matnga qo'llanadi.
+function richCase(type, safeId) {
+  const el = document.getElementById(`ewEx_${safeId}`);
+  if (!el) return;
+  el.focus();
+  const transform = (s) => {
+    if (type === 'upper') return s.toUpperCase();
+    if (type === 'lower') return s.toLowerCase();
+    return s.replace(/\b\w/g, c => c.toUpperCase());
+  };
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount && !sel.isCollapsed && el.contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0);
+    const text = range.toString();
+    range.deleteContents();
+    range.insertNode(document.createTextNode(transform(text)));
+    sel.removeAllRanges();
+  } else {
+    el.textContent = transform(el.textContent);
+  }
+}
+
+function richClear(safeId) {
+  const el = document.getElementById(`ewEx_${safeId}`);
+  if (!el) return;
+  el.textContent = el.textContent; // barcha teglarni olib tashlab, faqat matnni qoldiradi
+}
+
+function escapeAttr(str) {
+  return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+async function handleCreateExamTopic() {
+  const nameInput = document.getElementById('newExamTopicName');
+  const errBox = document.getElementById('newExamTopicError');
+  const btn = document.getElementById('createExamTopicBtn');
+  errBox.style.display = 'none';
+
+  const name = nameInput.value.trim();
+  if (!name) {
+    errBox.textContent = 'Mavzu nomini kiriting';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Ochilmoqda...';
+  try {
+    await createExamTopic(_examTrack, name);
+    nameInput.value = '';
+    await loadAndRenderExamTopicsList();
+  } catch (e) {
+    errBox.textContent = e.message || e.code || String(e);
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Mavzu ochish';
+  }
+}
+
+async function handleAddExamWord(topicId) {
+  const safeId = topicId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const en = document.getElementById(`ewEn_${safeId}`).value;
+  const uz = document.getElementById(`ewUz_${safeId}`).value;
+  const ipa = document.getElementById(`ewIpa_${safeId}`).value;
+  const exampleEl = document.getElementById(`ewEx_${safeId}`);
+  const example = exampleEl ? exampleEl.innerHTML : '';
+  const errBox = document.getElementById(`ewErr_${safeId}`);
+  const btn = document.getElementById(`ewBtn_${safeId}`);
+  errBox.style.display = 'none';
+
+  btn.disabled = true;
+  btn.textContent = "Qo'shilmoqda...";
+  try {
+    await addWordToExamTopic(topicId, { en, uz, ipa, example });
+    const words = await loadExamTopicWords(topicId);
+    _examWordsAdminCache[topicId] = words;
+    const cacheEntry = _examTopicsAdminCache.find(c => c.topic.id === topicId);
+    if (cacheEntry) cacheEntry.wordCount = words.length;
+    renderExamTopicWordsPanel(topicId);
+    renderExamTopicsList();
+  } catch (e) {
+    errBox.textContent = e.message || e.code || String(e);
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = "So'z qo'shish";
+  }
+}
+
+async function handleBulkAddExamWords(topicId) {
+  const safeId = topicId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const textarea = document.getElementById(`ewBulk_${safeId}`);
+  const msgBox = document.getElementById(`ewBulkMsg_${safeId}`);
+  const btn = document.getElementById(`ewBulkBtn_${safeId}`);
+  msgBox.style.display = 'none';
+
+  const parsed = parseBulkWordsText(textarea.value);
+  if (!parsed.length) {
+    msgBox.style.color = '#f87171';
+    msgBox.textContent = "Hech qanday so'z topilmadi — formatni tekshiring.";
+    msgBox.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Qo'shilmoqda...";
+  try {
+    const { added, skipped } = await addWordsToExamTopic(topicId, parsed);
+    const words = await loadExamTopicWords(topicId);
+    _examWordsAdminCache[topicId] = words;
+    const cacheEntry = _examTopicsAdminCache.find(c => c.topic.id === topicId);
+    if (cacheEntry) cacheEntry.wordCount = words.length;
+
+    if (added.length) textarea.value = '';
+    msgBox.style.color = added.length ? '#17D67C' : '#f87171';
+    msgBox.textContent = `${added.length} ta so'z qo'shildi` +
+      (skipped.length ? `, ${skipped.length} tasi o'tkazib yuborildi (${skipped.slice(0, 5).map(s => escapeHtmlGlobal(s.word.en || '?')).join(', ')}${skipped.length > 5 ? '...' : ''})` : '.');
+    msgBox.style.display = 'block';
+
+    renderExamTopicWordsPanel(topicId);
+    renderExamTopicsList();
+  } catch (e) {
+    msgBox.style.color = '#f87171';
+    msgBox.textContent = e.message || e.code || String(e);
+    msgBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Ro'yxatni qo'shish";
+  }
+}
+
+async function handleDeleteExamWord(topicId, idx) {
+  const words = _examWordsAdminCache[topicId] || [];
+  const word = words[idx];
+  if (!word) return;
+  if (!confirm(`"${word.en}" so'zini o'chirmoqchimisiz?`)) return;
+  try {
+    await removeWordFromExamTopic(topicId, word);
+    const freshWords = await loadExamTopicWords(topicId);
+    _examWordsAdminCache[topicId] = freshWords;
+    const cacheEntry = _examTopicsAdminCache.find(c => c.topic.id === topicId);
+    if (cacheEntry) cacheEntry.wordCount = freshWords.length;
+    renderExamTopicWordsPanel(topicId);
+    renderExamTopicsList();
+  } catch (e) {
+    alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
+  }
+}
+
+async function handleClearExamTopicWords(topicId) {
+  const words = _examWordsAdminCache[topicId] || [];
+  if (!words.length) return;
+  if (!confirm(`Bu mavzudagi BARCHA ${words.length} ta so'zni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`)) return;
+  try {
+    await clearExamTopicWords(topicId);
+    const freshWords = await loadExamTopicWords(topicId);
+    _examWordsAdminCache[topicId] = freshWords;
+    const cacheEntry = _examTopicsAdminCache.find(c => c.topic.id === topicId);
+    if (cacheEntry) cacheEntry.wordCount = freshWords.length;
+    renderExamTopicWordsPanel(topicId);
+    renderExamTopicsList();
+  } catch (e) {
+    alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
+  }
+}
+
+async function handleDeleteExamTopic(topicId, topicName) {
+  if (!confirm(`"${topicName}" mavzusini BUTUNLAY o'chirmoqchimisiz? Undagi barcha so'zlar ham o'chadi. Bu amalni ortga qaytarib bo'lmaydi.`)) return;
+  try {
+    _expandedExamTopicIds.delete(topicId);
+    await deleteExamTopic(_examTrack, topicId);
+    await loadAndRenderExamTopicsList();
+  } catch (e) {
+    alert("O'chirishda xatolik: " + (e.message || e.code || String(e)));
   }
 }
 
